@@ -55,6 +55,12 @@ import type {
   AcademySkillSuggestions,
   AcademyStudentFile,
   AcademyStudentFileInput,
+  AcademyStudentFileQuizAttemptSummary,
+  AcademyStudentFileQuizResult,
+  AcademyStudentQuizSubmit,
+  AcademyStudyGuide,
+  AcademyStudyGuideEnvelope,
+  AcademyStudyGuideInput,
   AcademySubjectDetail,
   AcademySubjectInput,
   AcademySubjectSummary,
@@ -8706,6 +8712,386 @@ export const useGenerateAcademyFileQuiz = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getGenerateAcademyFileQuizMutationOptions(options), queryClient);
+    }
+
+export const getGetAcademyFileStudyGuideUrl = (fileId: string,) => {
+
+
+
+
+  return `/api/academy/files/${fileId}/study-guide`
+}
+
+/**
+ * @summary Get the current student's saved study guide for a private file
+ */
+export const getAcademyFileStudyGuide = async (fileId: string, options?: Parameters<typeof customFetch>[1]): Promise<AcademyStudyGuideEnvelope> => {
+
+  return customFetch<AcademyStudyGuideEnvelope>(getGetAcademyFileStudyGuideUrl(fileId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAcademyFileStudyGuideQueryKey = (fileId: string,) => {
+    return [
+    `/api/academy/files/${fileId}/study-guide`
+    ] as const;
+    }
+
+
+export const getGetAcademyFileStudyGuideQueryOptions = <TData = Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError = ErrorType<void>>(fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAcademyFileStudyGuideQueryKey(fileId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>> = ({ signal }) => getAcademyFileStudyGuide(fileId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: fileId !== null && fileId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAcademyFileStudyGuideQueryResult = NonNullable<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>>
+export type GetAcademyFileStudyGuideQueryError = ErrorType<void>
+
+
+export function useGetAcademyFileStudyGuide<TData = Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError = ErrorType<void>>(
+ fileId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAcademyFileStudyGuide>>,
+          TError,
+          Awaited<ReturnType<typeof getAcademyFileStudyGuide>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAcademyFileStudyGuide<TData = Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAcademyFileStudyGuide>>,
+          TError,
+          Awaited<ReturnType<typeof getAcademyFileStudyGuide>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAcademyFileStudyGuide<TData = Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the current student's saved study guide for a private file
+ */
+
+export function useGetAcademyFileStudyGuide<TData = Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAcademyFileStudyGuide>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAcademyFileStudyGuideQueryOptions(fileId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGenerateAcademyFileStudyGuideUrl = (fileId: string,) => {
+
+
+
+
+  return `/api/academy/files/${fileId}/study-guide`
+}
+
+/**
+ * @summary Generate and save a source-grounded study guide from a private file
+ */
+export const generateAcademyFileStudyGuide = async (fileId: string,
+    academyStudyGuideInput: AcademyStudyGuideInput, options?: Parameters<typeof customFetch>[1]): Promise<AcademyStudyGuide> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AcademyStudyGuide>(getGenerateAcademyFileStudyGuideUrl(fileId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(academyStudyGuideInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateAcademyFileStudyGuideMutationKey = () => ['generateAcademyFileStudyGuide'] as const;
+
+export const getGenerateAcademyFileStudyGuideMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>, TError,GenerateAcademyFileStudyGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>, TError,GenerateAcademyFileStudyGuideMutationVariables, TContext> => {
+
+const mutationKey = getGenerateAcademyFileStudyGuideMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>, GenerateAcademyFileStudyGuideMutationVariables> = (props) => {
+          const {fileId,data} = props ?? {};
+
+          return  generateAcademyFileStudyGuide(fileId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateAcademyFileStudyGuideMutationResult = NonNullable<Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>>
+    export type GenerateAcademyFileStudyGuideMutationBody = BodyType<AcademyStudyGuideInput>
+    export type GenerateAcademyFileStudyGuideMutationError = ErrorType<void>
+    export type GenerateAcademyFileStudyGuideMutationVariables = {fileId: string;data: BodyType<AcademyStudyGuideInput>}
+
+    /**
+ * @summary Generate and save a source-grounded study guide from a private file
+ */
+export const useGenerateAcademyFileStudyGuide = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>, TError,GenerateAcademyFileStudyGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateAcademyFileStudyGuide>>,
+        TError,
+        GenerateAcademyFileStudyGuideMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateAcademyFileStudyGuideMutationOptions(options), queryClient);
+    }
+
+export const getListAcademyFileQuizAttemptsUrl = (fileId: string,) => {
+
+
+
+
+  return `/api/academy/files/${fileId}/quiz-attempts`
+}
+
+/**
+ * @summary List the current student's private practice results for a file
+ */
+export const listAcademyFileQuizAttempts = async (fileId: string, options?: Parameters<typeof customFetch>[1]): Promise<AcademyStudentFileQuizAttemptSummary[]> => {
+
+  return customFetch<AcademyStudentFileQuizAttemptSummary[]>(getListAcademyFileQuizAttemptsUrl(fileId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAcademyFileQuizAttemptsQueryKey = (fileId: string,) => {
+    return [
+    `/api/academy/files/${fileId}/quiz-attempts`
+    ] as const;
+    }
+
+
+export const getListAcademyFileQuizAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError = ErrorType<void>>(fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAcademyFileQuizAttemptsQueryKey(fileId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>> = ({ signal }) => listAcademyFileQuizAttempts(fileId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: fileId !== null && fileId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAcademyFileQuizAttemptsQueryResult = NonNullable<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>>
+export type ListAcademyFileQuizAttemptsQueryError = ErrorType<void>
+
+
+export function useListAcademyFileQuizAttempts<TData = Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError = ErrorType<void>>(
+ fileId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>,
+          TError,
+          Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAcademyFileQuizAttempts<TData = Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>,
+          TError,
+          Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAcademyFileQuizAttempts<TData = Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the current student's private practice results for a file
+ */
+
+export function useListAcademyFileQuizAttempts<TData = Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError = ErrorType<void>>(
+ fileId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAcademyFileQuizAttempts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAcademyFileQuizAttemptsQueryOptions(fileId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSubmitAcademyFileQuizUrl = (quizId: string,) => {
+
+
+
+
+  return `/api/academy/quizzes/${quizId}/submit`
+}
+
+/**
+ * @summary Grade a private practice quiz on the server and save the result
+ */
+export const submitAcademyFileQuiz = async (quizId: string,
+    academyStudentQuizSubmit: AcademyStudentQuizSubmit, options?: Parameters<typeof customFetch>[1]): Promise<AcademyStudentFileQuizResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AcademyStudentFileQuizResult>(getSubmitAcademyFileQuizUrl(quizId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(academyStudentQuizSubmit)
+  }
+);}
+
+
+
+
+
+export const getSubmitAcademyFileQuizMutationKey = () => ['submitAcademyFileQuiz'] as const;
+
+export const getSubmitAcademyFileQuizMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAcademyFileQuiz>>, TError,SubmitAcademyFileQuizMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitAcademyFileQuiz>>, TError,SubmitAcademyFileQuizMutationVariables, TContext> => {
+
+const mutationKey = getSubmitAcademyFileQuizMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAcademyFileQuiz>>, SubmitAcademyFileQuizMutationVariables> = (props) => {
+          const {quizId,data} = props ?? {};
+
+          return  submitAcademyFileQuiz(quizId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitAcademyFileQuizMutationResult = NonNullable<Awaited<ReturnType<typeof submitAcademyFileQuiz>>>
+    export type SubmitAcademyFileQuizMutationBody = BodyType<AcademyStudentQuizSubmit>
+    export type SubmitAcademyFileQuizMutationError = ErrorType<void>
+    export type SubmitAcademyFileQuizMutationVariables = {quizId: string;data: BodyType<AcademyStudentQuizSubmit>}
+
+    /**
+ * @summary Grade a private practice quiz on the server and save the result
+ */
+export const useSubmitAcademyFileQuiz = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAcademyFileQuiz>>, TError,SubmitAcademyFileQuizMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitAcademyFileQuiz>>,
+        TError,
+        SubmitAcademyFileQuizMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitAcademyFileQuizMutationOptions(options), queryClient);
     }
 
 export const getSearchAcademyUrl = (params: SearchAcademyParams,) => {

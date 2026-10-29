@@ -27,6 +27,7 @@ export * from "./platform-sections";
 export * from "./platform-media";
 export * from "./ads";
 export * from "./academy";
+export * from "./academy-study";
 export * from "./language-learning";
 export * from "./language-admin";
 export * from "./graduates";

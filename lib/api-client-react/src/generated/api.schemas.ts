@@ -2294,7 +2294,7 @@ export interface AcademyStudentFileInput {
 
 export interface AcademyFileQuizInput {
   /**
-     * @minimum 10
+     * @minimum 5
      * @maximum 20
      */
   questionCount: number;
@@ -2324,19 +2324,294 @@ export interface AcademyGeneratedFileQuizQuestion {
      * @maxLength 1500
      */
   explanation: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  topic: string;
 }
 
-export interface AcademyGeneratedFileQuiz {
+export interface AcademyGeneratedFileQuizDraft {
   /**
      * @minLength 1
      * @maxLength 160
      */
   title: string;
   /**
-     * @minItems 10
+     * @minItems 5
      * @maxItems 20
      */
   questions: AcademyGeneratedFileQuizQuestion[];
+}
+
+export interface AcademyStudentQuizQuestion {
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  question: string;
+  /**
+     * @minItems 4
+     * @maxItems 4
+     * @items.minLength 1
+     * @items.maxLength 500
+     */
+  options: string[];
+}
+
+export interface AcademyGeneratedFileQuiz {
+  quizId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minItems 5
+     * @maxItems 20
+     */
+  questions: AcademyStudentQuizQuestion[];
+}
+
+export interface AcademyStudyGuideInput {
+  allowOpenAi: boolean;
+}
+
+export type AcademyStudyGuideDraftKeyPointsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  heading: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  detail: string;
+};
+
+export type AcademyStudyGuideDraftTermsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  term: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  meaning: string;
+};
+
+export type AcademyStudyGuideDraftReviewQuestionsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  question: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  answer: string;
+};
+
+export interface AcademyStudyGuideDraft {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  overview: string;
+  /**
+     * @minItems 3
+     * @maxItems 12
+     */
+  keyPoints: AcademyStudyGuideDraftKeyPointsItem[];
+  /** @maxItems 12 */
+  terms: AcademyStudyGuideDraftTermsItem[];
+  /**
+     * @minItems 3
+     * @maxItems 8
+     */
+  reviewQuestions: AcademyStudyGuideDraftReviewQuestionsItem[];
+}
+
+export type AcademyStudyGuideKeyPointsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  heading: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  detail: string;
+};
+
+export type AcademyStudyGuideTermsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  term: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  meaning: string;
+};
+
+export type AcademyStudyGuideReviewQuestionsItem = {
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  question: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  answer: string;
+};
+
+export interface AcademyStudyGuide {
+  fileId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  overview: string;
+  /**
+     * @minItems 3
+     * @maxItems 12
+     */
+  keyPoints: AcademyStudyGuideKeyPointsItem[];
+  /** @maxItems 12 */
+  terms: AcademyStudyGuideTermsItem[];
+  /**
+     * @minItems 3
+     * @maxItems 8
+     */
+  reviewQuestions: AcademyStudyGuideReviewQuestionsItem[];
+  generatedAt: string;
+}
+
+export interface AcademyStudyGuideEnvelope {
+  guide: AcademyStudyGuide | null;
+}
+
+export type AcademyStudentQuizSubmitAnswersItem = {
+  questionId: string;
+  /**
+     * @minimum 0
+     * @maximum 3
+     */
+  selectedOption: number;
+};
+
+export interface AcademyStudentQuizSubmit {
+  /**
+     * @minItems 5
+     * @maxItems 20
+     */
+  answers: AcademyStudentQuizSubmitAnswersItem[];
+}
+
+export interface AcademyStudentQuizTopicResult {
+  topic: string;
+  /** @minimum 0 */
+  correctCount: number;
+  /** @minimum 1 */
+  questionCount: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  score: number;
+}
+
+export interface AcademyStudentQuizReview {
+  questionId: string;
+  question: string;
+  options: string[];
+  /**
+     * @minimum 0
+     * @maximum 3
+     * @nullable
+     */
+  selectedOption: number | null;
+  /**
+     * @minimum 0
+     * @maximum 3
+     */
+  correctIndex: number;
+  explanation: string;
+  topic: string;
+  isCorrect: boolean;
+}
+
+export type AcademyStudentFileQuizAttemptSummaryLevel = typeof AcademyStudentFileQuizAttemptSummaryLevel[keyof typeof AcademyStudentFileQuizAttemptSummaryLevel];
+
+
+export const AcademyStudentFileQuizAttemptSummaryLevel = {
+  needs_review: 'needs_review',
+  developing: 'developing',
+  proficient: 'proficient',
+  strong: 'strong',
+} as const;
+
+export interface AcademyStudentFileQuizAttemptSummary {
+  id: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  score: number;
+  /** @minimum 0 */
+  correctCount: number;
+  /** @minimum 1 */
+  questionCount: number;
+  level: AcademyStudentFileQuizAttemptSummaryLevel;
+  createdAt: string;
+}
+
+export type AcademyStudentFileQuizResultLevel = typeof AcademyStudentFileQuizResultLevel[keyof typeof AcademyStudentFileQuizResultLevel];
+
+
+export const AcademyStudentFileQuizResultLevel = {
+  needs_review: 'needs_review',
+  developing: 'developing',
+  proficient: 'proficient',
+  strong: 'strong',
+} as const;
+
+export interface AcademyStudentFileQuizResult {
+  id: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  score: number;
+  /** @minimum 0 */
+  correctCount: number;
+  /** @minimum 1 */
+  questionCount: number;
+  level: AcademyStudentFileQuizResultLevel;
+  topicResults: AcademyStudentQuizTopicResult[];
+  review: AcademyStudentQuizReview[];
+  createdAt: string;
 }
 
 export type AcademyCourseFileInputMime = typeof AcademyCourseFileInputMime[keyof typeof AcademyCourseFileInputMime];

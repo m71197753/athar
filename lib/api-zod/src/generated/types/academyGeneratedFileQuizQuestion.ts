@@ -29,4 +29,9 @@ export interface AcademyGeneratedFileQuizQuestion {
      * @maxLength 1500
      */
   explanation: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  topic: string;
 }

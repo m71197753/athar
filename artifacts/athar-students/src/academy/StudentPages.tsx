@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation, useRoute } from 'wouter';
 import {
   ArrowLeft, Award, BookOpen, Check, CheckCircle2, Clock3, Download, FileText, GraduationCap, Image as ImageIcon,
-  Lightbulb, LockKeyhole, Search, Send, ShieldCheck, Sparkles, Trash2, Upload,
+  Lightbulb, LockKeyhole, Search, Send, ShieldCheck, Sparkles, Trash2, Upload, Brain, NotebookPen,
 } from 'lucide-react';
 import {
   getGetCareerPlanQueryKey,
@@ -22,7 +22,7 @@ import type { AcademyAssistantResponse, AcademySearchSource, AcademyStudentFile,
 import './academy.css';
 import { CommunityCoursesPanel } from './CommunityCoursesPanel';
 import { RequiredMark } from '../components/RequiredMark';
-import { AcademyFileQuizBuilder } from './AcademyFileQuizBuilder';
+import { AcademyFileQuizBuilder, AcademyFileStudyGuide } from './AcademyFileStudyTools';
 
 function Head({ kicker = 'المذاكرة في أثر', title, detail, action }: { kicker?: string; title: string; detail: string; action?: React.ReactNode }) {
   return <header className="ac-head"><div><span className="ac-kicker">{kicker}</span><h1>{title}</h1><p>{detail}</p></div>{action}</header>;
@@ -52,7 +52,11 @@ export function AcademyPage() {
   if (subjects.isLoading) return <div className="academy"><Head title="تعلّم يصنع دليلاً" detail="مسار من المعرفة إلى مهارات تستطيع شرحها."/><Loading/></div>;
   if (subjects.isError || !subjects.data) return <div className="academy"><Head title="تعلّم يصنع دليلاً" detail="مسار من المعرفة إلى مهارات تستطيع شرحها."/><State title="تعذّر تحميل المواد" detail="حاول مرة أخرى بعد لحظات." retry={() => subjects.refetch()}/></div>;
   return <main className="academy">
-    <section className="ac-hero"><div><span className="ac-kicker">من التعلّم إلى أثر موثّق</span><h2>تعلّم. اختبر فهمك.<br/>واحتفظ بدليل نموّك.</h2><p>مواد منشورة، دروس مرتبطة بمصادرها، واختبارات تشرح لك ما أتقنته وما يستحق مراجعة أخرى.</p></div><div className="ac-hero-mark"><GraduationCap size={38}/></div></section>
+     <section className="ac-hero"><div><span className="ac-kicker">من التعلّم إلى أثر موثّق</span><h2>تعلّم. اختبر فهمك.<br/>واحتفظ بدليل نموّك.</h2><p>ارفع محاضراتك، أنشئ ملخصًا ذكيًا، واختبر فهمك بنتيجة خاصة تساعدك على معرفة ما يحتاج إلى مراجعة.</p><div className="ac-actions"><Link href="/academy/files" className="ac-button ac-button-primary"><Upload size={15}/> مكتبتي وأدوات المذاكرة</Link><Link href="/academy/assistant" className="ac-button"><Brain size={15}/> اسأل مساعد أثر</Link></div></div><div className="ac-hero-mark"><GraduationCap size={38}/></div></section>
+     <section className="ac-grid ac-study-entry-cards" aria-label="أدوات المذاكرة الذكية">
+       <Link href="/academy/files" className="ac-card ac-study-entry-card"><span className="ac-row-icon"><NotebookPen size={19}/></span><h3>ارفع محاضراتك</h3><p>اجمع ملفاتك التعليمية الخاصة في مكتبة واحدة، ثم أنشئ منها ملخصات واختبارات.</p><span className="ac-button">افتح مكتبتي <ArrowLeft size={14}/></span></Link>
+       <Link href="/academy/assistant" className="ac-card ac-study-entry-card"><span className="ac-row-icon"><Brain size={19}/></span><h3>اسأل مساعد أثر</h3><p>اسأل عن فكرة في محاضراتك، واحصل على إجابة مرتبطة بمقاطع من مصادرك.</p><span className="ac-button">اسأل سؤالًا <ArrowLeft size={14}/></span></Link>
+     </section>
     <section className="ac-panel" aria-label="البحث في المذاكرة">
       <form className="ac-form" role="search" onSubmit={(e: FormEvent) => { e.preventDefault(); if (search.trim()) navigate(`/academy/search?q=${encodeURIComponent(search.trim())}`); }}>
         <label className="ac-sr" htmlFor="academy-search">ابحث في موادك التعليمية</label><Search size={18}/>
@@ -268,26 +272,38 @@ export function AcademyFilesPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [quizFile, setQuizFile] = useState<AcademyStudentFile | null>(null);
+  const [guideFile, setGuideFile] = useState<AcademyStudentFile | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  async function upload(file?: File) {
-    if (!file) return;
-    const mime = studentFileMime(file.name);
-    if (!mime) { setMessage('الامتدادات المتاحة هي PDF وDOCX وTXT وJPG وPNG وWebP.'); return; }
-    if (file.size < 1 || file.size > 10 * 1024 * 1024) { setMessage('يجب ألا يتجاوز حجم الملف ١٠ م.ب.'); return; }
+  async function upload(files: File[]) {
+    if (!files.length) return;
     setBusy(true); setMessage('');
+    let uploadedCount = 0;
+    const failures: string[] = [];
     try {
-      const signed = await request.mutateAsync({ data: { originalName: file.name, mime, size: file.size } });
-      const put = await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'Content-Type': mime }, body: file });
-      if (!put.ok) throw new Error('upload');
-      await confirm.mutateAsync({ fileId: signed.id });
-      await qc.invalidateQueries({ queryKey: getListAcademyFilesQueryKey() });
-      setMessage('تم رفع الملف وإضافته إلى مكتبتك الخاصة.');
-    } catch { setMessage('تعذّر رفع الملف أو تأكيده. يمكنك المحاولة مجدداً.'); }
-    finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
+      for (const file of files) {
+        const mime = studentFileMime(file.name);
+        if (!mime) { failures.push(`${file.name} (نوع غير مدعوم)`); continue; }
+        if (file.size < 1 || file.size > 10 * 1024 * 1024) { failures.push(`${file.name} (أكبر من ١٠ م.ب. أو فارغ)`); continue; }
+        try {
+          const signed = await request.mutateAsync({ data: { originalName: file.name.slice(0, 180), mime, size: file.size } });
+          const put = await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'Content-Type': mime }, body: file });
+          if (!put.ok) throw new Error('upload');
+          await confirm.mutateAsync({ fileId: signed.id });
+          uploadedCount += 1;
+        } catch {
+          failures.push(file.name);
+        }
+      }
+      if (uploadedCount) void qc.invalidateQueries({ queryKey: getListAcademyFilesQueryKey() });
+      const failureMessage = failures.length ? ` تعذّر رفع ${failures.length.toLocaleString('ar')}: ${failures.slice(0, 3).join('، ')}${failures.length > 3 ? '…' : ''}.` : '';
+      setMessage(uploadedCount
+        ? `أُضيف ${uploadedCount.toLocaleString('ar')} ملف${uploadedCount > 1 ? 'ات' : ''} إلى مكتبتك الخاصة.${failureMessage}`
+        : `لم يكتمل رفع الملفات.${failureMessage}`);
+    } finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
   }
-  return <main className="academy"><Head title="ملفاتي التعليمية" detail="ملفاتك خاصة بحسابك. ابحث في مستنداتك النصية، أو أنشئ اختبارًا تفاعليًا من ملف أو صورة." action={<button className="ac-button ac-button-primary" type="button" onClick={() => inputRef.current?.click()} disabled={busy}><Upload size={15}/>{busy ? 'جارٍ الرفع…' : 'أضف ملفاً'}</button>}/>
-    <input ref={inputRef} className="ac-sr" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp" onChange={e => void upload(e.target.files?.[0])}/>
-    <div className="ac-privacy"><LockKeyhole size={17}/><span>PDF وDOCX وTXT وصور JPG وPNG وWebP حتى ١٠ م.ب. ملفاتك لا يراها غيرك. البحث النصي للمستندات؛ وتوليد اختبار من أي ملف لا يبدأ إلا بموافقتك.</span></div>
+  return <main className="academy"><Head title="مكتبتك وأدوات المذاكرة" detail="ارفع محاضراتك، لخّصها، اختبر فهمك، وتابع تقدّمك التدريبي." action={<button className="ac-button ac-button-primary" type="button" onClick={() => inputRef.current?.click()} disabled={busy}><Upload size={15}/>{busy ? 'جارٍ رفع الملفات…' : 'أضف ملفات'}</button>}/>
+    <input ref={inputRef} className="ac-sr" type="file" multiple accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp" onChange={e => void upload(Array.from(e.target.files ?? []))}/>
+    <div className="ac-privacy"><LockKeyhole size={17}/><span>ارفع PDF أو DOCX أو TXT أو صور JPG وPNG وWebP حتى ١٠ م.ب. لكل ملف. ملفاتك خاصة بحسابك. لا يُرسل المحتوى إلى OpenAI للتلخيص أو الاختبار إلا بعد موافقتك، وتبقى نتائج التدريب خاصة ولا تُضاف إلى السيرة.</span></div>
     {message && <p role="status" className="ac-meta">{message}</p>}
     {q.isLoading ? <Loading/> : q.isError ? <State title="تعذّر تحميل ملفاتك" detail="أعد المحاولة بعد التحقق من الاتصال." retry={() => q.refetch()}/> : !q.data?.length ? <State title="مكتبتك فارغة" detail="أضف ملفاً تعليمياً للبحث في محتواه الخاص."/> :
       <ul className="ac-list" style={{ marginTop: 14 }}>{q.data.map((file: AcademyStudentFile) => <li className="ac-row ac-file-row" key={file.id}>
@@ -296,10 +312,12 @@ export function AcademyFilesPage() {
         {file.mime.startsWith('image/') && <a className="ac-file-thumb" href={`/api/academy/files/${encodeURIComponent(file.id)}/preview`} target="_blank" rel="noreferrer" aria-label={`عرض ${file.originalName}`}><img src={`/api/academy/files/${encodeURIComponent(file.id)}/preview`} alt={file.originalName} loading="lazy"/></a>}
         <div className="ac-actions">
           <a className="ac-button" href={`/api/academy/files/${encodeURIComponent(file.id)}/download`}><Download size={14}/> تنزيل</a>
-          <button className="ac-button" type="button" onClick={() => setQuizFile(quizFile?.id === file.id ? null : file)}><Sparkles size={14}/>{quizFile?.id === file.id ? 'إغلاق الاختبار' : 'اختبار HTML'}</button>
-          <button className="ac-button ac-button-danger" type="button" aria-label={`حذف ${file.originalName}`} disabled={del.isPending} onClick={() => { if (window.confirm(`حذف الملف «${file.originalName}»؟ سيُحذف الملف ومحتواه القابل للبحث.`)) del.mutate({ fileId: file.id }, { onSuccess: () => { setQuizFile(null); qc.invalidateQueries({ queryKey: getListAcademyFilesQueryKey() }); }, onError: e => setMessage(errMessage(e)) }); }}><Trash2 size={14}/> حذف</button>
+          <button className="ac-button" type="button" onClick={() => setGuideFile(guideFile?.id === file.id ? null : file)}><FileText size={14}/>{guideFile?.id === file.id ? 'إغلاق الملخص' : 'ملخص ذكي'}</button>
+          <button className="ac-button" type="button" onClick={() => setQuizFile(quizFile?.id === file.id ? null : file)}><Sparkles size={14}/>{quizFile?.id === file.id ? 'إغلاق الاختبار' : 'اختبر مستواك'}</button>
+          <button className="ac-button ac-button-danger" type="button" aria-label={`حذف ${file.originalName}`} disabled={del.isPending} onClick={() => { if (window.confirm(`حذف الملف «${file.originalName}»؟ سيُحذف أيضًا الملخص وسجل الاختبارات الخاصان به.`)) del.mutate({ fileId: file.id }, { onSuccess: () => { setQuizFile(null); setGuideFile(null); qc.invalidateQueries({ queryKey: getListAcademyFilesQueryKey() }); }, onError: e => setMessage(errMessage(e)) }); }}><Trash2 size={14}/> حذف</button>
         </div>
-        {quizFile?.id === file.id && <AcademyFileQuizBuilder key={file.id} file={file} onClose={() => setQuizFile(null)}/>}
+        {guideFile?.id === file.id && <AcademyFileStudyGuide key={`guide-${file.id}`} file={file}/>}
+        {quizFile?.id === file.id && <AcademyFileQuizBuilder key={file.id} file={file}/>}
       </li>)}</ul>}
   </main>;
 }

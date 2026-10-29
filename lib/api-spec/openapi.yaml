@@ -1613,6 +1613,94 @@ paths:
         "502": { description: Quiz could not be generated or validated }
         "422": { description: Selected file has insufficient readable material }
         "401": { description: Authentication required }
+  /academy/files/{fileId}/study-guide:
+    get:
+      operationId: getAcademyFileStudyGuide
+      tags: [learning]
+      summary: Get the current student's saved study guide for a private file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Saved guide or an empty guide slot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyStudyGuideEnvelope" }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+    post:
+      operationId: generateAcademyFileStudyGuide
+      tags: [learning]
+      summary: Generate and save a source-grounded study guide from a private file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyStudyGuideInput" }
+      responses:
+        "200":
+          description: Saved study guide
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyStudyGuide" }
+        "400": { description: Invalid request or AI consent missing }
+        "404": { description: File not found }
+        "422": { description: Selected file has insufficient readable material }
+        "502": { description: Study guide could not be generated or validated }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}/quiz-attempts:
+    get:
+      operationId: listAcademyFileQuizAttempts
+      tags: [learning]
+      summary: List the current student's private practice results for a file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Private practice score history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AcademyStudentFileQuizAttemptSummary" }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/quizzes/{quizId}/submit:
+    post:
+      operationId: submitAcademyFileQuiz
+      tags: [learning]
+      summary: Grade a private practice quiz on the server and save the result
+      parameters:
+        - in: path
+          name: quizId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyStudentQuizSubmit" }
+      responses:
+        "200":
+          description: Graded practice result with a review of the answers
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyStudentFileQuizResult" }
+        "400": { description: Invalid or incomplete answers }
+        "404": { description: Quiz not found }
+        "409": { description: Quiz was already submitted }
+        "401": { description: Authentication required }
   /academy/search:
     get:
       operationId: searchAcademy
@@ -3532,9 +3620,9 @@ components:
       additionalProperties: false
       required: [questionCount, allowOpenAi]
       properties:
-        questionCount: { type: integer, minimum: 10, maximum: 20 }
+        questionCount: { type: integer, minimum: 5, maximum: 20 }
         allowOpenAi: { type: boolean }
-    AcademyGeneratedFileQuiz:
+    AcademyGeneratedFileQuizDraft:
       type: object
       additionalProperties: false
       required: [title, questions]
@@ -3542,13 +3630,25 @@ components:
         title: { type: string, minLength: 1, maxLength: 160 }
         questions:
           type: array
-          minItems: 10
+          minItems: 5
           maxItems: 20
           items: { $ref: "#/components/schemas/AcademyGeneratedFileQuizQuestion" }
+    AcademyGeneratedFileQuiz:
+      type: object
+      additionalProperties: false
+      required: [quizId, title, questions]
+      properties:
+        quizId: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 160 }
+        questions:
+          type: array
+          minItems: 5
+          maxItems: 20
+          items: { $ref: "#/components/schemas/AcademyStudentQuizQuestion" }
     AcademyGeneratedFileQuizQuestion:
       type: object
       additionalProperties: false
-      required: [question, options, correctIndex, explanation]
+      required: [question, options, correctIndex, explanation, topic]
       properties:
         question: { type: string, minLength: 1, maxLength: 1000 }
         options:
@@ -3558,6 +3658,173 @@ components:
           items: { type: string, minLength: 1, maxLength: 500 }
         correctIndex: { type: integer, minimum: 0, maximum: 3 }
         explanation: { type: string, minLength: 1, maxLength: 1500 }
+        topic: { type: string, minLength: 1, maxLength: 80 }
+    AcademyStudentQuizQuestion:
+      type: object
+      additionalProperties: false
+      required: [id, question, options]
+      properties:
+        id: { type: string, format: uuid }
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        options:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items: { type: string, minLength: 1, maxLength: 500 }
+    AcademyStudyGuideInput:
+      type: object
+      additionalProperties: false
+      required: [allowOpenAi]
+      properties:
+        allowOpenAi: { type: boolean }
+    AcademyStudyGuideDraft:
+      type: object
+      additionalProperties: false
+      required: [title, overview, keyPoints, terms, reviewQuestions]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        overview: { type: string, minLength: 1, maxLength: 2000 }
+        keyPoints:
+          type: array
+          minItems: 3
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [heading, detail]
+            properties:
+              heading: { type: string, minLength: 1, maxLength: 120 }
+              detail: { type: string, minLength: 1, maxLength: 500 }
+        terms:
+          type: array
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [term, meaning]
+            properties:
+              term: { type: string, minLength: 1, maxLength: 100 }
+              meaning: { type: string, minLength: 1, maxLength: 300 }
+        reviewQuestions:
+          type: array
+          minItems: 3
+          maxItems: 8
+          items:
+            type: object
+            additionalProperties: false
+            required: [question, answer]
+            properties:
+              question: { type: string, minLength: 1, maxLength: 300 }
+              answer: { type: string, minLength: 1, maxLength: 500 }
+    AcademyStudyGuide:
+      type: object
+      additionalProperties: false
+      required: [fileId, title, overview, keyPoints, terms, reviewQuestions, generatedAt]
+      properties:
+        fileId: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 160 }
+        overview: { type: string, minLength: 1, maxLength: 2000 }
+        keyPoints:
+          type: array
+          minItems: 3
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [heading, detail]
+            properties:
+              heading: { type: string, minLength: 1, maxLength: 120 }
+              detail: { type: string, minLength: 1, maxLength: 500 }
+        terms:
+          type: array
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [term, meaning]
+            properties:
+              term: { type: string, minLength: 1, maxLength: 100 }
+              meaning: { type: string, minLength: 1, maxLength: 300 }
+        reviewQuestions:
+          type: array
+          minItems: 3
+          maxItems: 8
+          items:
+            type: object
+            additionalProperties: false
+            required: [question, answer]
+            properties:
+              question: { type: string, minLength: 1, maxLength: 300 }
+              answer: { type: string, minLength: 1, maxLength: 500 }
+        generatedAt: { type: string, format: date-time }
+    AcademyStudyGuideEnvelope:
+      type: object
+      additionalProperties: false
+      required: [guide]
+      properties:
+        guide: { oneOf: [{ $ref: "#/components/schemas/AcademyStudyGuide" }, { type: "null" }] }
+    AcademyStudentQuizSubmit:
+      type: object
+      additionalProperties: false
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 5
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required: [questionId, selectedOption]
+            properties:
+              questionId: { type: string, format: uuid }
+              selectedOption: { type: integer, minimum: 0, maximum: 3 }
+    AcademyStudentQuizTopicResult:
+      type: object
+      required: [topic, correctCount, questionCount, score]
+      properties:
+        topic: { type: string }
+        correctCount: { type: integer, minimum: 0 }
+        questionCount: { type: integer, minimum: 1 }
+        score: { type: integer, minimum: 0, maximum: 100 }
+    AcademyStudentQuizReview:
+      type: object
+      required: [questionId, question, options, selectedOption, correctIndex, explanation, topic, isCorrect]
+      properties:
+        questionId: { type: string, format: uuid }
+        question: { type: string }
+        options: { type: array, items: { type: string } }
+        selectedOption: { type: ["integer", "null"], minimum: 0, maximum: 3 }
+        correctIndex: { type: integer, minimum: 0, maximum: 3 }
+        explanation: { type: string }
+        topic: { type: string }
+        isCorrect: { type: boolean }
+    AcademyStudentFileQuizAttemptSummary:
+      type: object
+      required: [id, score, correctCount, questionCount, level, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        score: { type: integer, minimum: 0, maximum: 100 }
+        correctCount: { type: integer, minimum: 0 }
+        questionCount: { type: integer, minimum: 1 }
+        level: { type: string, enum: [needs_review, developing, proficient, strong] }
+        createdAt: { type: string, format: date-time }
+    AcademyStudentFileQuizResult:
+      type: object
+      required: [id, score, correctCount, questionCount, level, topicResults, review, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        score: { type: integer, minimum: 0, maximum: 100 }
+        correctCount: { type: integer, minimum: 0 }
+        questionCount: { type: integer, minimum: 1 }
+        level: { type: string, enum: [needs_review, developing, proficient, strong] }
+        topicResults:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyStudentQuizTopicResult" }
+        review:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyStudentQuizReview" }
+        createdAt: { type: string, format: date-time }
     AcademyCourseFileInput:
       type: object
       additionalProperties: false

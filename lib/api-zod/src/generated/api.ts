@@ -4009,7 +4009,7 @@ export const GenerateAcademyFileQuizParams = zod.object({
   "fileId": zod.coerce.string().uuid()
 })
 
-export const generateAcademyFileQuizBodyQuestionCountMin = 10;
+export const generateAcademyFileQuizBodyQuestionCountMin = 5;
 export const generateAcademyFileQuizBodyQuestionCountMax = 20;
 
 
@@ -4028,24 +4028,225 @@ export const generateAcademyFileQuizResponseQuestionsItemOptionsItemMax = 500;
 export const generateAcademyFileQuizResponseQuestionsItemOptionsMin = 4;
 export const generateAcademyFileQuizResponseQuestionsItemOptionsMax = 4;
 
-export const generateAcademyFileQuizResponseQuestionsItemCorrectIndexMin = 0;
-export const generateAcademyFileQuizResponseQuestionsItemCorrectIndexMax = 3;
-
-export const generateAcademyFileQuizResponseQuestionsItemExplanationMax = 1500;
-
-export const generateAcademyFileQuizResponseQuestionsMin = 10;
+export const generateAcademyFileQuizResponseQuestionsMin = 5;
 export const generateAcademyFileQuizResponseQuestionsMax = 20;
 
 
 
 export const GenerateAcademyFileQuizResponse = zod.object({
+  "quizId": zod.string().uuid(),
   "title": zod.string().min(1).max(generateAcademyFileQuizResponseTitleMax),
   "questions": zod.array(zod.object({
+  "id": zod.string().uuid(),
   "question": zod.string().min(1).max(generateAcademyFileQuizResponseQuestionsItemQuestionMax),
-  "options": zod.array(zod.string().min(1).max(generateAcademyFileQuizResponseQuestionsItemOptionsItemMax)).min(generateAcademyFileQuizResponseQuestionsItemOptionsMin).max(generateAcademyFileQuizResponseQuestionsItemOptionsMax),
-  "correctIndex": zod.number().int().min(generateAcademyFileQuizResponseQuestionsItemCorrectIndexMin).max(generateAcademyFileQuizResponseQuestionsItemCorrectIndexMax),
-  "explanation": zod.string().min(1).max(generateAcademyFileQuizResponseQuestionsItemExplanationMax)
+  "options": zod.array(zod.string().min(1).max(generateAcademyFileQuizResponseQuestionsItemOptionsItemMax)).min(generateAcademyFileQuizResponseQuestionsItemOptionsMin).max(generateAcademyFileQuizResponseQuestionsItemOptionsMax)
 })).min(generateAcademyFileQuizResponseQuestionsMin).max(generateAcademyFileQuizResponseQuestionsMax)
+})
+
+
+/**
+ * @summary Get the current student's saved study guide for a private file
+ */
+export const GetAcademyFileStudyGuideParams = zod.object({
+  "fileId": zod.coerce.string().uuid()
+})
+
+export const getAcademyFileStudyGuideResponseGuideOneTitleMax = 160;
+
+export const getAcademyFileStudyGuideResponseGuideOneOverviewMax = 2000;
+
+export const getAcademyFileStudyGuideResponseGuideOneKeyPointsItemHeadingMax = 120;
+
+export const getAcademyFileStudyGuideResponseGuideOneKeyPointsItemDetailMax = 500;
+
+export const getAcademyFileStudyGuideResponseGuideOneKeyPointsMin = 3;
+export const getAcademyFileStudyGuideResponseGuideOneKeyPointsMax = 12;
+
+export const getAcademyFileStudyGuideResponseGuideOneTermsItemTermMax = 100;
+
+export const getAcademyFileStudyGuideResponseGuideOneTermsItemMeaningMax = 300;
+
+export const getAcademyFileStudyGuideResponseGuideOneTermsMax = 12;
+
+export const getAcademyFileStudyGuideResponseGuideOneReviewQuestionsItemQuestionMax = 300;
+
+export const getAcademyFileStudyGuideResponseGuideOneReviewQuestionsItemAnswerMax = 500;
+
+export const getAcademyFileStudyGuideResponseGuideOneReviewQuestionsMin = 3;
+export const getAcademyFileStudyGuideResponseGuideOneReviewQuestionsMax = 8;
+
+
+
+export const GetAcademyFileStudyGuideResponse = zod.object({
+  "guide": zod.union([zod.object({
+  "fileId": zod.string().uuid(),
+  "title": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneTitleMax),
+  "overview": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneOverviewMax),
+  "keyPoints": zod.array(zod.object({
+  "heading": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneKeyPointsItemHeadingMax),
+  "detail": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneKeyPointsItemDetailMax)
+})).min(getAcademyFileStudyGuideResponseGuideOneKeyPointsMin).max(getAcademyFileStudyGuideResponseGuideOneKeyPointsMax),
+  "terms": zod.array(zod.object({
+  "term": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneTermsItemTermMax),
+  "meaning": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneTermsItemMeaningMax)
+})).max(getAcademyFileStudyGuideResponseGuideOneTermsMax),
+  "reviewQuestions": zod.array(zod.object({
+  "question": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneReviewQuestionsItemQuestionMax),
+  "answer": zod.string().min(1).max(getAcademyFileStudyGuideResponseGuideOneReviewQuestionsItemAnswerMax)
+})).min(getAcademyFileStudyGuideResponseGuideOneReviewQuestionsMin).max(getAcademyFileStudyGuideResponseGuideOneReviewQuestionsMax),
+  "generatedAt": zod.coerce.date()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Generate and save a source-grounded study guide from a private file
+ */
+export const GenerateAcademyFileStudyGuideParams = zod.object({
+  "fileId": zod.coerce.string().uuid()
+})
+
+export const GenerateAcademyFileStudyGuideBody = zod.object({
+  "allowOpenAi": zod.boolean()
+})
+
+export const generateAcademyFileStudyGuideResponseTitleMax = 160;
+
+export const generateAcademyFileStudyGuideResponseOverviewMax = 2000;
+
+export const generateAcademyFileStudyGuideResponseKeyPointsItemHeadingMax = 120;
+
+export const generateAcademyFileStudyGuideResponseKeyPointsItemDetailMax = 500;
+
+export const generateAcademyFileStudyGuideResponseKeyPointsMin = 3;
+export const generateAcademyFileStudyGuideResponseKeyPointsMax = 12;
+
+export const generateAcademyFileStudyGuideResponseTermsItemTermMax = 100;
+
+export const generateAcademyFileStudyGuideResponseTermsItemMeaningMax = 300;
+
+export const generateAcademyFileStudyGuideResponseTermsMax = 12;
+
+export const generateAcademyFileStudyGuideResponseReviewQuestionsItemQuestionMax = 300;
+
+export const generateAcademyFileStudyGuideResponseReviewQuestionsItemAnswerMax = 500;
+
+export const generateAcademyFileStudyGuideResponseReviewQuestionsMin = 3;
+export const generateAcademyFileStudyGuideResponseReviewQuestionsMax = 8;
+
+
+
+export const GenerateAcademyFileStudyGuideResponse = zod.object({
+  "fileId": zod.string().uuid(),
+  "title": zod.string().min(1).max(generateAcademyFileStudyGuideResponseTitleMax),
+  "overview": zod.string().min(1).max(generateAcademyFileStudyGuideResponseOverviewMax),
+  "keyPoints": zod.array(zod.object({
+  "heading": zod.string().min(1).max(generateAcademyFileStudyGuideResponseKeyPointsItemHeadingMax),
+  "detail": zod.string().min(1).max(generateAcademyFileStudyGuideResponseKeyPointsItemDetailMax)
+})).min(generateAcademyFileStudyGuideResponseKeyPointsMin).max(generateAcademyFileStudyGuideResponseKeyPointsMax),
+  "terms": zod.array(zod.object({
+  "term": zod.string().min(1).max(generateAcademyFileStudyGuideResponseTermsItemTermMax),
+  "meaning": zod.string().min(1).max(generateAcademyFileStudyGuideResponseTermsItemMeaningMax)
+})).max(generateAcademyFileStudyGuideResponseTermsMax),
+  "reviewQuestions": zod.array(zod.object({
+  "question": zod.string().min(1).max(generateAcademyFileStudyGuideResponseReviewQuestionsItemQuestionMax),
+  "answer": zod.string().min(1).max(generateAcademyFileStudyGuideResponseReviewQuestionsItemAnswerMax)
+})).min(generateAcademyFileStudyGuideResponseReviewQuestionsMin).max(generateAcademyFileStudyGuideResponseReviewQuestionsMax),
+  "generatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current student's private practice results for a file
+ */
+export const ListAcademyFileQuizAttemptsParams = zod.object({
+  "fileId": zod.coerce.string().uuid()
+})
+
+export const listAcademyFileQuizAttemptsResponseScoreMin = 0;
+export const listAcademyFileQuizAttemptsResponseScoreMax = 100;
+
+export const listAcademyFileQuizAttemptsResponseCorrectCountMin = 0;
+
+
+
+
+export const ListAcademyFileQuizAttemptsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "score": zod.number().int().min(listAcademyFileQuizAttemptsResponseScoreMin).max(listAcademyFileQuizAttemptsResponseScoreMax),
+  "correctCount": zod.number().int().min(listAcademyFileQuizAttemptsResponseCorrectCountMin),
+  "questionCount": zod.number().int().min(1),
+  "level": zod.enum(['needs_review', 'developing', 'proficient', 'strong']),
+  "createdAt": zod.coerce.date()
+})
+export const ListAcademyFileQuizAttemptsResponse = zod.array(ListAcademyFileQuizAttemptsResponseItem)
+
+
+/**
+ * @summary Grade a private practice quiz on the server and save the result
+ */
+export const SubmitAcademyFileQuizParams = zod.object({
+  "quizId": zod.coerce.string().uuid()
+})
+
+export const submitAcademyFileQuizBodyAnswersItemSelectedOptionMin = 0;
+export const submitAcademyFileQuizBodyAnswersItemSelectedOptionMax = 3;
+
+export const submitAcademyFileQuizBodyAnswersMin = 5;
+export const submitAcademyFileQuizBodyAnswersMax = 20;
+
+
+
+export const SubmitAcademyFileQuizBody = zod.object({
+  "answers": zod.array(zod.object({
+  "questionId": zod.string().uuid(),
+  "selectedOption": zod.number().int().min(submitAcademyFileQuizBodyAnswersItemSelectedOptionMin).max(submitAcademyFileQuizBodyAnswersItemSelectedOptionMax)
+})).min(submitAcademyFileQuizBodyAnswersMin).max(submitAcademyFileQuizBodyAnswersMax)
+})
+
+export const submitAcademyFileQuizResponseScoreMin = 0;
+export const submitAcademyFileQuizResponseScoreMax = 100;
+
+export const submitAcademyFileQuizResponseCorrectCountMin = 0;
+
+
+export const submitAcademyFileQuizResponseTopicResultsItemCorrectCountMin = 0;
+
+
+export const submitAcademyFileQuizResponseTopicResultsItemScoreMin = 0;
+export const submitAcademyFileQuizResponseTopicResultsItemScoreMax = 100;
+
+export const submitAcademyFileQuizResponseReviewItemSelectedOptionMin = 0;
+export const submitAcademyFileQuizResponseReviewItemSelectedOptionMax = 3;
+
+export const submitAcademyFileQuizResponseReviewItemCorrectIndexMin = 0;
+export const submitAcademyFileQuizResponseReviewItemCorrectIndexMax = 3;
+
+
+
+export const SubmitAcademyFileQuizResponse = zod.object({
+  "id": zod.string().uuid(),
+  "score": zod.number().int().min(submitAcademyFileQuizResponseScoreMin).max(submitAcademyFileQuizResponseScoreMax),
+  "correctCount": zod.number().int().min(submitAcademyFileQuizResponseCorrectCountMin),
+  "questionCount": zod.number().int().min(1),
+  "level": zod.enum(['needs_review', 'developing', 'proficient', 'strong']),
+  "topicResults": zod.array(zod.object({
+  "topic": zod.string(),
+  "correctCount": zod.number().int().min(submitAcademyFileQuizResponseTopicResultsItemCorrectCountMin),
+  "questionCount": zod.number().int().min(1),
+  "score": zod.number().int().min(submitAcademyFileQuizResponseTopicResultsItemScoreMin).max(submitAcademyFileQuizResponseTopicResultsItemScoreMax)
+})),
+  "review": zod.array(zod.object({
+  "questionId": zod.string().uuid(),
+  "question": zod.string(),
+  "options": zod.array(zod.string()),
+  "selectedOption": zod.number().int().min(submitAcademyFileQuizResponseReviewItemSelectedOptionMin).max(submitAcademyFileQuizResponseReviewItemSelectedOptionMax).nullable(),
+  "correctIndex": zod.number().int().min(submitAcademyFileQuizResponseReviewItemCorrectIndexMin).max(submitAcademyFileQuizResponseReviewItemCorrectIndexMax),
+  "explanation": zod.string(),
+  "topic": zod.string(),
+  "isCorrect": zod.boolean()
+})),
+  "createdAt": zod.coerce.date()
 })
 
 

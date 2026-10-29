@@ -8,7 +8,7 @@
 
 export interface AcademyFileQuizInput {
   /**
-     * @minimum 10
+     * @minimum 5
      * @maximum 20
      */
   questionCount: number;

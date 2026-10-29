@@ -135,4 +135,220 @@
 .ac-community-list li { border-radius:12px; }
 .dark .ac-hero { color:var(--athar-ink,#E8F0EC); background:#223E3C; }
 .dark .ac-hero p { color:#B9D0C8; }
+.ac-study-entry-card { display:flex; min-height:190px; flex-direction:column; align-items:flex-start; gap:9px; text-decoration:none; }
+.ac-study-entry-card h3 { margin:0; font-size:15px; }
+.ac-study-entry-card p { margin:0 0 5px; color:var(--ac-muted); font-size:11px; line-height:1.9; }
+.ac-study-entry-card .ac-button { margin-top:auto; }
+.ac-study-guide-content { display:grid; gap:16px; margin-top:14px; }
+.ac-study-overview { margin:0; padding:14px; border-inline-start:3px solid var(--ac-teal); border-radius:10px; background:var(--ac-bg); font-size:13px; line-height:2; }
+.ac-study-guide-section h4,.ac-study-history h4 { margin:0 0 9px; font-size:13px; }
+.ac-study-points,.ac-study-questions { display:grid; gap:8px; margin:0; padding:0 22px 0 0; }
+.ac-study-points li,.ac-study-questions li { padding-inline-start:4px; color:var(--ac-ink); font-size:12px; line-height:1.8; }
+.ac-study-points li b,.ac-study-points li span,.ac-study-questions li b,.ac-study-questions li span { display:block; }
+.ac-study-points li span,.ac-study-questions li span { margin-top:3px; color:var(--ac-muted); }
+.ac-study-terms { display:grid; gap:8px; margin:0; }
+.ac-study-terms div { display:grid; grid-template-columns:minmax(100px,.35fr) 1fr; gap:9px; padding:10px; border:1px solid var(--ac-line); border-radius:10px; font-size:11px; line-height:1.8; }
+.ac-study-terms dt { font-weight:800; }
+.ac-study-terms dd { margin:0; color:var(--ac-muted); }
+.ac-study-generated,.ac-ai-disclaimer { color:var(--ac-muted); font-size:10px; line-height:1.8; }
+.ac-ai-disclaimer { margin:10px 0 0; }
+.ac-file-quiz-question-list { display:grid; gap:10px; margin-top:12px; }
+.ac-file-quiz-question-list .ac-question h4 { margin:0 0 12px; font-size:13px; line-height:1.8; }
+.ac-option-selected { border-color:var(--ac-teal); background:var(--ac-soft); }
+.ac-study-result { display:grid; gap:16px; margin-top:16px; padding-top:16px; border-top:1px solid var(--ac-line); }
+.ac-study-score { display:grid; justify-items:center; gap:4px; padding:20px; border-radius:14px; background:var(--ac-bg); text-align:center; }
+.ac-study-score strong { color:var(--athar-primary,#4F46E5); font-size:clamp(34px,7vw,52px); line-height:1.2; }
+.ac-study-score b { font-size:16px; }
+.ac-study-score small { color:var(--ac-muted); font-size:11px; }
+.ac-study-topics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+.ac-study-topics div { display:grid; gap:4px; padding:11px; border:1px solid var(--ac-line); border-radius:11px; font-size:11px; }
+.ac-study-topics b { color:var(--athar-primary,#4F46E5); font-size:15px; }
+.ac-study-topics small { color:var(--ac-muted); }
+.ac-study-review { display:grid; gap:9px; }
+.ac-study-review-item { display:grid; gap:7px; padding:12px; border:1px solid var(--ac-line); border-radius:12px; }
+.ac-study-review-item.is-correct { border-inline-start:3px solid #26845a; }
+.ac-study-review-item.is-wrong { border-inline-start:3px solid #b8564b; }
+.ac-study-review-item p { margin:0; font-size:12px; font-weight:700; line-height:1.8; }
+.ac-study-review-item small,.ac-study-review-item>span { color:var(--ac-muted); font-size:11px; line-height:1.8; }
+.ac-study-history { margin-top:16px; padding-top:14px; border-top:1px solid var(--ac-line); }
+.ac-study-history ul { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+.ac-study-history li { display:flex; justify-content:space-between; gap:8px; padding:9px 10px; border-radius:9px; background:var(--ac-bg); font-size:10px; }
+.ac-study-history li span { color:var(--ac-muted); }
+.dark .ac-study-score strong,.dark .ac-study-topics b { color:#9be0d4; }
+@media(max-width:680px) {
+  .ac-study-entry-card { min-height:0; }
+  .ac-study-terms div { grid-template-columns:1fr; gap:3px; }
+  .ac-study-history li { flex-wrap:wrap; }
+  .ac-study-history li span:first-child { width:100%; }
+}
 .dark .ac-community-status.status-rejected { color:#E58E82; background:color-mix(in srgb,#E58E82 13%,var(--ac-card)); }
+
+/* أثر — study space */
+.academy {
+  --ac-ink:#243a38;
+  --ac-muted:#617875;
+  --ac-line:#d8e4dc;
+  --ac-card:#fffefa;
+  --ac-bg:#f1f5ef;
+  --ac-teal:#39736a;
+  --ac-soft:#e6f0e8;
+  --ac-gold:#aa8151;
+  width:min(100% - 40px, 1040px);
+  padding:24px 0 64px;
+  font-family:'IBM Plex Sans Arabic','Cairo',sans-serif;
+  line-height:1.75;
+}
+.dark .academy {
+  --ac-ink:#e6eee8;
+  --ac-muted:#a6b9b1;
+  --ac-line:#354b48;
+  --ac-card:#203431;
+  --ac-bg:#172a27;
+  --ac-teal:#8dc0aa;
+  --ac-soft:#29443d;
+  --ac-gold:#d0ad79;
+}
+.ac-head { align-items:center; margin:30px 0 17px; }
+.ac-head h1 { font-size:clamp(25px,4vw,36px); line-height:1.32; letter-spacing:-.045em; }
+.ac-head p { max-width:620px; font-size:13px; }
+.ac-kicker { display:inline-flex; align-items:center; gap:7px; font-size:11px; letter-spacing:.02em; }
+.ac-kicker::before { content:""; width:18px; height:1px; background:currentColor; }
+.ac-panel,.ac-card {
+  border-radius:18px;
+  box-shadow:0 7px 24px rgba(42,75,66,.045),0 1px 2px rgba(42,75,66,.04);
+}
+.ac-panel { padding:22px; margin:16px 0; }
+.ac-card { padding:20px; }
+.ac-grid { gap:15px; }
+.ac-card:hover { box-shadow:0 12px 28px rgba(42,75,66,.09); }
+.ac-button {
+  min-height:42px;
+  border-radius:12px;
+  font-size:12px;
+  transition:transform .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.ac-button:hover:not(:disabled) { box-shadow:0 5px 12px rgba(43,88,77,.09); }
+.ac-button-primary { box-shadow:0 5px 13px rgba(41,99,84,.16); }
+.ac-button-danger { color:#a34f48; background:#fff9f5; }
+.dark .ac-button-danger { color:#e5a49a; background:#382c2b; }
+.ac-form,.ac-form-stack,.ac-field { gap:12px; }
+.ac-input,.ac-field input,.ac-field textarea,.ac-field select {
+  min-height:44px;
+  border-radius:12px;
+  font-size:13px;
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.ac-field textarea { min-height:122px; }
+.ac-state { padding:48px 20px; border-radius:18px; }
+.ac-state > svg { color:var(--ac-teal); }
+.ac-state p { max-width:500px; }
+.ac-skeleton i { height:84px; border-radius:16px; }
+.ac-row { padding:15px; border-radius:15px; }
+.ac-row-icon { width:42px; height:42px; flex-basis:42px; border-radius:14px 14px 14px 5px; }
+.ac-row-copy b { font-size:13px; overflow-wrap:anywhere; }
+.ac-hero {
+  min-height:255px;
+  padding:clamp(24px,4vw,42px);
+  border:1px solid rgba(46,91,78,.08);
+  border-radius:24px;
+  color:#f5f4e8;
+  background:
+    radial-gradient(ellipse at 16% 115%,rgba(196,165,112,.24),transparent 43%),
+    linear-gradient(118deg,#315f57 0%,#3c7567 55%,#527e6b 100%);
+  box-shadow:0 16px 34px rgba(38,80,67,.12);
+}
+.ac-hero:before {
+  content:"أثر";
+  position:absolute;
+  left:8%;
+  bottom:-.26em;
+  color:rgba(245,244,232,.055);
+  font:800 clamp(130px,24vw,250px)/1 'Cairo',sans-serif;
+  letter-spacing:-.1em;
+  pointer-events:none;
+}
+.ac-hero:after {
+  width:330px; height:330px; left:-105px; top:-180px;
+  border-color:rgba(245,244,232,.2);
+  box-shadow:0 0 0 38px rgba(245,244,232,.045),0 0 0 76px rgba(245,244,232,.03),0 0 0 114px rgba(245,244,232,.02);
+}
+.ac-hero > div:first-child { position:relative; z-index:1; max-width:700px; }
+.ac-hero .ac-kicker { color:#d8c49c; }
+.ac-hero h2 { max-width:700px; font-size:clamp(27px,4.3vw,43px); line-height:1.45; letter-spacing:-.04em; }
+.ac-hero p { max-width:590px; color:#e0e9df; font-size:14px; }
+.ac-hero-mark { flex-basis:92px; width:92px; height:92px; color:#e4d2a5; border-color:rgba(228,210,165,.55); }
+.ac-actions { gap:9px; }
+.ac-hero .ac-button:not(.ac-button-primary) { color:#f5f4e8; border-color:rgba(245,244,232,.35); background:rgba(255,255,255,.08); }
+.ac-hero .ac-button-primary { color:#2a5149; background:#ead9b1; border-color:#ead9b1; box-shadow:none; }
+.ac-study-entry-cards { margin:16px 0 24px; }
+.ac-study-entry-card {
+  position:relative;
+  min-height:196px;
+  padding:22px;
+  overflow:hidden;
+  background:linear-gradient(145deg,var(--ac-card),color-mix(in srgb,var(--ac-soft) 34%,var(--ac-card)));
+}
+.ac-study-entry-card::after {
+  content:"";
+  position:absolute;
+  width:118px;height:118px;left:-54px;top:-58px;
+  border:1px solid color-mix(in srgb,var(--ac-teal) 18%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 16px color-mix(in srgb,var(--ac-teal) 4%,transparent),0 0 0 32px color-mix(in srgb,var(--ac-teal) 3%,transparent);
+  pointer-events:none;
+}
+.ac-study-entry-card .ac-row-icon { width:45px;height:45px;flex-basis:45px; }
+.ac-study-entry-card h3 { font-size:16px; }
+.ac-study-entry-card p { max-width:470px; font-size:12px; }
+.ac-study-entry-card .ac-button { position:relative; z-index:1; }
+.ac-privacy { border:1px solid color-mix(in srgb,var(--ac-teal) 13%,var(--ac-line)); border-radius:13px; }
+.ac-privacy input { width:17px;height:17px; flex:0 0 17px; }
+.ac-option { min-height:47px; align-items:center; border-radius:12px; transition:background-color .16s,border-color .16s; }
+.ac-option:hover { border-color:color-mix(in srgb,var(--ac-teal) 55%,var(--ac-line)); }
+.ac-option input { width:16px;height:16px; flex:0 0 16px; }
+.ac-question { padding:19px; border-radius:16px; }
+.ac-citation { border-radius:11px; text-decoration:none; }
+.ac-citation:hover { background:var(--ac-soft); }
+.ac-file-row { align-items:flex-start; }
+.ac-file-row > .ac-actions { justify-content:flex-start; }
+.ac-file-thumb { border-radius:12px; }
+.ac-file-quiz,.ac-file-study-guide { flex-basis:100%; margin-top:5px; padding:22px; border-radius:17px; background:color-mix(in srgb,var(--ac-bg) 70%,var(--ac-card)); }
+.ac-file-quiz-head { align-items:center; }
+.ac-file-quiz-head > svg { flex:0 0 auto; color:var(--ac-teal); width:42px;height:42px;padding:10px;border-radius:14px;background:var(--ac-soft); }
+.ac-file-quiz-head h3 { margin:5px 0; font-size:17px; }
+.ac-file-quiz-head p { max-width:600px; font-size:12px; }
+.ac-file-quiz-controls { margin:18px 0 12px; }
+.ac-study-guide-content { gap:19px; }
+.ac-study-overview { padding:17px; border-radius:12px; line-height:2.1; }
+.ac-study-points li,.ac-study-questions li { padding:10px 5px; }
+.ac-study-terms div { border-radius:12px; }
+.ac-study-score { border:1px solid var(--ac-line); background:linear-gradient(150deg,var(--ac-soft),var(--ac-bg)); }
+.ac-study-score strong,.ac-study-topics b { color:var(--ac-teal); }
+.ac-study-score strong { font-family:'Cairo',sans-serif; font-weight:800; }
+.ac-study-topics div,.ac-study-review-item { border-radius:13px; background:var(--ac-card); }
+.ac-study-history li { min-height:42px; align-items:center; padding:10px 13px; border:1px solid var(--ac-line); border-radius:11px; }
+.ac-ai-disclaimer { padding-inline-start:10px; border-inline-start:2px solid var(--ac-gold); }
+.ac-file-quiz-error { border:1px solid color-mix(in srgb,#b8564b 18%,var(--ac-line)); }
+.ac-answer { border:1px solid color-mix(in srgb,var(--ac-teal) 13%,var(--ac-line)); }
+.ac-progress { height:9px; }
+.academy :is(button,a,input,textarea,select):focus-visible { outline-offset:4px; }
+.academy :is(button,a):active:not(:disabled) { transform:translateY(1px); }
+.dark .ac-hero { color:#edf0df; background:linear-gradient(118deg,#213e39,#315d51 58%,#456c59); }
+.dark .ac-hero p { color:#d3e1d5; }
+.dark .ac-hero .ac-button-primary { color:#243c37; background:#d8c79f; border-color:#d8c79f; }
+@media(max-width:680px) {
+  .academy { width:min(100% - 28px,1040px); padding:14px 0 40px; }
+  .ac-head { margin-top:23px; }
+  .ac-hero { min-height:0; align-items:flex-start; padding:23px 20px; }
+  .ac-hero-mark { flex-basis:54px; width:54px;height:54px; }
+  .ac-hero-mark svg { width:25px; }
+  .ac-hero p { font-size:13px; }
+  .ac-hero .ac-actions { align-items:stretch; flex-direction:column; }
+  .ac-hero .ac-button { width:100%; }
+  .ac-panel { padding:17px; }
+  .ac-file-row > .ac-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
+  .ac-file-row > .ac-actions .ac-button { width:100%; padding-inline:7px; }
+  .ac-file-quiz,.ac-file-study-guide { padding:16px; }
+  .ac-form { flex-wrap:wrap; }
+  .ac-form .ac-input { flex:1 1 65%; }
+}

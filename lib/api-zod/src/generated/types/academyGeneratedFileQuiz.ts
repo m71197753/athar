@@ -5,17 +5,18 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { AcademyGeneratedFileQuizQuestion } from './academyGeneratedFileQuizQuestion';
+import type { AcademyStudentQuizQuestion } from './academyStudentQuizQuestion';
 
 export interface AcademyGeneratedFileQuiz {
+  quizId: string;
   /**
      * @minLength 1
      * @maxLength 160
      */
   title: string;
   /**
-     * @minItems 10
+     * @minItems 5
      * @maxItems 20
      */
-  questions: AcademyGeneratedFileQuizQuestion[];
+  questions: AcademyStudentQuizQuestion[];
 }
