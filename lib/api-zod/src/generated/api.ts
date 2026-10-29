@@ -1466,6 +1466,71 @@ export const CreateAdminLanguageContentResponse = zod.object({
 })
 
 
+export const importAdminLanguageContentBodyItemsItemSourceIdMax = 120;
+
+export const importAdminLanguageContentBodyItemsItemCategoryMax = 80;
+
+export const importAdminLanguageContentBodyItemsItemPartOfSpeechMax = 40;
+
+export const importAdminLanguageContentBodyItemsItemEnglishMax = 300;
+
+export const importAdminLanguageContentBodyItemsItemArabicMax = 300;
+
+export const importAdminLanguageContentBodyItemsItemPronunciationArabicMax = 200;
+
+export const importAdminLanguageContentBodyItemsItemExampleEnglishMax = 500;
+
+export const importAdminLanguageContentBodyItemsItemExampleArabicMax = 500;
+
+export const importAdminLanguageContentBodyItemsItemGrammarNoteMax = 600;
+
+export const importAdminLanguageContentBodyItemsItemDifficultyMax = 10;
+
+export const importAdminLanguageContentBodyItemsItemRelatedWordIdsItemMax = 120;
+
+export const importAdminLanguageContentBodyItemsItemRelatedWordIdsMax = 30;
+
+export const importAdminLanguageContentBodyItemsMax = 250;
+
+
+
+export const ImportAdminLanguageContentBody = zod.object({
+  "items": zod.array(zod.object({
+  "sourceId": zod.string().min(1).max(importAdminLanguageContentBodyItemsItemSourceIdMax).optional(),
+  "languageCode": zod.enum(['en', 'fr', 'es', 'de', 'tr']),
+  "level": zod.enum(['A1', 'A2', 'B1', 'B2']),
+  "kind": zod.enum(['word', 'sentence']),
+  "category": zod.string().min(1).max(importAdminLanguageContentBodyItemsItemCategoryMax),
+  "partOfSpeech": zod.string().max(importAdminLanguageContentBodyItemsItemPartOfSpeechMax).nullish(),
+  "english": zod.string().min(1).max(importAdminLanguageContentBodyItemsItemEnglishMax),
+  "arabic": zod.string().min(1).max(importAdminLanguageContentBodyItemsItemArabicMax),
+  "pronunciationArabic": zod.string().max(importAdminLanguageContentBodyItemsItemPronunciationArabicMax).nullish(),
+  "exampleEnglish": zod.string().max(importAdminLanguageContentBodyItemsItemExampleEnglishMax).nullish(),
+  "exampleArabic": zod.string().max(importAdminLanguageContentBodyItemsItemExampleArabicMax).nullish(),
+  "grammarNote": zod.string().max(importAdminLanguageContentBodyItemsItemGrammarNoteMax).nullish(),
+  "difficulty": zod.number().int().min(1).max(importAdminLanguageContentBodyItemsItemDifficultyMax),
+  "relatedWordIds": zod.array(zod.string().max(importAdminLanguageContentBodyItemsItemRelatedWordIdsItemMax)).max(importAdminLanguageContentBodyItemsItemRelatedWordIdsMax).optional()
+})).min(1).max(importAdminLanguageContentBodyItemsMax),
+  "activateAfterImport": zod.boolean()
+})
+
+export const importAdminLanguageContentResponseImportedMax = 250;
+
+export const importAdminLanguageContentResponseActivatedMin = 0;
+export const importAdminLanguageContentResponseActivatedMax = 250;
+
+export const importAdminLanguageContentResponseInactiveMin = 0;
+export const importAdminLanguageContentResponseInactiveMax = 250;
+
+
+
+export const ImportAdminLanguageContentResponse = zod.object({
+  "imported": zod.number().int().min(1).max(importAdminLanguageContentResponseImportedMax),
+  "activated": zod.number().int().min(importAdminLanguageContentResponseActivatedMin).max(importAdminLanguageContentResponseActivatedMax),
+  "inactive": zod.number().int().min(importAdminLanguageContentResponseInactiveMin).max(importAdminLanguageContentResponseInactiveMax)
+})
+
+
 export const updateAdminLanguageContentPathIdMax = 120;
 
 

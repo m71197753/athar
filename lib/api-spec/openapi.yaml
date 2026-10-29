@@ -430,6 +430,32 @@ paths:
         "400": { description: Invalid language content }
         "401": { description: Authentication required }
         "403": { description: Administrator access required }
+  /admin/language/content/import:
+    post:
+      operationId: importAdminLanguageContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LanguageContentImportInput" }
+      responses:
+        "201":
+          description: Language curriculum batch imported
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentImportResponse" }
+        "400":
+          description: Invalid language content batch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentImportError" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "409":
+          description: Batch contains content already in the library
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentImportError" }
   /admin/language/content/{id}:
     patch:
       operationId: updateAdminLanguageContent
@@ -3060,6 +3086,58 @@ components:
         difficulty: { type: integer, minimum: 1, maximum: 10 }
         relatedWordIds: { type: array, maxItems: 30, items: { type: string, maxLength: 120 } }
         active: { type: boolean }
+    LanguageContentImportItem:
+      type: object
+      additionalProperties: false
+      required: [languageCode, level, kind, category, english, arabic, difficulty]
+      properties:
+        sourceId: { type: string, minLength: 1, maxLength: 120 }
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        kind: { type: string, enum: [word, sentence] }
+        category: { type: string, minLength: 1, maxLength: 80 }
+        partOfSpeech: { type: ["string", "null"], maxLength: 40 }
+        english: { type: string, minLength: 1, maxLength: 300 }
+        arabic: { type: string, minLength: 1, maxLength: 300 }
+        pronunciationArabic: { type: ["string", "null"], maxLength: 200 }
+        exampleEnglish: { type: ["string", "null"], maxLength: 500 }
+        exampleArabic: { type: ["string", "null"], maxLength: 500 }
+        grammarNote: { type: ["string", "null"], maxLength: 600 }
+        difficulty: { type: integer, minimum: 1, maximum: 10 }
+        relatedWordIds: { type: array, maxItems: 30, items: { type: string, maxLength: 120 } }
+    LanguageContentImportInput:
+      type: object
+      additionalProperties: false
+      required: [items, activateAfterImport]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 250
+          items: { $ref: "#/components/schemas/LanguageContentImportItem" }
+        activateAfterImport: { type: boolean }
+    LanguageContentImportResponse:
+      type: object
+      required: [imported, activated, inactive]
+      properties:
+        imported: { type: integer, minimum: 1, maximum: 250 }
+        activated: { type: integer, minimum: 0, maximum: 250 }
+        inactive: { type: integer, minimum: 0, maximum: 250 }
+    LanguageContentImportRowError:
+      type: object
+      required: [row, message]
+      properties:
+        row: { type: integer, minimum: 1 }
+        message: { type: string, minLength: 1, maxLength: 300 }
+    LanguageContentImportError:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, minLength: 1, maxLength: 300 }
+        rowErrors:
+          type: array
+          maxItems: 250
+          items: { $ref: "#/components/schemas/LanguageContentImportRowError" }
     LanguageContentList:
       type: object
       required: [items, total, page, pageSize]

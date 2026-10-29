@@ -10,12 +10,18 @@ import {
   ListAdminLanguageContentResponse,
   ListLanguageLearningContentQueryParams,
   ListLanguageLearningContentResponse,
+  ImportAdminLanguageContentBody,
+  ImportAdminLanguageContentResponse,
   UpdateAdminLanguageContentBody,
   UpdateAdminLanguageContentParams,
   UpdateAdminLanguageContentResponse,
   UpdateAdminLanguageSettingsBody,
   UpdateAdminLanguageSettingsResponse,
 } from "@workspace/api-zod";
+import {
+  validateLanguageContentImportItems,
+  type ParsedLanguageImportItem,
+} from "@workspace/language-content";
 import {
   adminAuditTable,
   db,
@@ -168,6 +174,113 @@ router.post("/admin/language/content", requireAuth, requireAdmin, async (req, re
     target: id,
   });
   res.status(201).json(CreateAdminLanguageContentResponse.parse(serializeItem(created)));
+});
+
+router.post("/admin/language/content/import", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const parsed = ImportAdminLanguageContentBody.safeParse(req.body);
+  if (!parsed.success) {
+    const rowErrors = parsed.error.issues.slice(0, 250).map(issue => ({
+      row: typeof issue.path[1] === "number" ? issue.path[1] + 1 : 1,
+      message: issue.message.slice(0, 300),
+    }));
+    res.status(400).json({ error: "بيانات الاستيراد غير صالحة.", rowErrors });
+    return;
+  }
+
+  await ensureBuiltinLanguageContent();
+  const items: ParsedLanguageImportItem[] = parsed.data.items.map(item => ({
+    ...item,
+    partOfSpeech: item.partOfSpeech ?? undefined,
+    pronunciationArabic: item.pronunciationArabic ?? undefined,
+    exampleEnglish: item.exampleEnglish ?? undefined,
+    exampleArabic: item.exampleArabic ?? undefined,
+    grammarNote: item.grammarNote ?? undefined,
+    relatedWordIds: item.relatedWordIds ?? [],
+  }));
+  const result = await db.transaction(async tx => {
+    const groups = new Map<string, {
+      languageCode: string;
+      level: ParsedLanguageImportItem["level"];
+      kind: string;
+    }>();
+    for (const item of items) {
+      const key = `${item.languageCode}\u0000${item.level}\u0000${item.kind}`;
+      groups.set(key, { languageCode: item.languageCode, level: item.level, kind: item.kind });
+    }
+    const groupConditions = [...groups.values()].map(group => and(
+      eq(languageContentItemsTable.languageCode, group.languageCode),
+      eq(languageContentItemsTable.level, group.level),
+      eq(languageContentItemsTable.kind, group.kind),
+    )!);
+    const matchingItems = await tx.select({
+      id: languageContentItemsTable.id,
+      languageCode: languageContentItemsTable.languageCode,
+      level: languageContentItemsTable.level,
+      kind: languageContentItemsTable.kind,
+      english: languageContentItemsTable.english,
+    }).from(languageContentItemsTable).where(or(...groupConditions)!);
+
+    const sourceIds = new Set(items.flatMap(item => item.sourceId ? [item.sourceId] : []));
+    const idsToLookup = new Set<string>(sourceIds);
+    for (const item of items) {
+      for (const reference of item.relatedWordIds) {
+        if (!sourceIds.has(reference)) idsToLookup.add(reference);
+      }
+    }
+    const lookedUpItems = idsToLookup.size
+      ? await tx.select({
+          id: languageContentItemsTable.id,
+          languageCode: languageContentItemsTable.languageCode,
+          level: languageContentItemsTable.level,
+          kind: languageContentItemsTable.kind,
+          english: languageContentItemsTable.english,
+        }).from(languageContentItemsTable).where(inArray(languageContentItemsTable.id, [...idsToLookup]))
+      : [];
+    const existingById = new Map([...matchingItems, ...lookedUpItems].map(item => [item.id, item]));
+    const issues = validateLanguageContentImportItems(items, [...existingById.values()]);
+    if (issues.length) return { issues };
+
+    const ids = items.map(() => `admin-${randomUUID()}`);
+    const idBySourceId = new Map<string, string>();
+    items.forEach((item, index) => {
+      if (item.sourceId) idBySourceId.set(item.sourceId, ids[index]);
+    });
+    const active = parsed.data.activateAfterImport;
+    await tx.insert(languageContentItemsTable).values(items.map((item, index) => ({
+      id: ids[index],
+      languageCode: item.languageCode,
+      level: item.level,
+      kind: item.kind,
+      category: item.category,
+      partOfSpeech: item.partOfSpeech ?? null,
+      english: item.english,
+      arabic: item.arabic,
+      pronunciationArabic: item.pronunciationArabic ?? null,
+      exampleEnglish: item.exampleEnglish ?? null,
+      exampleArabic: item.exampleArabic ?? null,
+      grammarNote: item.grammarNote ?? null,
+      difficulty: item.difficulty,
+      relatedWordIds: item.relatedWordIds.map(reference => idBySourceId.get(reference) ?? reference),
+      active,
+    })));
+    await tx.insert(adminAuditTable).values(ids.map(id => ({
+      actorId: res.locals.userId as string,
+      action: "language_content_imported",
+      target: id,
+    })));
+
+    return { imported: items.length, activated: active ? items.length : 0, inactive: active ? 0 : items.length };
+  });
+
+  if ("issues" in result && result.issues) {
+    const conflict = result.issues.some(issue => issue.message.includes("موجود بالفعل"));
+    res.status(conflict ? 409 : 400).json({
+      error: conflict ? "لم يتم الاستيراد لأن بعض العناصر موجودة بالفعل." : "راجع أخطاء الصفوف قبل الاستيراد.",
+      rowErrors: result.issues.slice(0, 250),
+    });
+    return;
+  }
+  res.status(201).json(ImportAdminLanguageContentResponse.parse(result));
 });
 
 router.patch("/admin/language/content/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {

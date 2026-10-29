@@ -1500,6 +1500,143 @@ export interface LanguageContentItemUpdate {
   active?: boolean;
 }
 
+export type LanguageContentImportItemLanguageCode = typeof LanguageContentImportItemLanguageCode[keyof typeof LanguageContentImportItemLanguageCode];
+
+
+export const LanguageContentImportItemLanguageCode = {
+  en: 'en',
+  fr: 'fr',
+  es: 'es',
+  de: 'de',
+  tr: 'tr',
+} as const;
+
+export type LanguageContentImportItemLevel = typeof LanguageContentImportItemLevel[keyof typeof LanguageContentImportItemLevel];
+
+
+export const LanguageContentImportItemLevel = {
+  A1: 'A1',
+  A2: 'A2',
+  B1: 'B1',
+  B2: 'B2',
+} as const;
+
+export type LanguageContentImportItemKind = typeof LanguageContentImportItemKind[keyof typeof LanguageContentImportItemKind];
+
+
+export const LanguageContentImportItemKind = {
+  word: 'word',
+  sentence: 'sentence',
+} as const;
+
+export interface LanguageContentImportItem {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  sourceId?: string;
+  languageCode: LanguageContentImportItemLanguageCode;
+  level: LanguageContentImportItemLevel;
+  kind: LanguageContentImportItemKind;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  category: string;
+  /**
+     * @maxLength 40
+     * @nullable
+     */
+  partOfSpeech?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  english: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  arabic: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  pronunciationArabic?: string | null;
+  /**
+     * @maxLength 500
+     * @nullable
+     */
+  exampleEnglish?: string | null;
+  /**
+     * @maxLength 500
+     * @nullable
+     */
+  exampleArabic?: string | null;
+  /**
+     * @maxLength 600
+     * @nullable
+     */
+  grammarNote?: string | null;
+  /**
+     * @minimum 1
+     * @maximum 10
+     */
+  difficulty: number;
+  /**
+     * @maxItems 30
+     * @items.maxLength 120
+     */
+  relatedWordIds?: string[];
+}
+
+export interface LanguageContentImportInput {
+  /**
+     * @minItems 1
+     * @maxItems 250
+     */
+  items: LanguageContentImportItem[];
+  activateAfterImport: boolean;
+}
+
+export interface LanguageContentImportResponse {
+  /**
+     * @minimum 1
+     * @maximum 250
+     */
+  imported: number;
+  /**
+     * @minimum 0
+     * @maximum 250
+     */
+  activated: number;
+  /**
+     * @minimum 0
+     * @maximum 250
+     */
+  inactive: number;
+}
+
+export interface LanguageContentImportRowError {
+  /** @minimum 1 */
+  row: number;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  message: string;
+}
+
+export interface LanguageContentImportError {
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  error: string;
+  /** @maxItems 250 */
+  rowErrors?: LanguageContentImportRowError[];
+}
+
 export interface LanguageContentList {
   items: LanguageContentItem[];
   /** @minimum 0 */

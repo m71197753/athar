@@ -1,16 +1,17 @@
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { useMemo, useState, type ChangeEvent, type CSSProperties, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useGetAdminLanguageSettings, useUpdateAdminLanguageSettings, useListAdminLanguageContent,
-  useCreateAdminLanguageContent, useUpdateAdminLanguageContent,
+  useCreateAdminLanguageContent, useUpdateAdminLanguageContent, useImportAdminLanguageContent,
   getGetAdminLanguageSettingsQueryKey, getListAdminLanguageContentQueryKey,
 } from '@workspace/api-client-react';
 import type {
   LanguageContentItem, LanguageContentItemInput, LanguageContentItemUpdate,
   LanguagePlatformSettingsInput, LanguagePlatformSettings,
-  ListAdminLanguageContentParams,
+  ListAdminLanguageContentParams, LanguageContentImportRowError,
 } from '@workspace/api-client-react';
-import { Archive, BookOpenText, Check, ChevronLeft, ChevronRight, Languages, Pencil, Plus, RotateCcw, Save, Search, X } from 'lucide-react';
+import { Archive, BookOpenText, Check, ChevronLeft, ChevronRight, FileUp, Languages, Pencil, Plus, RotateCcw, Save, Search, X } from 'lucide-react';
+import { parseLanguageContentImportFile, type LanguageImportParseResult } from '@workspace/language-content';
 import { RequiredMark } from '../components/RequiredMark';
 import './LanguageAdminPanel.css';
 
@@ -36,6 +37,16 @@ const errorMessage = (error: unknown) => {
   return 'حدث خطأ أثناء تحميل البيانات. أعد المحاولة.';
 };
 const optional = (value: string) => value.trim() || null;
+const importErrorDetails = (error: unknown): { message?: string; rowErrors?: LanguageContentImportRowError[] } => {
+  if (!error || typeof error !== 'object' || !('data' in error)) return {};
+  const data = (error as { data?: unknown }).data;
+  if (!data || typeof data !== 'object') return {};
+  const payload = data as { error?: unknown; rowErrors?: unknown };
+  return {
+    message: typeof payload.error === 'string' ? payload.error : undefined,
+    rowErrors: Array.isArray(payload.rowErrors) ? payload.rowErrors as LanguageContentImportRowError[] : undefined,
+  };
+};
 
 export default function LanguageAdminPanel() {
   const queryClient = useQueryClient();
@@ -43,6 +54,7 @@ export default function LanguageAdminPanel() {
   const saveSettings = useUpdateAdminLanguageSettings();
   const createItem = useCreateAdminLanguageContent();
   const updateItem = useUpdateAdminLanguageContent();
+  const importContent = useImportAdminLanguageContent();
   const [settingsDraft, setSettingsDraft] = useState<LanguagePlatformSettings | null>(null);
   const [settingsNotice, setSettingsNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [language, setLanguage] = useState<ListAdminLanguageContentParams['languageCode']>('en');
@@ -55,6 +67,14 @@ export default function LanguageAdminPanel() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [itemDraft, setItemDraft] = useState<LanguageContentItemInput>(blankItem());
   const [formNotice, setFormNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importPreview, setImportPreview] = useState<LanguageImportParseResult | null>(null);
+  const [activateImportedItems, setActivateImportedItems] = useState(false);
+  const [importNotice, setImportNotice] = useState<{
+    ok: boolean;
+    text: string;
+    rowErrors?: LanguageContentImportRowError[];
+  } | null>(null);
 
   const settings = settingsQuery.data ?? defaultSettings;
   const currentSettings = settingsDraft ?? settings;
@@ -143,6 +163,59 @@ export default function LanguageAdminPanel() {
         void queryClient.invalidateQueries({ queryKey: getListAdminLanguageContentQueryKey() });
       },
       onError: error => setFormNotice({ ok: false, text: errorMessage(error) }),
+    });
+  };
+  const readImportFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportNotice(null);
+    if (file.size > 400 * 1024) {
+      setImportPreview({ items: [], errors: [{ row: 1, message: 'حجم الملف يتجاوز 400 كيلوبايت.' }] });
+      return;
+    }
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (extension !== 'csv' && extension !== 'json') {
+      setImportPreview({ items: [], errors: [{ row: 1, message: 'اختر ملفًا بامتداد CSV أو JSON.' }] });
+      return;
+    }
+    try {
+      setImportPreview(parseLanguageContentImportFile(await file.text(), extension));
+    } catch {
+      setImportPreview({ items: [], errors: [{ row: 1, message: 'تعذّر قراءة الملف.' }] });
+    }
+  };
+  const submitImport = () => {
+    if (!importPreview || importPreview.items.length === 0 || importPreview.errors.length > 0) return;
+    const firstItem = importPreview.items[0];
+    importContent.mutate({
+      data: { items: importPreview.items, activateAfterImport: activateImportedItems },
+    }, {
+      onSuccess: result => {
+        const stateMessage = result.inactive > 0
+          ? `حُفظ ${result.inactive.toLocaleString('ar')} للمراجعة ولم يظهر للطلاب.`
+          : `تم تفعيل ${result.activated.toLocaleString('ar')} للطلاب.`;
+        setImportNotice({ ok: true, text: `تم استيراد ${result.imported.toLocaleString('ar')} عنصر. ${stateMessage}` });
+        setImportPreview(null);
+        setImportFileName('');
+        setIncludeArchived(!activateImportedItems);
+        setLanguage(firstItem.languageCode);
+        setLevel(firstItem.level);
+        setSearch('');
+        setSearchDraft('');
+        setPage(1);
+        void queryClient.invalidateQueries({ queryKey: getListAdminLanguageContentQueryKey() });
+      },
+      onError: error => {
+        const details = importErrorDetails(error);
+        setImportNotice({
+          ok: false,
+          text: details.message ?? 'تعذّر الاستيراد. لم يتم حفظ أي عنصر؛ راجع الصفوف وحاول مجددًا.',
+          rowErrors: details.rowErrors,
+        });
+      },
     });
   };
   const changeFilter = (callback: () => void) => { callback(); setPage(1); };
@@ -237,6 +310,52 @@ export default function LanguageAdminPanel() {
         <button type="button" className="button button-primary" onClick={startCreate}><Plus size={16}/> إضافة عنصر</button>
       </div>
       <p className="lang-admin-section-note">أضف كلمات وجملاً عربية مع أمثلة ونطق، ثم راجعها حسب اللغة والمستوى.</p>
+      <div className="lang-admin-import" aria-labelledby="lang-import-heading">
+        <div className="lang-admin-import-heading">
+          <div>
+            <h4 id="lang-import-heading">استيراد محتوى من ملف</h4>
+            <p>CSV أو JSON، بحد أقصى 250 عنصرًا و400 كيلوبايت. راجع الترجمة قبل إتاحتها للطلاب.</p>
+          </div>
+          <label className="button button-outline button-compact lang-admin-import-upload">
+            <FileUp size={15}/><span>اختيار ملف</span>
+            <input className="lang-admin-file-input" type="file" accept=".csv,.json,text/csv,application/json" onChange={readImportFile}/>
+          </label>
+        </div>
+        {importFileName && <div className="lang-admin-import-filename" dir="ltr">{importFileName}</div>}
+        {importNotice && <div className={`lang-admin-alert ${importNotice.ok ? 'is-success' : 'is-error'}`} role={importNotice.ok ? 'status' : 'alert'}>
+          <span>{importNotice.text}</span>
+          {importNotice.rowErrors && importNotice.rowErrors.length > 0 && <ul className="lang-admin-import-errors">
+            {importNotice.rowErrors.slice(0, 8).map((issue, index) => <li key={`${issue.row}-${index}`}>الصف {issue.row}: {issue.message}</li>)}
+            {importNotice.rowErrors.length > 8 && <li>وأخطاء أخرى: {importNotice.rowErrors.length - 8}</li>}
+          </ul>}
+        </div>}
+        {importPreview && <div className="lang-admin-import-preview">
+          <div className="lang-admin-import-summary" role="status">
+            <b>{importPreview.items.length.toLocaleString('ar')} عنصر جاهز للمعاينة</b>
+            <span>{importPreview.errors.length.toLocaleString('ar')} أخطاء</span>
+          </div>
+          {importPreview.errors.length > 0 && <ul className="lang-admin-import-errors" role="alert">
+            {importPreview.errors.slice(0, 8).map((issue, index) => <li key={`${issue.row}-${index}`}>الصف {issue.row}: {issue.message}</li>)}
+            {importPreview.errors.length > 8 && <li>وأخطاء أخرى: {importPreview.errors.length - 8}</li>}
+          </ul>}
+          {importPreview.items.length > 0 && <div className="lang-admin-import-samples">
+            {importPreview.items.slice(0, 4).map((item, index) => <div className="lang-admin-import-sample" key={`${item.sourceId ?? item.english}-${index}`}>
+              <span>{languageNames[item.languageCode]} · {item.level} · {item.kind === 'word' ? 'كلمة' : 'جملة'}</span>
+              <b dir="ltr">{item.english}</b><span>{item.arabic}</span>
+            </div>)}
+            {importPreview.items.length > 4 && <small>وتوجد { (importPreview.items.length - 4).toLocaleString('ar') } عناصر أخرى.</small>}
+          </div>}
+          <div className="lang-admin-import-actions">
+            <label className="lang-admin-import-activate">
+              <input type="checkbox" checked={activateImportedItems} onChange={event => setActivateImportedItems(event.target.checked)}/>
+              <span><b>إتاحة العناصر للطلاب فورًا</b><small>بدون تحديد هذا الخيار، تُحفظ العناصر غير مفعّلة للمراجعة.</small></span>
+            </label>
+            <button type="button" className="button button-primary" disabled={importPreview.items.length === 0 || importPreview.errors.length > 0 || importContent.isPending} onClick={submitImport}>
+              <FileUp size={15}/>{importContent.isPending ? 'جارٍ الاستيراد…' : 'استيراد العناصر'}
+            </button>
+          </div>
+        </div>}
+      </div>
       <div className="lang-admin-content-toolbar">
         <label className="lang-admin-filter"><span>اللغة</span><select value={language} onChange={e => changeFilter(() => setLanguage(e.target.value as typeof language))}>{Object.entries(languageNames).map(([code, name]) => <option value={code} key={code}>{name}</option>)}</select></label>
         <label className="lang-admin-filter"><span>المستوى</span><select value={level} onChange={e => changeFilter(() => setLevel(e.target.value as typeof level))}>{levels.map(value => <option key={value}>{value}</option>)}</select></label>
