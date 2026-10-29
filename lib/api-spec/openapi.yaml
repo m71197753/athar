@@ -10,7 +10,608 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: student
+    description: Student profile and portfolio operations
+  - name: roadmap
+    description: Student career goals and action plans
+  - name: learning
+    description: Student courses, lectures, and academy progress
+  - name: ai
+    description: Optional AI-assisted career writing
 paths:
+  /admin/ads:
+    get:
+      operationId: listAdminAds
+      responses:
+        "200":
+          description: All advertisements including drafts and archived campaigns
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ClassifiedAd" } }
+    post:
+      operationId: createAdminAd
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassifiedAd" }
+  /admin/ads/{id}:
+    put:
+      operationId: updateAdminAd
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassifiedAd" }
+    delete:
+      operationId: archiveAdminAd
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Archived without destroying reporting history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /admin/ad-customers:
+    get:
+      operationId: listAdCustomers
+      responses:
+        "200":
+          description: Advertiser customers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/AdCustomer" } }
+    post:
+      operationId: createAdCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdCustomerInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdCustomer" }
+  /admin/ad-customers/{id}:
+    put:
+      operationId: updateAdCustomer
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdCustomerInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdCustomer" }
+    delete:
+      operationId: deleteAdCustomer
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Removed; associated ads retained with customer cleared
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /admin/ad-statistics:
+    get:
+      operationId: getAdStatistics
+      parameters:
+        - { name: days, in: query, schema: { type: integer, enum: [7, 30, 90], default: 30 } }
+      responses:
+        "200":
+          description: Live database aggregates and most recent enquiries
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdStatistics" }
+  /admin/ad-enquiries/{id}:
+    patch:
+      operationId: updateAdEnquiry
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdEnquiryUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /admin/ad-assets:
+    post:
+      operationId: requestAdAssetUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdAssetInput" }
+      responses:
+        "201":
+          description: Direct upload URL valid for fifteen minutes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdAssetUpload" }
+  /admin/ad-assets/{id}/confirm:
+    post:
+      operationId: confirmAdAsset
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Media validated and ready
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdAssetReady" }
+  /ads:
+    get:
+      operationId: getPublishedAds
+      parameters:
+        - { name: page, in: query, required: true, schema: { $ref: "#/components/schemas/AdPage" } }
+      responses:
+        "200":
+          description: Scheduled active creatives for this page; never private customer information
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/PublicAd" } }
+  /ads/{id}/events:
+    post:
+      operationId: recordAdEvent
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdEventInput" }
+      responses:
+        "200":
+          description: Event accepted or deduplicated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /ads/{id}/enquiries:
+    post:
+      operationId: createAdEnquiry
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdEnquiryInput" }
+      responses:
+        "201":
+          description: Enquiry saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /ads/media/{id}:
+    get:
+      operationId: getAdMedia
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Validated image or video bytes }
+        "206": { description: Video range bytes }
+  /access:
+    get:
+      operationId: getPlatformAccess
+      responses:
+        "200":
+          description: Current member access
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformAccess" }
+        "401": { description: Sign in required }
+        "403": { description: Suspended }
+  /platform:
+    get:
+      operationId: getPlatformContent
+      responses:
+        "200":
+          description: Published resources, sections, and platform configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformContent" }
+  /admin/overview:
+    get:
+      operationId: getAdminOverview
+      responses:
+        "200":
+          description: Platform totals
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminOverview" }
+  /admin/overview/details:
+    get:
+      operationId: getAdminOverviewDetails
+      parameters:
+        - { name: kind, in: query, required: true, schema: { $ref: "#/components/schemas/AdminOverviewDetailsKind" } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated records behind an overview total
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminOverviewDetails" }
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated authentication accounts and application roles
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminUserPage" }
+  /admin/users/{userId}:
+    patch:
+      operationId: updateAdminUser
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemberUpdate" }
+      responses:
+        "200":
+          description: Membership updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+        "409": { description: Self-change or last-admin protection }
+    delete:
+      operationId: revokeAdminUserShare
+      summary: Revoke a user's public portfolio link, without deleting their data
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Public share revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /admin/content:
+    get:
+      operationId: getAdminContent
+      responses:
+        "200":
+          description: All content, including drafts
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedContent" }
+    post:
+      operationId: createAdminContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ContentInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentEntry" }
+  /admin/content/{id}:
+    put:
+      operationId: updateAdminContent
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ContentInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentEntry" }
+    delete:
+      operationId: deleteAdminContent
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /admin/settings:
+    get:
+      operationId: getAdminSettings
+      responses:
+        "200":
+          description: Section access settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSettings" }
+    put:
+      operationId: saveAdminSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatformSettings" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSettings" }
+  /admin/language/settings:
+    get:
+      operationId: getAdminLanguageSettings
+      responses:
+        "200":
+          description: Language page and game rules
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguagePlatformSettings" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+    put:
+      operationId: updateAdminLanguageSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LanguagePlatformSettingsInput" }
+      responses:
+        "200":
+          description: Updated language page and game rules
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguagePlatformSettings" }
+        "400": { description: Invalid language settings }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/language/content:
+    get:
+      operationId: listAdminLanguageContent
+      parameters:
+        - { name: languageCode, in: query, required: true, schema: { type: string, enum: [en, fr, es, de, tr] } }
+        - { name: level, in: query, required: true, schema: { type: string, enum: [A1, A2, B1, B2] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: includeArchived, in: query, required: false, schema: { type: boolean, default: true } }
+      responses:
+        "200":
+          description: Paged language curriculum items
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+    post:
+      operationId: createAdminLanguageContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LanguageContentItemInput" }
+      responses:
+        "201":
+          description: Language curriculum item created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentItem" }
+        "400": { description: Invalid language content }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/language/content/{id}:
+    patch:
+      operationId: updateAdminLanguageContent
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 120 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LanguageContentItemUpdate" }
+      responses:
+        "200":
+          description: Language curriculum item updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguageContentItem" }
+        "400": { description: Invalid language content }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Language item not found }
+        "409": { description: Item already has learning history and cannot be moved }
+  /admin/section-media/uploads:
+    post:
+      operationId: requestSectionMediaUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SectionMediaUploadInput" }
+      responses:
+        "201":
+          description: Short-lived direct upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaUploadRequest" }
+        "400": { description: Unsupported file or size }
+  /admin/section-media/uploads/{id}/confirm:
+    post:
+      operationId: confirmSectionMediaUpload
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Verified media asset URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaUploadResult" }
+        "400": { description: Uploaded bytes do not match the requested type }
+        "404": { description: Upload not found }
+  /platform/section-media/{id}:
+    get:
+      operationId: getPlatformSectionMedia
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Public media used by published platform sections
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { description: Media not found }
+  /admin/sections:
+    get:
+      operationId: listAdminSections
+      responses:
+        "200":
+          description: All custom sections
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSectionList" }
+    post:
+      operationId: createAdminSection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SectionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSection" }
+        "400": { description: Invalid section }
+  /admin/sections/{id}:
+    put:
+      operationId: updateAdminSection
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SectionInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSection" }
+        "400": { description: Invalid section }
+        "404": { description: Not found }
+    delete:
+      operationId: deleteAdminSection
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+        "404": { description: Not found }
+  /sections/{slug}/courses/{courseId}/complete:
+    post:
+      operationId: completePlatformSectionCourse
+      tags: [learning]
+      summary: Record a student's completion of a published platform course
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, pattern: '^section-[a-f0-9]{12}$' } }
+        - { name: courseId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Course completion saved to the student's learning history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningItem" }
+        "401": { description: Sign-in required }
+        "404": { description: Published course not found }
+  /admin/audit:
+    get:
+      operationId: listAdminAudit
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated administrative activity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditPage" }
+  /admin/notifications:
+    get:
+      operationId: listAdminNotifications
+      tags: [admin]
+      summary: List notifications for the authenticated administrator
+      responses:
+        "200":
+          description: Recent notifications and unread count
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminNotificationList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/notifications/read-all:
+    patch:
+      operationId: markAllAdminNotificationsRead
+      tags: [admin]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Number of notifications marked as read
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarkAllAdminNotificationsReadResult" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/notifications/{notificationId}/read:
+    patch:
+      operationId: markAdminNotificationRead
+      tags: [admin]
+      summary: Mark one administrator notification as read
+      parameters:
+        - { name: notificationId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminNotification" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Notification not found }
   /healthz:
     get:
       operationId: healthCheck
@@ -24,8 +625,2082 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [student]
+      summary: Get the student's dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "401":
+          description: Authentication required
+  /student/profile:
+    get:
+      operationId: getStudentProfile
+      tags: [student]
+      summary: Get the current student's profile
+      responses:
+        "200":
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfile"
+        "404":
+          description: Profile not found
+        "401":
+          description: Authentication required
+    put:
+      operationId: saveStudentProfile
+      tags: [student]
+      summary: Create or update the current student's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentProfileInput"
+      responses:
+        "200":
+          description: Saved student profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfile"
+        "400":
+          description: Invalid profile
+        "401":
+          description: Authentication required
+  /student/resume-share:
+    get:
+      operationId: getResumeShareSettings
+      tags: [student]
+      summary: Get the current student's professional profile sharing settings
+      responses:
+        "200":
+          description: Sharing settings; private defaults are returned when not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeShareSettings"
+        "401":
+          description: Authentication required
+    put:
+      operationId: saveResumeShareSettings
+      tags: [student]
+      summary: Save sharing permissions and enable or disable the public profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeShareUpdate"
+      responses:
+        "200":
+          description: Saved sharing settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeShareSettings"
+        "400":
+          description: Invalid sharing settings or selected item
+        "401":
+          description: Authentication required
+  /public/resume/{token}:
+    get:
+      operationId: getPublicResume
+      tags: [student]
+      summary: Get only the fields approved for a public professional profile
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string, minLength: 32, maxLength: 64 }
+      responses:
+        "200":
+          description: Publicly approved professional profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicResume"
+        "404":
+          description: Link is unavailable or disabled
+  /achievements:
+    get:
+      operationId: listAchievements
+      tags: [student]
+      summary: List the current student's achievements
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [project, internship, volunteer, competition, course, research, other]
+      responses:
+        "200":
+          description: Achievement list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createAchievement
+      tags: [student]
+      summary: Save an achievement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchievementInput"
+      responses:
+        "201":
+          description: Created achievement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Achievement"
+        "400":
+          description: Invalid achievement
+        "401":
+          description: Authentication required
+  /achievements/{id}:
+    patch:
+      operationId: updateAchievement
+      tags: [student]
+      summary: Update an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchievementUpdate"
+      responses:
+        "200":
+          description: Updated achievement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Achievement"
+        "400":
+          description: Invalid achievement
+        "404":
+          description: Achievement not found
+        "401":
+          description: Authentication required
+    delete:
+      operationId: deleteAchievement
+      tags: [student]
+      summary: Delete an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Achievement deleted
+        "404":
+          description: Achievement not found
+        "401":
+          description: Authentication required
+  /ai/achievement-draft:
+    post:
+      operationId: generateAchievementDraft
+      tags: [ai]
+      summary: Create an optional CV bullet and interview story from student-provided facts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchievementDraftInput"
+      responses:
+        "200":
+          description: Generated achievement wording
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AchievementDraft"
+        "400":
+          description: Invalid input
+        "401":
+          description: Authentication required
+  /ai/career-assistant:
+    post:
+      operationId: askCareerAssistant
+      tags: [ai]
+      summary: Ask a career question using the current student's saved context
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerAssistantInput"
+      responses:
+        "200":
+          description: Career assistant reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerAssistantResponse"
+        "400":
+          description: Invalid message
+        "401":
+          description: Authentication required
+  /ai/compare-career-assistant:
+    post:
+      operationId: compareCareerAssistant
+      tags: [ai]
+      summary: Compare two independent responses to a career question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerAssistantComparisonInput"
+      responses:
+        "200":
+          description: Two independent assistant responses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerAssistantComparison"
+        "400":
+          description: Invalid message
+        "401":
+          description: Authentication required
+        "429":
+          description: Please wait before requesting another comparison
+  /languages/settings:
+    get:
+      operationId: getLanguagePlatformSettings
+      tags: [learning]
+      summary: Get student-visible language settings
+      responses:
+        "200":
+          description: Language page settings and enabled languages
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LanguagePlatformSettings" }
+        "401": { description: Authentication required }
+  /languages/content:
+    get:
+      operationId: listLanguageLearningContent
+      tags: [learning]
+      summary: List active learning items for a language and level
+      parameters:
+        - { name: languageCode, in: query, required: true, schema: { type: string, enum: [en, fr, es, de, tr] } }
+        - { name: level, in: query, required: true, schema: { type: string, enum: [A1, A2, B1, B2] } }
+      responses:
+        "200":
+          description: Active items and archived items needed for the student's review
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/LanguageContentItem" } }
+        "401": { description: Authentication required }
+        "403": { description: Language is not available }
+  /languages/progress:
+    get:
+      operationId: getLanguageLearningProgress
+      tags: [learning]
+      summary: Get the current student's language review schedule
+      parameters:
+        - in: query
+          name: languageCode
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-z]{2}(-[A-Z]{2})?$"
+            default: en
+        - in: query
+          name: level
+          required: false
+          schema:
+            type: string
+            enum: [A1, A2, B1, B2]
+      responses:
+        "200":
+          description: Language review summary and items due now
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageLearningProgress"
+        "401":
+          description: Authentication required
+  /languages/sessions:
+    post:
+      operationId: submitLanguageLearningSession
+      tags: [learning]
+      summary: Save a language lesson, spaced review dates, and game progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LanguageSessionInput"
+      responses:
+        "200":
+          description: Saved language lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageSessionResponse"
+        "400":
+          description: Invalid session
+        "401":
+          description: Authentication required
+        "409":
+          description: Not enough hearts or review items for this session
+  /languages/gamification:
+    get:
+      operationId: getLanguageGamification
+      tags: [learning]
+      summary: Get private language game progress and weekly league
+      parameters:
+        - in: query
+          name: languageCode
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-z]{2}(-[A-Z]{2})?$"
+            default: en
+      responses:
+        "200":
+          description: Current game profile and anonymized league members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageGamificationSummary"
+        "401":
+          description: Authentication required
+  /languages/gamification/settings:
+    patch:
+      operationId: updateLanguageGamificationSettings
+      tags: [learning]
+      summary: Update sound and vibration preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LanguageGamificationSettingsInput"
+      responses:
+        "200":
+          description: Updated private language game profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageGamificationProfile"
+        "400":
+          description: Invalid settings
+        "401":
+          description: Authentication required
+  /languages/gamification/freeze:
+    post:
+      operationId: purchaseLanguageStreakFreeze
+      tags: [learning]
+      summary: Spend gems on one streak protection credit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LanguageGamificationLanguageInput" }
+      responses:
+        "200":
+          description: Updated profile after purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageGamificationProfile"
+        "400":
+          description: Not enough gems or freeze credits are full
+        "401":
+          description: Authentication required
+  /languages/voice-conversation:
+    post:
+      operationId: streamLanguageVoiceConversation
+      tags: [learning]
+      summary: Stream a temporary spoken-language practice response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LanguageVoiceConversationInput"
+      responses:
+        "200":
+          description: Temporary text and audio stream for the current conversation turn
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "400":
+          description: Invalid conversation input
+        "401":
+          description: Authentication required
+  /learning-items:
+    get:
+      operationId: listLearningItems
+      tags: [learning]
+      summary: List the current student's courses and lecture notes
+      parameters:
+        - in: query
+          name: kind
+          schema:
+            type: string
+            enum: [course, lecture]
+      responses:
+        "200":
+          description: Learning items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningItem"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createLearningItem
+      tags: [learning]
+      summary: Save a course, certificate, or lecture note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningItemInput"
+      responses:
+        "201":
+          description: Created learning item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningItem"
+        "400":
+          description: Invalid learning item
+        "401":
+          description: Authentication required
+  /learning-items/{id}:
+    patch:
+      operationId: updateLearningItem
+      tags: [learning]
+      summary: Update a course, certificate, or lecture note
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningItemUpdate"
+      responses:
+        "200":
+          description: Updated learning item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningItem"
+        "400":
+          description: Invalid learning item
+        "404":
+          description: Learning item not found
+        "401":
+          description: Authentication required
+    delete:
+      operationId: deleteLearningItem
+      tags: [learning]
+      summary: Delete a course or lecture note
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Learning item deleted
+        "404":
+          description: Learning item not found
+        "401":
+          description: Authentication required
+  /academy/progress:
+    get:
+      operationId: getAcademyProgress
+      tags: [learning]
+      summary: Get the current student's progress through academy lessons
+      responses:
+        "200":
+          description: Academy lesson progress
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AcademyProgress"
+        "401":
+          description: Authentication required
+  /academy/progress/{lessonId}:
+    put:
+      operationId: saveAcademyProgress
+      tags: [learning]
+      summary: Save a lesson completion and quiz result
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcademyProgressInput"
+      responses:
+        "200":
+          description: Saved academy progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AcademyProgress"
+        "400":
+          description: Invalid academy progress
+        "401":
+          description: Authentication required
+  /academy/subjects:
+    get:
+      operationId: listAcademySubjects
+      tags: [learning]
+      summary: List published academy subjects and this student's progress
+      responses:
+        "200":
+          description: Published subjects
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AcademySubjectSummary" }
+        "401":
+          description: Authentication required
+  /academy/subjects/{subjectId}:
+    get:
+      operationId: getAcademySubject
+      tags: [learning]
+      summary: Get a published subject and its lessons and exams
+      parameters:
+        - in: path
+          name: subjectId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Published subject detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademySubjectDetail" }
+        "404": { description: Subject not found }
+        "401": { description: Authentication required }
+  /academy/subjects/{subjectId}/enroll:
+    post:
+      operationId: enrollAcademySubject
+      tags: [learning]
+      summary: Enroll the current student in a published subject
+      parameters:
+        - in: path
+          name: subjectId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Enrollment state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyEnrollment" }
+        "404": { description: Subject not found }
+        "401": { description: Authentication required }
+  /academy/lessons/{lessonId}:
+    get:
+      operationId: getAcademyLesson
+      tags: [learning]
+      summary: Get a published reading lesson with its attachments
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Published lesson
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyLessonDetail" }
+        "404": { description: Lesson not found }
+        "401": { description: Authentication required }
+  /academy/lessons/{lessonId}/complete:
+    post:
+      operationId: completeAcademyLesson
+      tags: [learning]
+      summary: Mark a lesson complete and add it to the student's learning record
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Saved lesson completion
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyProgress" }
+        "404": { description: Lesson not found }
+        "401": { description: Authentication required }
+  /academy/course-files/{fileId}/download:
+    get:
+      operationId: downloadAcademyCourseFile
+      tags: [learning]
+      summary: Download an attachment from a published lesson
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Published lesson document
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/exams/{examId}/begin:
+    post:
+      operationId: beginAcademyExam
+      tags: [learning]
+      summary: Start or resume an exam without revealing its answers
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Resumable exam attempt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAttemptSession" }
+        "404": { description: Exam not found }
+        "401": { description: Authentication required }
+  /academy/attempts/{attemptId}:
+    get:
+      operationId: getAcademyAttempt
+      tags: [learning]
+      summary: Resume an owned exam or view its explanation review
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Exam attempt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAttemptSession" }
+        "404": { description: Attempt not found }
+        "401": { description: Authentication required }
+  /academy/attempts/{attemptId}/submit:
+    post:
+      operationId: submitAcademyAttempt
+      tags: [learning]
+      summary: Score and save an owned exam attempt
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyAttemptSubmit" }
+      responses:
+        "200":
+          description: Score and full answer explanations
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAttemptSession" }
+        "400": { description: Invalid answers }
+        "404": { description: Attempt not found }
+        "409": { description: Already submitted }
+        "401": { description: Authentication required }
+  /academy/attempts/{attemptId}/reviewed:
+    post:
+      operationId: markAcademyAttemptReviewed
+      tags: [learning]
+      summary: Record that the student reviewed the exam explanations
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Review state saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAttemptSession" }
+        "404": { description: Attempt not found }
+        "401": { description: Authentication required }
+  /academy/attempts/{attemptId}/achievement:
+    post:
+      operationId: convertAcademyAttemptToAchievement
+      tags: [learning]
+      summary: Convert a high exam score into an achievement
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Achievement saved to the current student's portfolio
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Achievement" }
+        "400": { description: Score does not meet the achievement threshold }
+        "404": { description: Attempt not found }
+        "401": { description: Authentication required }
+  /academy/growth/{evidenceId}/achievement:
+    post:
+      operationId: convertAcademyGrowthToAchievement
+      tags: [learning]
+      summary: Convert verified improvement into a portfolio achievement
+      parameters:
+        - in: path
+          name: evidenceId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Growth achievement saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Achievement" }
+        "404": { description: Improvement not found }
+        "401": { description: Authentication required }
+  /academy/files:
+    get:
+      operationId: listAcademyFiles
+      tags: [learning]
+      summary: List the current student's own private files
+      responses:
+        "200":
+          description: Private files owned by the current student
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AcademyStudentFile" }
+        "401": { description: Authentication required }
+  /academy/files/upload-url:
+    post:
+      operationId: requestAcademyFileUpload
+      tags: [learning]
+      summary: Request a short-lived direct upload for a private study file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyStudentFileInput" }
+      responses:
+        "201":
+          description: Private file upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyUploadUrl" }
+        "400": { description: Unsupported file or size }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}/confirm:
+    post:
+      operationId: confirmAcademyFileUpload
+      tags: [learning]
+      summary: Validate, privately store, extract and index a student's uploaded file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Indexed private file
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyStudentFile" }
+        "400": { description: Upload invalid or could not be extracted }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}:
+    delete:
+      operationId: deleteAcademyFile
+      tags: [learning]
+      summary: Permanently remove an owned file and its private searchable text
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: File and extracted private text deleted }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}/download:
+    get:
+      operationId: downloadAcademyFile
+      tags: [learning]
+      summary: Download the current student's own private file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Private original document
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}/preview:
+    get:
+      operationId: previewAcademyFile
+      tags: [learning]
+      summary: Preview an owned private image file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Private image content
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+        "404": { description: File not found }
+        "401": { description: Authentication required }
+  /academy/files/{fileId}/quiz:
+    post:
+      operationId: generateAcademyFileQuiz
+      tags: [learning]
+      summary: Generate a private interactive quiz from an owned study file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyFileQuizInput" }
+      responses:
+        "200":
+          description: Generated quiz questions grounded in the selected file
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyGeneratedFileQuiz" }
+        "400": { description: Invalid request or AI consent missing }
+        "404": { description: File not found }
+        "502": { description: Quiz could not be generated or validated }
+        "422": { description: Selected file has insufficient readable material }
+        "401": { description: Authentication required }
+  /academy/search:
+    get:
+      operationId: searchAcademy
+      tags: [learning]
+      summary: Search published course text and only the current student's files
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 120 }
+        - in: query
+          name: subjectId
+          required: false
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Ranked course and owned-file passages with source links
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AcademySearchSource" }
+        "400": { description: Invalid query }
+        "401": { description: Authentication required }
+  /academy/assistant:
+    post:
+      operationId: askAcademyAssistant
+      tags: [learning]
+      summary: Answer strictly from matching published course text and owned files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyAssistantInput" }
+      responses:
+        "200":
+          description: A grounded answer with verified source citations
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAssistantResponse" }
+        "400": { description: Invalid question }
+        "401": { description: Authentication required }
+        "502": { description: The answer service could not return a safe answer }
+  /academy/skill-suggestions:
+    get:
+      operationId: getAcademySkillSuggestions
+      tags: [learning]
+      summary: Get professional skills suggested by the student's enrolled materials
+      responses:
+        "200":
+          description: Skills from published enrolled subjects
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademySkillSuggestions" }
+        "401": { description: Authentication required }
+  /academy/skill-suggestions/apply:
+    post:
+      operationId: applyAcademySkillSuggestions
+      tags: [learning]
+      summary: Merge enrolled-subject skills into the student's career plan
+      responses:
+        "200":
+          description: Updated career-plan skills
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademySkillApplyResult" }
+        "404": { description: Create a career plan first }
+        "401": { description: Authentication required }
+  /admin/academy:
+    get:
+      operationId: listAdminAcademy
+      tags: [admin]
+      summary: Get editable subject, lesson, exam and question data
+      responses:
+        "200":
+          description: Academy editorial catalogue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyAdminCatalog" }
+        "403": { description: Administrator access required }
+  /admin/academy/subjects:
+    post:
+      operationId: createAdminAcademySubject
+      tags: [admin]
+      summary: Create an academy subject draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademySubjectInput" }
+      responses:
+        "201":
+          description: Created subject
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademySubjectDetail" }
+        "400": { description: Invalid or duplicate subject }
+        "403": { description: Administrator access required }
+  /admin/academy/subjects/{subjectId}:
+    put:
+      operationId: updateAdminAcademySubject
+      tags: [admin]
+      summary: Update or publish a subject
+      parameters:
+        - in: path
+          name: subjectId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademySubjectInput" }
+      responses:
+        "200":
+          description: Updated subject
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademySubjectDetail" }
+        "400": { description: Invalid subject }
+        "403": { description: Administrator access required }
+        "404": { description: Subject not found }
+  /admin/academy/lessons:
+    post:
+      operationId: createAdminAcademyLesson
+      tags: [admin]
+      summary: Create a lesson draft in a subject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyLessonInput" }
+      responses:
+        "201":
+          description: Created lesson
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyLessonDetail" }
+        "400": { description: Invalid lesson }
+        "403": { description: Administrator access required }
+  /admin/academy/lessons/{lessonId}:
+    put:
+      operationId: updateAdminAcademyLesson
+      tags: [admin]
+      summary: Update or publish a lesson and rebuild its search index
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyLessonInput" }
+      responses:
+        "200":
+          description: Updated lesson
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyLessonDetail" }
+        "400": { description: Invalid lesson }
+        "403": { description: Administrator access required }
+        "404": { description: Lesson not found }
+  /admin/academy/lessons/{lessonId}/upload-url:
+    post:
+      operationId: requestAdminAcademyCourseFileUpload
+      tags: [admin]
+      summary: Request an authenticated attachment upload for a lesson
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyCourseFileInput" }
+      responses:
+        "201":
+          description: Signed attachment upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyUploadUrl" }
+        "403": { description: Administrator access required }
+        "404": { description: Lesson not found }
+  /admin/academy/course-files/{fileId}/confirm:
+    post:
+      operationId: confirmAdminAcademyCourseFile
+      tags: [admin]
+      summary: Validate and publish an authenticated lesson attachment
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Course attachment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseFile" }
+        "400": { description: Invalid upload }
+        "403": { description: Administrator access required }
+        "404": { description: Attachment not found }
+  /admin/academy/course-files/{fileId}:
+    delete:
+      operationId: deleteAdminAcademyCourseFile
+      tags: [admin]
+      summary: Remove a course attachment and its indexed text
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Course attachment deleted }
+        "403": { description: Administrator access required }
+        "404": { description: Attachment not found }
+  /admin/academy/exams:
+    post:
+      operationId: createAdminAcademyExam
+      tags: [admin]
+      summary: Create an exam draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyExamInput" }
+      responses:
+        "201":
+          description: Exam draft
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyExam" }
+        "400": { description: Invalid exam }
+        "403": { description: Administrator access required }
+  /admin/academy/exams/{examId}:
+    put:
+      operationId: updateAdminAcademyExam
+      tags: [admin]
+      summary: Update or publish an exam
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyExamInput" }
+      responses:
+        "200":
+          description: Updated exam
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyExam" }
+        "400": { description: Invalid exam }
+        "403": { description: Administrator access required }
+        "404": { description: Exam not found }
+  /admin/academy/exams/{examId}/questions:
+    put:
+      operationId: saveAdminAcademyQuestions
+      tags: [admin]
+      summary: Replace the exam draft question bank with explanations
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyQuestionsInput" }
+      responses:
+        "200":
+          description: Saved questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AcademyQuestion" }
+        "400": { description: Invalid question bank }
+        "403": { description: Administrator access required }
+        "404": { description: Exam not found }
+  /career-plan:
+    get:
+      operationId: getCareerPlan
+      tags: [roadmap]
+      summary: Get the current student's career plan and action items
+      responses:
+        "200":
+          description: Career plan and its action items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerPlanOverview"
+        "401":
+          description: Authentication required
+    put:
+      operationId: saveCareerPlan
+      tags: [roadmap]
+      summary: Save the current student's career goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerPlanInput"
+      responses:
+        "200":
+          description: Saved career plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerPlan"
+        "400":
+          description: Invalid career plan
+        "401":
+          description: Authentication required
+  /career-plan/tasks/batch:
+    post:
+      operationId: createCareerTasks
+      tags: [roadmap]
+      summary: Add selected action items to the current student's plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerTasksInput"
+      responses:
+        "201":
+          description: Saved action items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareerTask"
+        "400":
+          description: Invalid action items or no saved career goal
+        "401":
+          description: Authentication required
+  /career-plan/reminder/push-config:
+    get:
+      operationId: getCareerPushConfig
+      tags: [career]
+      summary: Get the Web Push application server public key
+      responses:
+        "200":
+          description: Push delivery configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerPushConfig"
+        "401":
+          description: Authentication required
+        "503":
+          description: Push delivery is not configured
+  /career-plan/reminder:
+    put:
+      operationId: saveCareerReminder
+      tags: [roadmap]
+      summary: Enable or disable a weekly reminder linked to a career action item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerReminderInput"
+      responses:
+        "200":
+          description: Saved weekly reminder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerReminder"
+        "400":
+          description: Invalid reminder or selected action item
+        "503":
+          description: Push delivery is not configured
+        "401":
+          description: Authentication required
+  /career-plan/reminder/snooze:
+    post:
+      operationId: snoozeCareerReminder
+      tags: [roadmap]
+      summary: Reschedule the next weekly reminder
+      responses:
+        "200":
+          description: Reminder rescheduled for next week
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerReminder"
+        "400":
+          description: No active reminder
+        "401":
+          description: Authentication required
+  /career-plan/tasks/{id}:
+    patch:
+      operationId: updateCareerTask
+      tags: [roadmap]
+      summary: Update an action item or mark it complete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerTaskUpdate"
+      responses:
+        "200":
+          description: Updated action item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerTask"
+        "400":
+          description: Invalid action item
+        "404":
+          description: Action item not found
+        "401":
+          description: Authentication required
+    delete:
+      operationId: deleteCareerTask
+      tags: [roadmap]
+      summary: Delete an action item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Action item deleted
+        "404":
+          description: Action item not found
+        "401":
+          description: Authentication required
+  /ai/career-plan-suggestions:
+    post:
+      operationId: generateCareerPlanSuggestions
+      tags: [ai]
+      summary: Suggest a focused career plan based on the student's saved skills and achievements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerPlanSuggestionsInput"
+      responses:
+        "200":
+          description: Suggested career plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerPlanSuggestions"
+        "400":
+          description: Invalid request
+        "401":
+          description: Authentication required
+  /academy/course-submissions:
+    get:
+      operationId: listMyAcademyCourseSubmissions
+      tags: [learning]
+      summary: List the authenticated member's course submissions
+      responses:
+        "200":
+          description: The member's submissions and review states
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseSubmissionList" }
+        "401": { description: Authentication required }
+    post:
+      operationId: submitAcademyCourseLink
+      tags: [learning]
+      summary: Submit a course link for administrator review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyCourseLinkSubmissionInput" }
+      responses:
+        "201":
+          description: The link is pending review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseSubmission" }
+        "400": { description: Invalid course link }
+        "401": { description: Authentication required }
+  /academy/course-submissions/upload-url:
+    post:
+      operationId: requestAcademyCourseSubmissionUpload
+      tags: [learning]
+      summary: Request a private upload URL for a course file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyCourseFileSubmissionInput" }
+      responses:
+        "201":
+          description: Upload URL and pending submission identifier
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseUploadUrlResponse" }
+        "400": { description: Invalid file metadata }
+        "401": { description: Authentication required }
+  /academy/course-submissions/{submissionId}/confirm:
+    post:
+      operationId: confirmAcademyCourseSubmissionUpload
+      tags: [learning]
+      summary: Verify an uploaded course file before review
+      parameters:
+        - in: path
+          name: submissionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: The file is safely stored and awaiting review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseSubmission" }
+        "400": { description: Invalid or incomplete upload }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+  /academy/community-courses:
+    get:
+      operationId: listApprovedAcademyCommunityCourses
+      tags: [learning]
+      summary: List member-submitted courses approved for sharing
+      responses:
+        "200":
+          description: Approved resources
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCommunityCourseList" }
+        "401": { description: Authentication required }
+  /academy/community-courses/{submissionId}/download:
+    get:
+      operationId: downloadApprovedAcademyCommunityCourse
+      tags: [learning]
+      summary: Download a file from an approved course submission
+      parameters:
+        - in: path
+          name: submissionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Approved course file }
+        "401": { description: Authentication required }
+        "404": { description: Course file not found }
+  /admin/academy/course-submissions:
+    get:
+      operationId: listAdminAcademyCourseSubmissions
+      tags: [admin]
+      summary: List course resources awaiting or completed review
+      responses:
+        "200":
+          description: Course submission review queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAcademyCourseSubmissionList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/academy/course-submissions/{submissionId}/review:
+    patch:
+      operationId: reviewAdminAcademyCourseSubmission
+      tags: [admin]
+      summary: Approve or reject a member-submitted course resource
+      parameters:
+        - in: path
+          name: submissionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AcademyCourseSubmissionReviewInput" }
+      responses:
+        "200":
+          description: Updated review state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AcademyCourseSubmission" }
+        "400": { description: Invalid review decision }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission not found }
+  /admin/academy/course-submissions/{submissionId}/download:
+    get:
+      operationId: downloadAdminAcademyCourseSubmission
+      tags: [admin]
+      summary: Review a private submitted course file
+      parameters:
+        - in: path
+          name: submissionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Submitted course file for review }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission file not found }
+  /graduates/items:
+    get:
+      operationId: listGraduateItems
+      tags: [graduates]
+      summary: List published opportunities, guidance and community posts
+      responses:
+        "200":
+          description: Published graduate hub content
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GraduateItemList" }
+        "401": { description: Authentication required }
+  /graduates/community:
+    post:
+      operationId: submitGraduateCommunityPost
+      tags: [graduates]
+      summary: Submit a community post for administrator review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GraduateCommunityPostInput" }
+      responses:
+        "201":
+          description: Post is waiting for review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GraduateSubmissionResponse" }
+        "400": { description: Invalid community post }
+        "401": { description: Authentication required }
+  /admin/graduates/items:
+    get:
+      operationId: listAdminGraduateItems
+      tags: [admin]
+      summary: List graduate hub content and community submissions
+      responses:
+        "200":
+          description: Editable graduate hub content
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminGraduateItemList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+    post:
+      operationId: createAdminGraduateItem
+      tags: [admin]
+      summary: Publish an opportunity or guidance resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminGraduateItemInput" }
+      responses:
+        "201":
+          description: Published graduate resource
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminGraduateItem" }
+        "400": { description: Invalid graduate content }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/graduates/items/{itemId}:
+    patch:
+      operationId: reviewAdminGraduateItem
+      tags: [admin]
+      summary: Edit, publish or reject a graduate community item
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminGraduateItemUpdate" }
+      responses:
+        "200":
+          description: Updated graduate content
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminGraduateItem" }
+        "400": { description: Invalid graduate update }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Graduate item not found }
+    delete:
+      operationId: deleteAdminGraduateItem
+      tags: [admin]
+      summary: Remove a graduate hub item
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Graduate item removed }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Graduate item not found }
+
 components:
   schemas:
+    AdPage:
+      type: string
+      enum: [home, dashboard, achievements, learning, academy, roadmap, resume, assistant, profile]
+    AdSlot:
+      type: string
+      enum: [top, middle, bottom, side, floating-start, floating-end]
+    AdPlacement:
+      type: object
+      additionalProperties: false
+      required: [page, slot, offsetX, offsetY, width, height]
+      properties:
+        page: { $ref: "#/components/schemas/AdPage" }
+        slot: { $ref: "#/components/schemas/AdSlot" }
+        offsetX: { type: integer, minimum: 0, maximum: 200 }
+        offsetY: { type: integer, minimum: 0, maximum: 200 }
+        width: { type: integer, minimum: 180, maximum: 1200 }
+        height: { type: integer, minimum: 100, maximum: 800 }
+    AdCreativeInput:
+      type: object
+      required: [title, format, mediaUrl, code, destination, cta, placements]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        format: { type: string, enum: [image_link, video_link, code, image_code, text_link] }
+        mediaUrl: { type: string, maxLength: 2000 }
+        code: { type: string, maxLength: 100000 }
+        destination: { type: string, maxLength: 2000 }
+        cta: { type: string, minLength: 1, maxLength: 60 }
+        placements:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items: { $ref: "#/components/schemas/AdPlacement" }
+    AdInput:
+      allOf:
+        - { $ref: "#/components/schemas/AdCreativeInput" }
+        - type: object
+          required: [status, customerId, startsAt, endsAt]
+          properties:
+            status: { type: string, enum: [draft, active, paused, archived] }
+            customerId: { type: [string, "null"], format: uuid }
+            startsAt: { type: [string, "null"], format: date-time }
+            endsAt: { type: [string, "null"], format: date-time }
+    ClassifiedAd:
+      allOf:
+        - { $ref: "#/components/schemas/AdInput" }
+        - type: object
+          required: [id, updatedAt]
+          properties:
+            id: { type: string }
+            updatedAt: { type: string }
+    PublicAd:
+      allOf:
+        - { $ref: "#/components/schemas/AdCreativeInput" }
+        - type: object
+          required: [id]
+          properties:
+            id: { type: string }
+    AdCustomerInput:
+      type: object
+      additionalProperties: false
+      required: [name, email, phone, notes]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        email: { type: string, maxLength: 254 }
+        phone: { type: string, maxLength: 60 }
+        notes: { type: string, maxLength: 2000 }
+    AdCustomer:
+      allOf:
+        - { $ref: "#/components/schemas/AdCustomerInput" }
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id: { type: string }
+            createdAt: { type: string }
+    AdMetric:
+      type: object
+      required: [impressions, clicks, visitors, enquiries, ctr]
+      properties:
+        impressions: { type: integer }
+        clicks: { type: integer }
+        visitors: { type: integer }
+        enquiries: { type: integer }
+        ctr: { type: number }
+    AdBreakdown:
+      allOf:
+        - { $ref: "#/components/schemas/AdMetric" }
+        - type: object
+          required: [id, title]
+          properties:
+            id: { type: string }
+            title: { type: string }
+    AdDaily:
+      allOf:
+        - { $ref: "#/components/schemas/AdMetric" }
+        - type: object
+          required: [date]
+          properties:
+            date: { type: string }
+    AdEnquiry:
+      type: object
+      required: [id, adId, adTitle, name, contact, message, status, createdAt]
+      properties:
+        id: { type: string }
+        adId: { type: string }
+        adTitle: { type: string }
+        name: { type: string }
+        contact: { type: string }
+        message: { type: string }
+        status: { type: string, enum: [new, contacted, converted, closed] }
+        createdAt: { type: string }
+    AdStatistics:
+      type: object
+      required: [updatedAt, days, totals, byAd, byCustomer, daily, leads]
+      properties:
+        updatedAt: { type: string }
+        days: { type: integer }
+        totals: { $ref: "#/components/schemas/AdMetric" }
+        byAd: { type: array, items: { $ref: "#/components/schemas/AdBreakdown" } }
+        byCustomer: { type: array, items: { $ref: "#/components/schemas/AdBreakdown" } }
+        daily: { type: array, items: { $ref: "#/components/schemas/AdDaily" } }
+        leads: { type: array, items: { $ref: "#/components/schemas/AdEnquiry" } }
+    AdEventInput:
+      type: object
+      additionalProperties: false
+      required: [kind, page, slot]
+      properties:
+        kind: { type: string, enum: [impression, click] }
+        page: { $ref: "#/components/schemas/AdPage" }
+        slot: { $ref: "#/components/schemas/AdSlot" }
+    AdEnquiryInput:
+      type: object
+      additionalProperties: false
+      required: [name, contact, message, consent]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        contact: { type: string, minLength: 3, maxLength: 254 }
+        message: { type: string, maxLength: 2000 }
+        consent: { type: boolean }
+    AdEnquiryUpdate:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [new, contacted, converted, closed] }
+    AdAssetInput:
+      type: object
+      additionalProperties: false
+      required: [mime, size]
+      properties:
+        mime: { type: string, enum: [image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm] }
+        size: { type: integer, minimum: 1, maximum: 83886080 }
+    AdAssetUpload:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string }
+        uploadUrl: { type: string }
+    AdAssetReady:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    ModuleKey:
+      type: string
+      enum: [achievements, learning, academy, languages, graduates, roadmap, resume, assistant]
+    SectionIconKey:
+      type: string
+      enum: [book, file, graduation, briefcase, target, sparkles, languages, award, layers, route, globe, code, heart, users]
+    SectionAccentKey:
+      type: string
+      enum: [teal, green, blue, indigo, violet, amber, rose]
+    SectionCardStyle:
+      type: string
+      enum: [soft, outlined, gradient]
+    ModuleSetting:
+      type: object
+      additionalProperties: false
+      required: [key, title, description, enabled, sortOrder]
+      properties:
+        key: { $ref: "#/components/schemas/ModuleKey" }
+        title: { type: string, minLength: 2, maxLength: 80 }
+        description: { type: string, maxLength: 240 }
+        enabled: { type: boolean }
+        sortOrder: { type: integer, minimum: 0, maximum: 999 }
+        iconKey: { $ref: "#/components/schemas/SectionIconKey" }
+        accentKey: { $ref: "#/components/schemas/SectionAccentKey" }
+        cardStyle: { $ref: "#/components/schemas/SectionCardStyle" }
+        blocks:
+          type: array
+          maxItems: 20
+          items: { $ref: "#/components/schemas/SectionBlock" }
+    PlatformSettings:
+      type: object
+      additionalProperties: false
+      required: [moduleSettings, appearance]
+      properties:
+        moduleSettings:
+          type: array
+          minItems: 7
+          maxItems: 7
+          items: { $ref: "#/components/schemas/ModuleSetting" }
+        appearance: { $ref: "#/components/schemas/AppearanceSettings" }
+    AppearanceSettings:
+      type: object
+      additionalProperties: false
+      required: [primaryColor, accentColor, canvasColor, surfaceColor, welcomeTitle, welcomeDescription]
+      properties:
+        primaryColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        accentColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        canvasColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        surfaceColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        welcomeTitle: { type: string, minLength: 2, maxLength: 80 }
+        welcomeDescription: { type: string, minLength: 2, maxLength: 220 }
+    PlatformAccess:
+      type: object
+      required: [userId, role, status, enabledModules]
+      properties:
+        userId: { type: string }
+        role: { type: string, enum: [student, admin] }
+        status: { type: string, enum: [active, suspended] }
+        enabledModules:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleKey" }
+    AdminUser:
+      type: object
+      required: [userId, name, email, verified, role, status, createdAt, shared]
+      properties:
+        userId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        verified: { type: boolean }
+        role: { type: string, enum: [student, admin] }
+        status: { type: string, enum: [active, suspended] }
+        createdAt: { type: string }
+        shared: { type: boolean }
+    MemberUpdate:
+      type: object
+      additionalProperties: false
+      required: [role, status]
+      properties:
+        role: { type: string, enum: [student, admin] }
+        status: { type: string, enum: [active, suspended] }
+    AdminUserPage:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminUser" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    AdminOverview:
+      type: object
+      required: [accounts, students, achievements, learningItems, careerPlans, activeShares, admins, suspended]
+      properties:
+        accounts: { type: integer }
+        students: { type: integer }
+        achievements: { type: integer }
+        learningItems: { type: integer }
+        careerPlans: { type: integer }
+        activeShares: { type: integer }
+        admins: { type: integer }
+        suspended: { type: integer }
+    AdminOverviewDetailsKind:
+      type: string
+      enum: [accounts, students, admins, suspended, achievements, learningItems, careerPlans, activeShares]
+    AdminOverviewDetailsItem:
+      type: object
+      additionalProperties: false
+      required: [id, title, subtitle, ownerId, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        subtitle: { type: string }
+        ownerId: { type: string }
+        updatedAt: { type: string }
+    AdminOverviewDetails:
+      type: object
+      additionalProperties: false
+      required: [kind, items, total, page, pageSize]
+      properties:
+        kind: { $ref: "#/components/schemas/AdminOverviewDetailsKind" }
+        items: { type: array, items: { $ref: "#/components/schemas/AdminOverviewDetailsItem" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    SectionMediaUploadInput:
+      type: object
+      additionalProperties: false
+      required: [originalName, mime, size]
+      properties:
+        originalName: { type: string, minLength: 1, maxLength: 240 }
+        mime:
+          type: string
+          enum: [image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm, application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain]
+        size: { type: integer, minimum: 1, maximum: 83886080 }
+    SectionMediaUploadRequest:
+      type: object
+      additionalProperties: false
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+    SectionMediaUploadResult:
+      type: object
+      additionalProperties: false
+      required: [url]
+      properties:
+        url: { type: string }
+    ContentInput:
+      type: object
+      additionalProperties: false
+      required: [kind, title, description, url, published]
+      properties:
+        kind: { type: string, enum: [resource, announcement] }
+        title: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, maxLength: 2000 }
+        url: { type: string, maxLength: 2000 }
+        published: { type: boolean }
+    ContentEntry:
+      allOf:
+        - { $ref: "#/components/schemas/ContentInput" }
+        - type: object
+          required: [id, updatedAt]
+          properties:
+            id: { type: string }
+            updatedAt: { type: string }
+    ManagedContent:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ContentEntry" } }
+    PlatformContent:
+      type: object
+      required: [items, enabledModules, moduleSettings, appearance, sections]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ContentEntry" } }
+        enabledModules:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleKey" }
+        moduleSettings:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleSetting" }
+        appearance: { $ref: "#/components/schemas/AppearanceSettings" }
+        sections: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
+    SectionBlock:
+      type: object
+      additionalProperties: false
+      required: [type, title, body, url]
+      properties:
+        type: { type: string, enum: [text, link, media] }
+        mediaType: { type: string, enum: [image, video, file] }
+        title: { type: string, minLength: 1, maxLength: 100 }
+        body: { type: string, maxLength: 2000 }
+        url: { type: string, maxLength: 2048 }
+    SectionCourse:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, materials]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, maxLength: 600 }
+        skills:
+          type: array
+          maxItems: 20
+          items: { type: string, minLength: 1, maxLength: 60 }
+        materials:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: "#/components/schemas/SectionBlock" }
+    SectionInput:
+      type: object
+      additionalProperties: false
+      required: [kind, title, description, blocks, published, sortOrder]
+      properties:
+        kind: { type: string, enum: [content_page, module] }
+        title: { type: string, minLength: 2, maxLength: 100 }
+        description: { type: string, maxLength: 400 }
+        iconKey: { $ref: "#/components/schemas/SectionIconKey" }
+        accentKey: { $ref: "#/components/schemas/SectionAccentKey" }
+        cardStyle: { $ref: "#/components/schemas/SectionCardStyle" }
+        blocks:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: "#/components/schemas/SectionBlock" }
+        courses:
+          type: array
+          maxItems: 20
+          items: { $ref: "#/components/schemas/SectionCourse" }
+        published: { type: boolean }
+        sortOrder: { type: integer, minimum: 0, maximum: 999 }
+    PlatformSection:
+      allOf:
+        - { $ref: "#/components/schemas/SectionInput" }
+        - type: object
+          required: [id, slug, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            slug: { type: string, pattern: '^section-[a-f0-9]{12}$' }
+            updatedAt: { type: string }
+    AdminSectionList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
+    AuditEntry:
+      type: object
+      required: [id, actorId, action, target, createdAt]
+      properties:
+        id: { type: string }
+        actorId: { type: string }
+        action: { type: string }
+        target: { type: string }
+        createdAt: { type: string }
+    AuditPage:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AuditEntry" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    ActionResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
     HealthStatus:
       type: object
       properties:
@@ -33,4 +2708,1328 @@ components:
           type: string
       required:
         - status
+    StudentProfile:
+      type: object
+      required: [id, fullName, university, major, yearOfStudy, headline, skills, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        university: { type: string }
+        major: { type: string }
+        yearOfStudy: { type: ["integer", "null"] }
+        headline: { type: ["string", "null"] }
+        skills:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StudentProfileInput:
+      type: object
+      required: [fullName, university, major, skills]
+      properties:
+        fullName: { type: string, minLength: 1, maxLength: 120 }
+        university: { type: string, minLength: 1, maxLength: 160 }
+        major: { type: string, minLength: 1, maxLength: 120 }
+        yearOfStudy: { type: ["integer", "null"], minimum: 1, maximum: 12 }
+        headline: { type: string, maxLength: 240 }
+        skills:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 60 }
+    ResumeShareSettings:
+      type: object
+      required: [enabled, token, showName, showHeadline, showUniversity, showMajor, showYearOfStudy, showSkills, achievementIds, courseIds]
+      properties:
+        enabled: { type: boolean }
+        token: { type: ["string", "null"] }
+        showName: { type: boolean }
+        showHeadline: { type: boolean }
+        showUniversity: { type: boolean }
+        showMajor: { type: boolean }
+        showYearOfStudy: { type: boolean }
+        showSkills: { type: boolean }
+        achievementIds:
+          type: array
+          items: { type: string, format: uuid }
+        courseIds:
+          type: array
+          items: { type: string, format: uuid }
+    ResumeShareUpdate:
+      type: object
+      required: [enabled, showName, showHeadline, showUniversity, showMajor, showYearOfStudy, showSkills, achievementIds, courseIds]
+      properties:
+        enabled: { type: boolean }
+        showName: { type: boolean }
+        showHeadline: { type: boolean }
+        showUniversity: { type: boolean }
+        showMajor: { type: boolean }
+        showYearOfStudy: { type: boolean }
+        showSkills: { type: boolean }
+        achievementIds:
+          type: array
+          maxItems: 100
+          items: { type: string, format: uuid }
+        courseIds:
+          type: array
+          maxItems: 100
+          items: { type: string, format: uuid }
+    PublicResume:
+      type: object
+      required: [fullName, headline, university, major, yearOfStudy, skills, achievements, courses]
+      properties:
+        fullName: { type: ["string", "null"] }
+        headline: { type: ["string", "null"] }
+        university: { type: ["string", "null"] }
+        major: { type: ["string", "null"] }
+        yearOfStudy: { type: ["integer", "null"] }
+        skills:
+          type: array
+          items: { type: string }
+        achievements:
+          type: array
+          items:
+            type: object
+            required: [title, category, achievedOn, resumeBullet]
+            properties:
+              title: { type: string }
+              category: { type: string }
+              achievedOn: { type: string, format: date-time }
+              resumeBullet: { type: ["string", "null"] }
+        courses:
+          type: array
+          items:
+            type: object
+            required: [title, source, subject]
+            properties:
+              title: { type: string }
+              source: { type: ["string", "null"] }
+              subject: { type: ["string", "null"] }
+    Achievement:
+      type: object
+      required: [id, title, category, context, challenge, action, result, achievedOn, skills, resumeBullet, interviewStory, serviceOffer, summary, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        category:
+          type: string
+          enum: [project, internship, volunteer, competition, course, research, other]
+        context: { type: string }
+        challenge: { type: ["string", "null"] }
+        action: { type: string }
+        result: { type: string }
+        achievedOn: { type: string, format: date }
+        skills:
+          type: array
+          items: { type: string }
+        resumeBullet: { type: ["string", "null"] }
+        interviewStory: { type: ["string", "null"] }
+        serviceOffer: { type: ["string", "null"] }
+        summary: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AchievementInput:
+      type: object
+      required: [title, category, context, action, result, achievedOn, skills]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        category:
+          type: string
+          enum: [project, internship, volunteer, competition, course, research, other]
+        context: { type: string, maxLength: 2000 }
+        challenge: { type: string, maxLength: 2000 }
+        action: { type: string, minLength: 1, maxLength: 3000 }
+        result: { type: string, minLength: 1, maxLength: 2000 }
+        achievedOn: { type: string, format: date }
+        skills:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 60 }
+        resumeBullet: { type: string, maxLength: 1000 }
+        interviewStory: { type: string, maxLength: 3000 }
+        serviceOffer: { type: string, maxLength: 2000 }
+        summary: { type: string, maxLength: 1000 }
+    AchievementUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        category:
+          type: string
+          enum: [project, internship, volunteer, competition, course, research, other]
+        context: { type: string, maxLength: 2000 }
+        challenge: { type: ["string", "null"], maxLength: 2000 }
+        action: { type: string, minLength: 1, maxLength: 3000 }
+        result: { type: string, minLength: 1, maxLength: 2000 }
+        achievedOn: { type: string, format: date }
+        skills:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 60 }
+        resumeBullet: { type: ["string", "null"], maxLength: 1000 }
+        interviewStory: { type: ["string", "null"], maxLength: 3000 }
+        serviceOffer: { type: ["string", "null"], maxLength: 2000 }
+        summary: { type: ["string", "null"], maxLength: 1000 }
+    AchievementDraftInput:
+      type: object
+      required: [title, context, action, result]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        context: { type: string, maxLength: 2000 }
+        challenge: { type: string, maxLength: 2000 }
+        action: { type: string, minLength: 1, maxLength: 3000 }
+        result: { type: string, minLength: 1, maxLength: 2000 }
+        skills:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 60 }
+    AchievementDraft:
+      type: object
+      required: [resumeBullet, interviewStory, serviceOffer, summary]
+      properties:
+        resumeBullet: { type: string }
+        interviewStory: { type: string }
+        serviceOffer: { type: string }
+        summary: { type: string }
+    DashboardSummary:
+      type: object
+      required: [totalAchievements, achievementsThisMonth, profileCompletion, readinessScore, points, completedCourses, completedLessons, recentAchievements]
+      properties:
+        totalAchievements: { type: integer, minimum: 0 }
+        achievementsThisMonth: { type: integer, minimum: 0 }
+        profileCompletion: { type: integer, minimum: 0, maximum: 100 }
+        readinessScore: { type: integer, minimum: 0, maximum: 100 }
+        points: { type: integer, minimum: 0 }
+        completedCourses: { type: integer, minimum: 0 }
+        completedLessons: { type: integer, minimum: 0 }
+        recentAchievements:
+          type: array
+          items: { $ref: "#/components/schemas/Achievement" }
+    LearningItem:
+      type: object
+      required: [id, kind, title, source, subject, url, notes, skills, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [course, lecture] }
+        title: { type: string }
+        source: { type: ["string", "null"] }
+        subject: { type: ["string", "null"] }
+        url: { type: ["string", "null"] }
+        notes: { type: string }
+        skills:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [planned, in_progress, completed] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    LearningItemInput:
+      type: object
+      required: [kind, title]
+      properties:
+        kind: { type: string, enum: [course, lecture] }
+        title: { type: string, minLength: 2, maxLength: 160 }
+        source: { type: string, maxLength: 160 }
+        subject: { type: string, maxLength: 120 }
+        url: { type: string, maxLength: 1000 }
+        notes: { type: string, maxLength: 5000 }
+        status: { type: string, enum: [planned, in_progress, completed] }
+    LearningItemUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 2, maxLength: 160 }
+        source: { type: ["string", "null"], maxLength: 160 }
+        subject: { type: ["string", "null"], maxLength: 120 }
+        url: { type: ["string", "null"], maxLength: 1000 }
+        notes: { type: string, maxLength: 5000 }
+        status: { type: string, enum: [planned, in_progress, completed] }
+    AcademyProgress:
+      type: object
+      required: [lessonId, completed, quizScore, updatedAt]
+      properties:
+        lessonId: { type: string }
+        completed: { type: boolean }
+        quizScore: { type: ["integer", "null"], minimum: 0, maximum: 100 }
+        updatedAt: { type: string, format: date-time }
+    AcademyProgressInput:
+      type: object
+      required: [completed, quizScore]
+      properties:
+        completed: { type: boolean }
+        quizScore: { type: ["integer", "null"], minimum: 0, maximum: 100 }
+    LanguagePlatformSettings:
+      type: object
+      required: [page, game]
+      properties:
+        page: { $ref: "#/components/schemas/LanguagePageSettings" }
+        game: { $ref: "#/components/schemas/LanguageGameRules" }
+    LanguagePlatformSettingsInput:
+      type: object
+      additionalProperties: false
+      required: [page, game]
+      properties:
+        page: { $ref: "#/components/schemas/LanguagePageSettings" }
+        game: { $ref: "#/components/schemas/LanguageGameRules" }
+    LanguagePageSettings:
+      type: object
+      additionalProperties: false
+      required: [title, subtitle, accentColor, enabledLanguages, showConversation, showGamification, showProgress, showReviewList, showLeague, showFreeze, showPreferences, layoutOrder]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 80 }
+        subtitle: { type: string, minLength: 2, maxLength: 240 }
+        accentColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        enabledLanguages:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: string, enum: [en, fr, es, de, tr] }
+        showConversation: { type: boolean }
+        showGamification: { type: boolean }
+        showProgress: { type: boolean }
+        showReviewList: { type: boolean }
+        showLeague: { type: boolean }
+        showFreeze: { type: boolean }
+        showPreferences: { type: boolean }
+        layoutOrder: { type: string, enum: [learning-first, game-first] }
+    LanguageGameRules:
+      type: object
+      additionalProperties: false
+      required: [maxHearts, heartRegenMinutes, baseXp, accuracyBonusXp, reviewBonusXp, streakGemInterval, freezeCost, maxFreezeCredits, promotionCount, demotionCount]
+      properties:
+        maxHearts: { type: integer, minimum: 3, maximum: 10 }
+        heartRegenMinutes: { type: integer, minimum: 30, maximum: 1440 }
+        baseXp: { type: integer, minimum: 0, maximum: 100 }
+        accuracyBonusXp: { type: integer, minimum: 0, maximum: 100 }
+        reviewBonusXp: { type: integer, minimum: 0, maximum: 100 }
+        streakGemInterval: { type: integer, minimum: 1, maximum: 30 }
+        freezeCost: { type: integer, minimum: 0, maximum: 100 }
+        maxFreezeCredits: { type: integer, minimum: 0, maximum: 10 }
+        promotionCount: { type: integer, minimum: 1, maximum: 14 }
+        demotionCount: { type: integer, minimum: 1, maximum: 14 }
+    LanguageContentItem:
+      type: object
+      required: [id, languageCode, level, kind, category, partOfSpeech, english, arabic, pronunciationArabic, exampleEnglish, exampleArabic, grammarNote, difficulty, relatedWordIds, active, updatedAt]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 120 }
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        kind: { type: string, enum: [word, sentence] }
+        category: { type: string, minLength: 1, maxLength: 80 }
+        partOfSpeech: { type: ["string", "null"], maxLength: 40 }
+        english: { type: string, minLength: 1, maxLength: 300 }
+        arabic: { type: string, minLength: 1, maxLength: 300 }
+        pronunciationArabic: { type: ["string", "null"], maxLength: 200 }
+        exampleEnglish: { type: ["string", "null"], maxLength: 500 }
+        exampleArabic: { type: ["string", "null"], maxLength: 500 }
+        grammarNote: { type: ["string", "null"], maxLength: 600 }
+        difficulty: { type: integer, minimum: 1, maximum: 10 }
+        relatedWordIds: { type: array, maxItems: 30, items: { type: string, maxLength: 120 } }
+        active: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    LanguageContentItemInput:
+      type: object
+      additionalProperties: false
+      required: [languageCode, level, kind, category, english, arabic, difficulty]
+      properties:
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        kind: { type: string, enum: [word, sentence] }
+        category: { type: string, minLength: 1, maxLength: 80 }
+        partOfSpeech: { type: ["string", "null"], maxLength: 40 }
+        english: { type: string, minLength: 1, maxLength: 300 }
+        arabic: { type: string, minLength: 1, maxLength: 300 }
+        pronunciationArabic: { type: ["string", "null"], maxLength: 200 }
+        exampleEnglish: { type: ["string", "null"], maxLength: 500 }
+        exampleArabic: { type: ["string", "null"], maxLength: 500 }
+        grammarNote: { type: ["string", "null"], maxLength: 600 }
+        difficulty: { type: integer, minimum: 1, maximum: 10 }
+        relatedWordIds: { type: array, maxItems: 30, items: { type: string, maxLength: 120 } }
+    LanguageContentItemUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        kind: { type: string, enum: [word, sentence] }
+        category: { type: string, minLength: 1, maxLength: 80 }
+        partOfSpeech: { type: ["string", "null"], maxLength: 40 }
+        english: { type: string, minLength: 1, maxLength: 300 }
+        arabic: { type: string, minLength: 1, maxLength: 300 }
+        pronunciationArabic: { type: ["string", "null"], maxLength: 200 }
+        exampleEnglish: { type: ["string", "null"], maxLength: 500 }
+        exampleArabic: { type: ["string", "null"], maxLength: 500 }
+        grammarNote: { type: ["string", "null"], maxLength: 600 }
+        difficulty: { type: integer, minimum: 1, maximum: 10 }
+        relatedWordIds: { type: array, maxItems: 30, items: { type: string, maxLength: 120 } }
+        active: { type: boolean }
+    LanguageContentList:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/LanguageContentItem" } }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        pageSize: { type: integer, minimum: 1, maximum: 100 }
+    LanguageReviewState:
+      type: object
+      required: [contentId, languageCode, level, repetitions, intervalMinutes, dueAt, lastQuality, lastResponseMs, correctCount, incorrectCount, lastReviewedAt, updatedAt]
+      properties:
+        contentId: { type: string }
+        languageCode: { type: string }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        repetitions: { type: integer, minimum: 0 }
+        intervalMinutes: { type: integer, minimum: 0 }
+        dueAt: { type: string, format: date-time }
+        lastQuality: { type: integer, minimum: 0, maximum: 5 }
+        lastResponseMs: { type: integer, minimum: 0 }
+        correctCount: { type: integer, minimum: 0 }
+        incorrectCount: { type: integer, minimum: 0 }
+        lastReviewedAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    LanguageLearningProgress:
+      type: object
+      required: [languageCode, dueCount, reviewedCount, masteredCount, sessionsCompleted, latestSessionAt, dueReviews]
+      properties:
+        languageCode: { type: string }
+        dueCount: { type: integer, minimum: 0 }
+        reviewedCount: { type: integer, minimum: 0 }
+        masteredCount: { type: integer, minimum: 0 }
+        sessionsCompleted: { type: integer, minimum: 0 }
+        latestSessionAt: { type: ["string", "null"], format: date-time }
+        dueReviews: { type: array, items: { $ref: "#/components/schemas/LanguageReviewState" } }
+    LanguageSessionAnswerInput:
+      type: object
+      required: [contentId, mode, submittedAnswer, responseMs]
+      properties:
+        contentId: { type: string, minLength: 1, maxLength: 120 }
+        mode: { type: string, enum: [choice, listening, order, recall, pronunciation] }
+        submittedAnswer: { type: string, maxLength: 512 }
+        responseMs: { type: integer, minimum: 0, maximum: 120000 }
+    LanguageSessionInput:
+      type: object
+      required: [sessionRef, languageCode, level, elapsedSeconds, sessionKind, answers]
+      properties:
+        sessionRef: { type: string, format: uuid }
+        languageCode: { type: string, minLength: 2, maxLength: 10, pattern: "^[a-z]{2}(-[A-Z]{2})?$" }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        elapsedSeconds: { type: integer, minimum: 0, maximum: 3600 }
+        sessionKind: { type: string, enum: [lesson, review] }
+        timezone: { type: string, minLength: 1, maxLength: 64 }
+        answers:
+          type: array
+          minItems: 10
+          maxItems: 15
+          items: { $ref: "#/components/schemas/LanguageSessionAnswerInput" }
+    LanguageSessionSummary:
+      type: object
+      required: [id, languageCode, level, totalQuestions, correctAnswers, elapsedSeconds, completedAt]
+      properties:
+        id: { type: string, format: uuid }
+        languageCode: { type: string }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        totalQuestions: { type: integer, minimum: 10, maximum: 15 }
+        correctAnswers: { type: integer, minimum: 0, maximum: 15 }
+        elapsedSeconds: { type: integer, minimum: 0 }
+        completedAt: { type: string, format: date-time }
+    LanguageSessionAnswerResult:
+      type: object
+      required: [contentId, isCorrect, pronunciationScore]
+      properties:
+        contentId: { type: string, minLength: 1, maxLength: 120 }
+        isCorrect: { type: boolean }
+        pronunciationScore: { type: ["integer", "null"], minimum: 0, maximum: 100 }
+    LanguageSessionResponse:
+      type: object
+      required: [duplicate, session, reviewUpdates, gamification, answerResults]
+      properties:
+        duplicate: { type: boolean }
+        session: { $ref: "#/components/schemas/LanguageSessionSummary" }
+        reviewUpdates: { type: array, items: { $ref: "#/components/schemas/LanguageReviewState" } }
+        gamification: { $ref: "#/components/schemas/LanguageGamificationSummary" }
+        answerResults: { type: array, minItems: 10, maxItems: 15, items: { $ref: "#/components/schemas/LanguageSessionAnswerResult" } }
+    LanguageGamificationProfile:
+      type: object
+      required: [languageCode, xpTotal, gems, hearts, maxHearts, nextHeartAt, currentStreak, bestStreak, todayStudied, streakAtRisk, streakFreezeCredits, soundEnabled, vibrationEnabled, tier, weeklyXp]
+      properties:
+        languageCode: { type: string }
+        xpTotal: { type: integer, minimum: 0 }
+        gems: { type: integer, minimum: 0 }
+        hearts: { type: integer, minimum: 0, maximum: 10 }
+        maxHearts: { type: integer, minimum: 3, maximum: 10 }
+        nextHeartAt: { type: ["string", "null"], format: date-time }
+        currentStreak: { type: integer, minimum: 0 }
+        bestStreak: { type: integer, minimum: 0 }
+        todayStudied: { type: boolean }
+        streakAtRisk: { type: boolean }
+        streakFreezeCredits: { type: integer, minimum: 0, maximum: 10 }
+        soundEnabled: { type: boolean }
+        vibrationEnabled: { type: boolean }
+        tier: { type: string, enum: [bronze, silver, gold, diamond] }
+        weeklyXp: { type: integer, minimum: 0 }
+    LanguageLeagueMember:
+      type: object
+      required: [id, displayName, weeklyXp, rank, isVirtual, isCurrentUser]
+      properties:
+        id: { type: string }
+        displayName: { type: string }
+        weeklyXp: { type: integer, minimum: 0 }
+        rank: { type: integer, minimum: 1, maximum: 30 }
+        isVirtual: { type: boolean }
+        isCurrentUser: { type: boolean }
+    LanguageLeagueSummary:
+      type: object
+      required: [tier, weekStart, weeklyXp, rank, participantCount, realParticipantCount, virtualCompetitorCount, promotionSlots, demotionSlots, members]
+      properties:
+        tier: { type: string, enum: [bronze, silver, gold, diamond] }
+        weekStart: { type: string, format: date }
+        weeklyXp: { type: integer, minimum: 0 }
+        rank: { type: integer, minimum: 1, maximum: 30 }
+        participantCount: { type: integer, minimum: 1, maximum: 30 }
+        realParticipantCount: { type: integer, minimum: 1, maximum: 30 }
+        virtualCompetitorCount: { type: integer, minimum: 0, maximum: 29 }
+        promotionSlots: { type: integer, minimum: 0, maximum: 14 }
+        demotionSlots: { type: integer, minimum: 0, maximum: 14 }
+        members: { type: array, minItems: 1, maxItems: 30, items: { $ref: "#/components/schemas/LanguageLeagueMember" } }
+    LanguageGamificationSummary:
+      type: object
+      required: [profile, league]
+      properties:
+        profile: { $ref: "#/components/schemas/LanguageGamificationProfile" }
+        league: { $ref: "#/components/schemas/LanguageLeagueSummary" }
+    LanguageGamificationSettingsInput:
+      type: object
+      required: [languageCode]
+      properties:
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        soundEnabled: { type: boolean }
+        vibrationEnabled: { type: boolean }
+    LanguageGamificationLanguageInput:
+      type: object
+      additionalProperties: false
+      required: [languageCode]
+      properties:
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+    AcademySubjectSummary:
+      type: object
+      required: [id, slug, title, description, level, skillTags, lessonCount, completedLessons, enrolled]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: string }
+        level: { type: string }
+        skillTags: { type: array, items: { type: string } }
+        lessonCount: { type: integer, minimum: 0 }
+        completedLessons: { type: integer, minimum: 0 }
+        enrolled: { type: boolean }
+    AcademyLessonSummary:
+      type: object
+      required: [id, subjectId, title, summary, position, estimatedMinutes, completed]
+      properties:
+        id: { type: string, format: uuid }
+        subjectId: { type: string, format: uuid }
+        title: { type: string }
+        summary: { type: string }
+        position: { type: integer }
+        estimatedMinutes: { type: integer, minimum: 1 }
+        completed: { type: boolean }
+    AcademyExamSummary:
+      type: object
+      required: [id, subjectId, lessonId, title, description, timeLimitSeconds, passingScore, questionCount]
+      properties:
+        id: { type: string, format: uuid }
+        subjectId: { type: string, format: uuid }
+        lessonId: { type: ["string", "null"], format: uuid }
+        title: { type: string }
+        description: { type: string }
+        timeLimitSeconds: { type: ["integer", "null"], minimum: 60 }
+        passingScore: { type: integer, minimum: 1, maximum: 100 }
+        questionCount: { type: integer, minimum: 0, maximum: 200 }
+    AcademySubjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/AcademySubjectSummary"
+        - type: object
+          required: [lessons, exams]
+          properties:
+            lessons:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyLessonSummary" }
+            exams:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyExamSummary" }
+    AcademyEnrollment:
+      type: object
+      required: [subjectId, enrolled]
+      properties:
+        subjectId: { type: string, format: uuid }
+        enrolled: { type: boolean }
+    AcademyCourseFile:
+      type: object
+      required: [id, lessonId, title, originalName, mime, size, downloadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        lessonId: { type: string, format: uuid }
+        title: { type: string }
+        originalName: { type: string }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
+        size: { type: integer, minimum: 1 }
+        downloadUrl: { type: string }
+    AcademyLessonDetail:
+      allOf:
+        - $ref: "#/components/schemas/AcademyLessonSummary"
+        - type: object
+          required: [subjectTitle, body, files]
+          properties:
+            subjectTitle: { type: string }
+            body: { type: string }
+            files:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyCourseFile" }
+    AcademyQuestion:
+      type: object
+      required: [id, position, prompt, options, correctOption, explanation, skillTags]
+      properties:
+        id: { type: string, format: uuid }
+        position: { type: integer, minimum: 0 }
+        prompt: { type: string }
+        options:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items: { type: string }
+        correctOption: { type: integer, minimum: 0, maximum: 7 }
+        explanation: { type: string }
+        skillTags: { type: array, items: { type: string } }
+    AcademyExam:
+      type: object
+      required: [id, subjectId, lessonId, title, description, timeLimitSeconds, passingScore, published, questionCount]
+      properties:
+        id: { type: string, format: uuid }
+        subjectId: { type: string, format: uuid }
+        lessonId: { type: ["string", "null"], format: uuid }
+        title: { type: string }
+        description: { type: string }
+        timeLimitSeconds: { type: ["integer", "null"], minimum: 60 }
+        passingScore: { type: integer, minimum: 1, maximum: 100 }
+        published: { type: boolean }
+        questionCount: { type: integer, minimum: 0, maximum: 200 }
+    AcademyAttemptReview:
+      type: object
+      required: [questionId, position, prompt, options, correctOption, selectedOption, isCorrect, explanation]
+      properties:
+        questionId: { type: string, format: uuid }
+        position: { type: integer, minimum: 0 }
+        prompt: { type: string }
+        options: { type: array, items: { type: string } }
+        correctOption: { type: integer, minimum: 0, maximum: 7 }
+        selectedOption: { type: ["integer", "null"] }
+        isCorrect: { type: boolean }
+        explanation: { type: string }
+    AcademyGrowthEvidence:
+      type: object
+      required: [id, examId, fromScore, toScore, createdAt, achievementId]
+      properties:
+        id: { type: string, format: uuid }
+        examId: { type: string, format: uuid }
+        fromScore: { type: integer, minimum: 0, maximum: 100 }
+        toScore: { type: integer, minimum: 0, maximum: 100 }
+        createdAt: { type: string, format: date-time }
+        achievementId: { type: ["string", "null"], format: uuid }
+    AcademyAttemptSession:
+      type: object
+      required: [id, examId, examTitle, timeLimitSeconds, passingScore, startedAt, submittedAt, score, questionCount, questions, review, reviewedAt, improvement, canConvertAchievement]
+      properties:
+        id: { type: string, format: uuid }
+        examId: { type: string, format: uuid }
+        examTitle: { type: string }
+        timeLimitSeconds: { type: ["integer", "null"] }
+        passingScore: { type: integer, minimum: 1, maximum: 100 }
+        startedAt: { type: string, format: date-time }
+        submittedAt: { type: ["string", "null"], format: date-time }
+        score: { type: ["integer", "null"], minimum: 0, maximum: 100 }
+        questionCount: { type: integer, minimum: 1, maximum: 200 }
+        questions:
+          type: array
+          items:
+            type: object
+            required: [id, position, prompt, options]
+            properties:
+              id: { type: string, format: uuid }
+              position: { type: integer }
+              prompt: { type: string }
+              options: { type: array, items: { type: string } }
+        review:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyAttemptReview" }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        improvement: { oneOf: [{ $ref: "#/components/schemas/AcademyGrowthEvidence" }, { type: "null" }] }
+        canConvertAchievement: { type: boolean }
+    AcademyAttemptSubmit:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            type: object
+            required: [questionId, selectedOption]
+            properties:
+              questionId: { type: string, format: uuid }
+              selectedOption: { type: integer, minimum: 0, maximum: 7 }
+    AcademyStudentFile:
+      type: object
+      required: [id, originalName, mime, size, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        originalName: { type: string }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp] }
+        size: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+    AcademyStudentFileInput:
+      type: object
+      required: [originalName, mime, size]
+      properties:
+        originalName: { type: string, minLength: 1, maxLength: 180 }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp] }
+        size: { type: integer, minimum: 1, maximum: 10485760 }
+    AcademyFileQuizInput:
+      type: object
+      additionalProperties: false
+      required: [questionCount, allowOpenAi]
+      properties:
+        questionCount: { type: integer, minimum: 10, maximum: 20 }
+        allowOpenAi: { type: boolean }
+    AcademyGeneratedFileQuiz:
+      type: object
+      additionalProperties: false
+      required: [title, questions]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        questions:
+          type: array
+          minItems: 10
+          maxItems: 20
+          items: { $ref: "#/components/schemas/AcademyGeneratedFileQuizQuestion" }
+    AcademyGeneratedFileQuizQuestion:
+      type: object
+      additionalProperties: false
+      required: [question, options, correctIndex, explanation]
+      properties:
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        options:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items: { type: string, minLength: 1, maxLength: 500 }
+        correctIndex: { type: integer, minimum: 0, maximum: 3 }
+        explanation: { type: string, minLength: 1, maxLength: 1500 }
+    AcademyCourseFileInput:
+      type: object
+      additionalProperties: false
+      required: [title, originalName, mime, size]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        originalName: { type: string, minLength: 1, maxLength: 180 }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
+        size: { type: integer, minimum: 1, maximum: 104857600 }
+    AcademyUploadUrl:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string }
+    AcademySearchSource:
+      type: object
+      required: [id, sourceType, title, excerpt, href, position]
+      properties:
+        id: { type: string, format: uuid }
+        sourceType: { type: string, enum: [lesson, course_file, student_file] }
+        title: { type: string }
+        excerpt: { type: string }
+        href: { type: string }
+        position: { type: integer }
+    AcademyAssistantInput:
+      type: object
+      required: [question, allowOpenAi]
+      properties:
+        question: { type: string, minLength: 3, maxLength: 2000 }
+        subjectId: { type: ["string", "null"], format: uuid }
+        allowOpenAi: { type: boolean }
+    AcademyAssistantResponse:
+      type: object
+      required: [answer, citations, notFound]
+      properties:
+        answer: { type: string }
+        citations:
+          type: array
+          items: { $ref: "#/components/schemas/AcademySearchSource" }
+        notFound: { type: boolean }
+    AcademySkillSuggestions:
+      type: object
+      required: [subjects, skills]
+      properties:
+        subjects:
+          type: array
+          items:
+            type: object
+            required: [id, title, skillTags]
+            properties:
+              id: { type: string, format: uuid }
+              title: { type: string }
+              skillTags: { type: array, items: { type: string } }
+        skills: { type: array, items: { type: string } }
+    AcademySkillApplyResult:
+      type: object
+      required: [added, focusSkills]
+      properties:
+        added: { type: integer, minimum: 0 }
+        focusSkills: { type: array, items: { type: string } }
+    AcademySubjectInput:
+      type: object
+      required: [slug, title, description, level, skillTags, position, published]
+      properties:
+        slug: { type: string, minLength: 2, maxLength: 80, pattern: "^[a-z0-9-]+$" }
+        title: { type: string, minLength: 2, maxLength: 160 }
+        description: { type: string, maxLength: 1000 }
+        level: { type: string, enum: [beginner, intermediate, advanced] }
+        skillTags: { type: array, maxItems: 30, items: { type: string, minLength: 2, maxLength: 60 } }
+        position: { type: integer, minimum: 0, maximum: 10000 }
+        published: { type: boolean }
+    AcademyLessonInput:
+      type: object
+      required: [subjectId, title, summary, body, position, estimatedMinutes, published]
+      properties:
+        subjectId: { type: string, format: uuid }
+        title: { type: string, minLength: 2, maxLength: 200 }
+        summary: { type: string, maxLength: 1000 }
+        body: { type: string, minLength: 20, maxLength: 100000 }
+        position: { type: integer, minimum: 0, maximum: 10000 }
+        estimatedMinutes: { type: integer, minimum: 1, maximum: 300 }
+        published: { type: boolean }
+    AcademyExamInput:
+      type: object
+      required: [subjectId, lessonId, title, description, timeLimitSeconds, passingScore, published]
+      properties:
+        subjectId: { type: string, format: uuid }
+        lessonId: { type: ["string", "null"], format: uuid }
+        title: { type: string, minLength: 2, maxLength: 200 }
+        description: { type: string, maxLength: 1000 }
+        timeLimitSeconds: { type: ["integer", "null"], minimum: 60, maximum: 14400 }
+        passingScore: { type: integer, minimum: 1, maximum: 100 }
+        published: { type: boolean }
+    AcademyQuestionInput:
+      type: object
+      required: [prompt, options, correctOption, explanation, skillTags]
+      properties:
+        prompt: { type: string, minLength: 5, maxLength: 2000 }
+        options:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items: { type: string, minLength: 1, maxLength: 500 }
+        correctOption: { type: integer, minimum: 0, maximum: 7 }
+        explanation: { type: string, minLength: 5, maxLength: 3000 }
+        skillTags: { type: array, maxItems: 10, items: { type: string, minLength: 2, maxLength: 60 } }
+    AcademyQuestionsInput:
+      type: object
+      required: [questions]
+      properties:
+        questions:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items: { $ref: "#/components/schemas/AcademyQuestionInput" }
+    AcademyAdminLesson:
+      allOf:
+        - $ref: "#/components/schemas/AcademyLessonDetail"
+        - type: object
+          required: [published]
+          properties:
+            published: { type: boolean }
+    AcademyAdminExam:
+      allOf:
+        - $ref: "#/components/schemas/AcademyExam"
+        - type: object
+          required: [questions]
+          properties:
+            questions:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyQuestion" }
+    AcademyAdminSubject:
+      allOf:
+        - $ref: "#/components/schemas/AcademySubjectSummary"
+        - type: object
+          required: [position, published, lessons, exams]
+          properties:
+            position: { type: integer }
+            published: { type: boolean }
+            lessons:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyAdminLesson" }
+            exams:
+              type: array
+              items: { $ref: "#/components/schemas/AcademyAdminExam" }
+    AcademyAdminCatalog:
+      type: object
+      required: [subjects]
+      properties:
+        subjects:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyAdminSubject" }
+    CareerAssistantInput:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string, minLength: 2, maxLength: 2000 }
+    CareerAssistantResponse:
+      type: object
+      required: [reply]
+      properties:
+        reply: { type: string }
+    CareerAssistantComparisonInput:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message: { type: string, minLength: 2, maxLength: 2000 }
+    CareerAssistantComparison:
+      type: object
+      additionalProperties: false
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items: { type: string }
+    LanguageVoiceConversationTurn:
+      type: object
+      additionalProperties: false
+      required: [role, text]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        text: { type: string, minLength: 1, maxLength: 400 }
+    LanguageVoiceConversationInput:
+      type: object
+      additionalProperties: false
+      required: [languageCode, level, scenario, history, message]
+      properties:
+        languageCode: { type: string, enum: [en, fr, es, de, tr] }
+        level: { type: string, enum: [A1, A2, B1, B2] }
+        scenario: { type: string, enum: [introduction, work_interview, travel, study] }
+        history:
+          type: array
+          maxItems: 6
+          items: { $ref: "#/components/schemas/LanguageVoiceConversationTurn" }
+        message: { type: string, minLength: 1, maxLength: 500 }
+    CareerPlan:
+      type: object
+      required: [id, targetRole, timeframeDays, overview, focusSkills, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        targetRole: { type: string }
+        timeframeDays: { type: integer, enum: [30, 60, 90] }
+        overview: { type: string }
+        focusSkills:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CareerPlanInput:
+      type: object
+      required: [targetRole, timeframeDays, overview, focusSkills]
+      properties:
+        targetRole: { type: string, minLength: 2, maxLength: 120 }
+        timeframeDays: { type: integer, enum: [30, 60, 90] }
+        overview: { type: string, maxLength: 1500 }
+        focusSkills:
+          type: array
+          maxItems: 12
+          items: { type: string, maxLength: 60 }
+    CareerReminder:
+      type: object
+      required: [enabled, taskId, nextReminderAt, channel, consentAt]
+      properties:
+        enabled: { type: boolean }
+        taskId: { type: ["string", "null"], format: uuid }
+        nextReminderAt: { type: ["string", "null"], format: date-time }
+        channel: { type: string, enum: [in_app, push] }
+        consentAt: { type: ["string", "null"], format: date-time }
+    CareerPushConfig:
+      type: object
+      required: [publicKey]
+      properties:
+        publicKey: { type: string }
+    CareerPushSubscription:
+      type: object
+      required: [endpoint, keys, roadmapPath]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 4096 }
+        roadmapPath: { type: string, pattern: "^/([a-zA-Z0-9_-]+/)*roadmap$" }
+        keys:
+          type: object
+          required: [p256dh, auth]
+          properties:
+            p256dh: { type: string, minLength: 87, maxLength: 88 }
+            auth: { type: string, minLength: 22, maxLength: 24 }
+    CareerReminderInput:
+      type: object
+      required: [enabled, taskId]
+      properties:
+        enabled: { type: boolean }
+        taskId: { type: ["string", "null"], format: uuid }
+        channel: { type: string, enum: [in_app, push], default: in_app }
+        pushConsent: { type: boolean }
+        subscription:
+          $ref: "#/components/schemas/CareerPushSubscription"
+    CareerTask:
+      type: object
+      required: [id, title, detail, stage, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        detail: { type: string }
+        stage: { type: integer, minimum: 1, maximum: 12 }
+        status:
+          type: string
+          enum: [planned, in_progress, completed]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CareerTaskInput:
+      type: object
+      required: [title, detail, stage]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 160 }
+        detail: { type: string, maxLength: 1200 }
+        stage: { type: integer, minimum: 1, maximum: 12 }
+    CareerTasksInput:
+      type: object
+      required: [tasks]
+      properties:
+        tasks:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: "#/components/schemas/CareerTaskInput" }
+    CareerTaskUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 2, maxLength: 160 }
+        detail: { type: string, maxLength: 1200 }
+        stage: { type: integer, minimum: 1, maximum: 12 }
+        status:
+          type: string
+          enum: [planned, in_progress, completed]
+    CareerPlanSuggestionsInput:
+      type: object
+      required: [targetRole, timeframeDays]
+      properties:
+        targetRole: { type: string, minLength: 2, maxLength: 120 }
+        timeframeDays: { type: integer, enum: [30, 60, 90] }
+    CareerTaskSuggestion:
+      type: object
+      required: [title, detail, stage]
+      properties:
+        title: { type: string }
+        detail: { type: string }
+        stage: { type: integer, minimum: 1, maximum: 12 }
+    CareerPlanSuggestions:
+      type: object
+      required: [overview, focusSkills, suggestions]
+      properties:
+        overview: { type: string }
+        focusSkills:
+          type: array
+          items: { type: string }
+        suggestions:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: "#/components/schemas/CareerTaskSuggestion" }
+    CareerPlanOverview:
+      type: object
+      required: [plan, tasks, reminder]
+      properties:
+        plan:
+          oneOf:
+            - $ref: "#/components/schemas/CareerPlan"
+            - type: "null"
+        tasks:
+          type: array
+          items: { $ref: "#/components/schemas/CareerTask" }
+        reminder:
+          $ref: "#/components/schemas/CareerReminder"
+    AcademyCourseSubmissionStatus:
+      type: string
+      enum: [uploading, pending, approved, rejected]
+    AdminNotificationType:
+      type: string
+      enum: [academy_course_submission]
+    AdminNotification:
+      type: object
+      additionalProperties: false
+      required: [id, type, title, message, targetId, createdAt, readAt]
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: "#/components/schemas/AdminNotificationType" }
+        title: { type: string }
+        message: { type: string }
+        targetId: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        readAt:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: "null" }
+    AdminNotificationList:
+      type: object
+      required: [items, unreadCount]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminNotification" }
+        unreadCount: { type: integer, minimum: 0 }
+    MarkAllAdminNotificationsReadResult:
+      type: object
+      required: [updated]
+      properties:
+        updated: { type: integer, minimum: 0 }
+    AcademyCourseSubmission:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, sourceUrl, originalName, mime, size, status, reviewNote, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        sourceUrl:
+          oneOf:
+            - { type: string, format: uri }
+            - { type: "null" }
+        originalName:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        mime:
+          oneOf:
+            - { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
+            - { type: "null" }
+        size:
+          oneOf:
+            - { type: integer }
+            - { type: "null" }
+        status: { $ref: "#/components/schemas/AcademyCourseSubmissionStatus" }
+        reviewNote:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        createdAt: { type: string, format: date-time }
+    AdminAcademyCourseSubmission:
+      allOf:
+        - $ref: "#/components/schemas/AcademyCourseSubmission"
+        - type: object
+          required: [ownerId, reviewedBy, reviewedAt]
+          properties:
+            ownerId: { type: string }
+            reviewedBy:
+              oneOf:
+                - { type: string }
+                - { type: "null" }
+            reviewedAt:
+              oneOf:
+                - { type: string, format: date-time }
+                - { type: "null" }
+    AcademyCourseSubmissionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyCourseSubmission" }
+    AdminAcademyCourseSubmissionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminAcademyCourseSubmission" }
+    AcademyCourseLinkSubmissionInput:
+      type: object
+      additionalProperties: false
+      required: [title, description, sourceUrl]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 160 }
+        description: { type: string, maxLength: 2000 }
+        sourceUrl: { type: string, format: uri, maxLength: 2000 }
+    AcademyCourseFileSubmissionInput:
+      type: object
+      additionalProperties: false
+      required: [title, description, originalName, mime, size]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 160 }
+        description: { type: string, maxLength: 2000 }
+        originalName: { type: string, minLength: 1, maxLength: 180 }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
+        size: { type: integer, minimum: 1, maximum: 104857600 }
+    AcademyCourseUploadUrlResponse:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+    AcademyCourseSubmissionReviewInput:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+        reviewNote: { type: string, maxLength: 1000 }
+    AcademyCommunityCourse:
+      type: object
+      required: [id, title, description, sourceUrl, originalName, mime, size, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        sourceUrl:
+          oneOf:
+            - { type: string, format: uri }
+            - { type: "null" }
+        originalName:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        mime:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        size:
+          oneOf:
+            - { type: integer }
+            - { type: "null" }
+        downloadUrl:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        createdAt: { type: string, format: date-time }
+    AcademyCommunityCourseList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AcademyCommunityCourse" }
+    GraduateItemKind:
+      type: string
+      enum: [opportunity, guidance, community]
+    GraduateItemStatus:
+      type: string
+      enum: [pending, published, rejected]
+    GraduateItem:
+      type: object
+      required: [id, kind, title, summary, body, actionLabel, actionUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/GraduateItemKind" }
+        title: { type: string }
+        summary: { type: string }
+        body: { type: string }
+        actionLabel:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        actionUrl:
+          oneOf:
+            - { type: string, format: uri }
+            - { type: "null" }
+        createdAt: { type: string, format: date-time }
+    AdminGraduateItem:
+      allOf:
+        - $ref: "#/components/schemas/GraduateItem"
+        - type: object
+          required: [ownerId, status, reviewNote, reviewedBy, reviewedAt]
+          properties:
+            ownerId: { type: string }
+            status: { $ref: "#/components/schemas/GraduateItemStatus" }
+            reviewNote:
+              oneOf:
+                - { type: string }
+                - { type: "null" }
+            reviewedBy:
+              oneOf:
+                - { type: string }
+                - { type: "null" }
+            reviewedAt:
+              oneOf:
+                - { type: string, format: date-time }
+                - { type: "null" }
+    GraduateItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/GraduateItem" }
+    AdminGraduateItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminGraduateItem" }
+    GraduateCommunityPostInput:
+      type: object
+      additionalProperties: false
+      required: [title, summary, body]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 160 }
+        summary: { type: string, maxLength: 500 }
+        body: { type: string, minLength: 10, maxLength: 5000 }
+        actionLabel:
+          oneOf:
+            - { type: string, maxLength: 60 }
+            - { type: "null" }
+        actionUrl:
+          oneOf:
+            - { type: string, format: uri, maxLength: 2000 }
+            - { type: "null" }
+    GraduateSubmissionResponse:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/GraduateItemStatus" }
+    AdminGraduateItemInput:
+      type: object
+      additionalProperties: false
+      required: [kind, title, summary, body]
+      properties:
+        kind: { type: string, enum: [opportunity, guidance] }
+        title: { type: string, minLength: 3, maxLength: 160 }
+        summary: { type: string, maxLength: 500 }
+        body: { type: string, minLength: 10, maxLength: 5000 }
+        actionLabel:
+          oneOf:
+            - { type: string, maxLength: 60 }
+            - { type: "null" }
+        actionUrl:
+          oneOf:
+            - { type: string, format: uri, maxLength: 2000 }
+            - { type: "null" }
+    AdminGraduateItemUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 3, maxLength: 160 }
+        summary: { type: string, maxLength: 500 }
+        body: { type: string, minLength: 10, maxLength: 5000 }
+        actionLabel:
+          oneOf:
+            - { type: string, maxLength: 60 }
+            - { type: "null" }
+        actionUrl:
+          oneOf:
+            - { type: string, format: uri, maxLength: 2000 }
+            - { type: "null" }
+        status: { type: string, enum: [published, rejected] }
+        reviewNote: { type: string, maxLength: 1000 }
 

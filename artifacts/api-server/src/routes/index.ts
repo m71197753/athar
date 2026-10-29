@@ -1,8 +1,42 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import studentRouter from "./student";
+import aiRouter from "./ai";
+import careerRouter from "./career";
+import learningRouter from "./learning";
+import resumeShareRouter from "./resume-share";
+import adminRouter from "./admin";
+import adsRouter from "./ads";
+import academyRouter from "./academy";
+import academyAdminRouter from "./academy-admin";
+import academyCommunityRouter from "./academy-community";
+import academySubmissionAdminRouter from "./academy-submission-admin";
+import adminNotificationsRouter from "./admin-notifications";
+import graduatesRouter from "./graduates";
+import graduatesAdminRouter from "./graduates-admin";
+import languageLearningRouter from "./languages";
+import languageGamificationRouter from "./language-gamification-routes";
+import languageAdminRouter from "./language-admin";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(adsRouter);
+router.use(academyAdminRouter);
+router.use(academySubmissionAdminRouter);
+router.use(adminNotificationsRouter);
+router.use(academyCommunityRouter);
+router.use(graduatesAdminRouter);
+router.use(graduatesRouter);
+router.use(languageLearningRouter);
+router.use(languageGamificationRouter);
+router.use(languageAdminRouter);
+router.use(adminRouter);
+router.use(studentRouter);
+router.use(aiRouter);
+router.use(careerRouter);
+router.use(learningRouter);
+router.use(academyRouter);
+router.use(resumeShareRouter);
 
 export default router;

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "أثر للطلاب"
+description = "منصة عربية للطلاب والخريجين لتسجيل التجارب وتحويلها إلى إنجازات وسيرة مهنية، مع مذاكرة ولغات ومسارات تعلم وخدمات للخريجين."
+version = "1.0.0"
+id = "artifacts/athar-students"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25693
+
+[services.development]
+run = "pnpm --filter @workspace/athar-students run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/athar-students", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/athar-students/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25693"
+BASE_PATH = "/"

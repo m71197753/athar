@@ -1,0 +1,7 @@
+.site-ad-body{min-width:0}
+.site-ad-layout:has(>.site-ad-side:not(:empty)){display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,300px);gap:22px;align-items:start}
+.site-ad-side:empty{display:none}
+.home-ad-side{max-width:360px;margin:20px auto 20px 5%;padding-inline:16px}
+.home-ad-side:empty{display:none}
+@media(max-width:1100px){.site-ad-layout:has(>.site-ad-side:not(:empty)){display:flex;flex-direction:column}.site-ad-body{width:100%}.site-ad-side{max-width:100%;width:100%}}
+@media print{.site-ad-side,.home-ad-side{display:none!important}.site-ad-layout{display:block!important}}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">أثر للطلاب</string>
+    <string name="tagline">كل خطوة لها أثر</string>
+    <string name="intro">مساحتك المهنية، على هاتفك</string>
+    <string name="description">افتح أثر لتوثيق تجاربك ومتابعة خطتك المهنية. يعمل الموقع داخل تبويب متصفح آمن، ويتطلب اتصالاً بالإنترنت.</string>
+    <string name="open_app">فتح أثر</string>
+    <string name="configure">إعداد عنوان الموقع</string>
+    <string name="configured_url">العنوان الحالي: %1$s</string>
+    <string name="not_configured">لم يُحدّد عنوان أثر بعد. أدخل عنوان HTTPS للموقع، وليس رابط API. لا يتضمن هذا المشروع عنواناً منشوراً أو خادماً مدمجاً.</string>
+    <string name="address_title">عنوان موقع أثر</string>
+    <string name="address_help">أدخل العنوان الذي زوّدك به مالك أثر. تأكد من النطاق قبل تسجيل الدخول. لا تدخل كلمة مرور أو مفتاح API هنا.</string>
+    <string name="save">حفظ</string>
+    <string name="cancel">إلغاء</string>
+    <string name="address_error">أدخل عنوان HTTPS صالحاً بنطاق عام، دون بيانات دخول أو معاملات أو #.</string>
+    <string name="browser_missing">لا يوجد متصفح قادر على فتح هذا الرابط. ثبّت متصفحاً يدعم HTTPS ثم حاول مجدداً.</string>
+    <string name="development_notice">هذا رابط تطوير مؤقت. يعمل فقط ما دام مشروع التطوير متاحاً وقيد التشغيل، وقد يتطلب صلاحية الوصول إلى المعاينة.</string>
+    <string name="privacy">تسجيل الدخول والإشعارات تديرهما نسخة الويب والمتصفح. لا يخزّن هذا الغلاف كلمات مرورك، ولا يطلب صلاحيات الهاتف.</string>
+    <string name="browser_notice">سيظهر نطاق الموقع في شريط المتصفح. تحقّق منه قبل إدخال بياناتك.</string>
+</resources>

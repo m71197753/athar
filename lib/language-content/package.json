@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/language-content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "validate:content": "node --experimental-strip-types scripts/validate-content.mjs",
+    "sync:batches": "node scripts/sync-batches.mjs"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -15,7 +15,10 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: [
+      path.resolve(artifactDir, "src/index.ts"),
+      path.resolve(artifactDir, "src/reminders.ts"),
+    ],
     platform: "node",
     bundle: true,
     format: "esm",
@@ -30,6 +33,8 @@ async function buildAll() {
     external: [
       "*.node",
       "sharp",
+      // pdf.js probes for optional native canvas APIs at startup; keep the parser in Node module space.
+      "pdf-parse",
       "better-sqlite3",
       "sqlite3",
       "canvas",
