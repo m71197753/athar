@@ -351,6 +351,12 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
     const blocks = moduleDraft?.find(module => module.key === key)?.blocks ?? [];
     updateModule(key, { blocks: blocks.map((block, i) => i === index ? { ...block, ...patch } : block) });
   };
+  const replaceContentBlockWithBatch = (key: ModuleSetting['key'], index: number, uploaded: SectionBlock[]) => {
+    setMsg(null);
+    setModuleDraft(current => current?.map(module => module.key === key
+      ? { ...module, blocks: [...(module.blocks ?? []).slice(0, index), ...uploaded, ...(module.blocks ?? []).slice(index + 1)] }
+      : module) ?? null);
+  };
   const moveContentBlock = (key: ModuleSetting['key'], index: number, direction: -1 | 1) => {
     const blocks = moduleDraft?.find(module => module.key === key)?.blocks ?? [];
     const nextIndex = index + direction;
@@ -416,7 +422,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           previewTitle={module.title}
         />
         <div className="adm-section-block-heading adm-module-content-heading">
-          <div><h4>محتوى داخل القسم</h4><p>أضف نصوصًا وروابط أو صورًا وفيديوهات وملفات تظهر للطالب.</p></div>
+           <div><h4>محتوى داخل القسم</h4><p>اجمع الروابط والفيديوهات والملفات في القائمة نفسها، وارفع عدة ملفات دفعة واحدة.</p></div>
           <button type="button" className="button button-outline button-compact" disabled={blocks.length >= 20} onClick={() => addContentBlock(module.key)} data-testid={`button-add-module-content-${module.key}`}><Plus size={14}/> إضافة محتوى</button>
         </div>
         {blocks.length === 0
@@ -427,8 +433,14 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
               <button type="button" className="icon-button" aria-label={`تحريك محتوى ${module.title} ${num(index + 1)} لأسفل`} disabled={index === blocks.length - 1} onClick={() => moveContentBlock(module.key, index, 1)} data-testid={`button-move-module-content-down-${module.key}-${index}`}><ArrowDown size={15}/></button>
               <button type="button" className="icon-button danger-icon" aria-label={`حذف محتوى ${module.title} ${num(index + 1)}`} onClick={() => removeContentBlock(module.key, index)} data-testid={`button-remove-module-content-${module.key}-${index}`}><Trash2 size={15}/></button>
             </div></div>
-            <SectionContentBlockEditor block={block} name={`module-content-type-${module.key}-${index}`} testIdPrefix={`input-module-content-${module.key}-${index}`}
-              onChange={patch => updateContentBlock(module.key, index, patch)}/>
+             <SectionContentBlockEditor
+               block={block}
+               name={`module-content-type-${module.key}-${index}`}
+               testIdPrefix={`input-module-content-${module.key}-${index}`}
+               maxBatchFileCount={21 - blocks.length}
+               onChange={patch => updateContentBlock(module.key, index, patch)}
+               onUploadMany={uploaded => replaceContentBlockWithBatch(module.key, index, uploaded)}
+             />
           </article>)}</div>}
         {module.key === 'academy' && <div className="adm-academy-content-shortcut">
           <p>تُدار الدروس والاختبارات وأسئلتها من محرر المذاكرة.</p>

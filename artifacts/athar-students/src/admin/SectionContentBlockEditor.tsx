@@ -17,46 +17,77 @@ const mimeByExtension: Record<string, string> = {
 const kindForMime = (mime: string): "image" | "audio" | "video" | "file" => mime.startsWith("image/") ? "image" : mime.startsWith("audio/") ? "audio" : mime.startsWith("video/") ? "video" : "file";
 
 export function SectionContentBlockEditor({
-  block, name, testIdPrefix, onChange,
+  block, name, testIdPrefix, maxBatchFileCount, onChange, onUploadMany,
 }: {
   block: SectionBlock;
   name: string;
   testIdPrefix?: string;
+  maxBatchFileCount: number;
   onChange: (patch: Partial<SectionBlock>) => void;
+  onUploadMany: (blocks: SectionBlock[]) => void;
 }) {
   const requestUpload = useRequestSectionMediaUpload();
   const confirmUpload = useConfirmSectionMediaUpload();
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
 
-  const upload = async (file?: File) => {
-    if (!file) return;
+  const upload = async (files: File[]) => {
+    if (!files.length) return;
     setUploadError("");
-    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-    const mime = (file.type || mimeByExtension[extension] || "") as SectionMediaUploadInput["mime"];
-    if (!acceptedMimeTypes.has(mime)) {
-      setUploadError("الملف غير مدعوم. اختر صورة أو صوتًا أو فيديو أو PDF أو Word أو ملفًا نصيًا.");
+    if (files.length > maxBatchFileCount) {
+      setUploadError(`يمكنك إضافة ${maxBatchFileCount.toLocaleString("ar")} ملفًا في هذا المكان كحد أقصى.`);
       return;
     }
-    if (file.size < 1) {
-      setUploadError("الملف فارغ.");
+    const selectedFiles = files.map(file => {
+      const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+      const mime = (file.type || mimeByExtension[extension] || "") as SectionMediaUploadInput["mime"];
+      return { file, mime };
+    });
+    const unsupported = selectedFiles.find(({ file, mime }) => !acceptedMimeTypes.has(mime) || file.size < 1);
+    if (unsupported) {
+      const message = unsupported.file.size < 1 ? "الملف فارغ." : `نوع الملف غير مدعوم: ${unsupported.file.name}`;
+      setUploadError(message);
       return;
     }
     setUploading(true);
+    const uploadedBlocks: SectionBlock[] = [];
+    const applyUploadedBlocks = () => {
+      if (uploadedBlocks.length === 1) onChange(uploadedBlocks[0]);
+      else if (uploadedBlocks.length > 1) onUploadMany(uploadedBlocks);
+    };
     try {
-      const ticket = await requestUpload.mutateAsync({ data: { originalName: file.name, mime, size: file.size } });
-      const uploaded = await fetch(ticket.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": mime },
-        body: file,
-      });
-      if (!uploaded.ok) throw new Error("تعذّر رفع الملف إلى التخزين.");
-      const confirmed = await confirmUpload.mutateAsync({ id: ticket.id });
-      onChange({ type: "media", mediaType: kindForMime(mime), url: confirmed.url });
+      for (const [index, { file, mime }] of selectedFiles.entries()) {
+        setUploadStatus(files.length > 1
+          ? `جارٍ رفع الملف ${index + 1} من ${files.length}: ${file.name}`
+          : `جارٍ رفع ${file.name}…`);
+        const ticket = await requestUpload.mutateAsync({ data: { originalName: file.name, mime, size: file.size } });
+        const uploaded = await fetch(ticket.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": mime },
+          body: file,
+        });
+        if (!uploaded.ok) throw new Error("تعذّر رفع الملف إلى التخزين.");
+        const confirmed = await confirmUpload.mutateAsync({ id: ticket.id });
+        uploadedBlocks.push({
+          type: "media",
+          mediaType: kindForMime(mime),
+          title: files.length === 1 ? block.title : file.name.slice(0, 100),
+          body: block.body,
+          url: confirmed.url,
+        });
+      }
+      applyUploadedBlocks();
     } catch {
-      setUploadError("لم يكتمل رفع الملف. تحقق من الاتصال وحاول مرة أخرى.");
+      if (uploadedBlocks.length) {
+        applyUploadedBlocks();
+        setUploadError("توقف رفع المجموعة قبل اكتمالها؛ أُضيفت الملفات التي اكتمل رفعها. اختر الباقي للمحاولة مجددًا.");
+      } else {
+        setUploadError("لم يكتمل رفع الملف. تحقق من الاتصال وحاول مرة أخرى.");
+      }
     } finally {
       setUploading(false);
+      setUploadStatus("");
     }
   };
 
@@ -81,11 +112,11 @@ export function SectionContentBlockEditor({
     </label>}
     {block.type === "media" && <>
       <label className="adm-field"><span>اختيار صورة أو صوت أو فيديو أو ملف</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-          disabled={uploading} onChange={event => { void upload(event.currentTarget.files?.[0]); event.currentTarget.value = ""; }}/>
+        <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+          disabled={uploading} onChange={event => { void upload(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ""; }}/>
       </label>
-      <small className="adm-upload-hint">لا يفرض التطبيق حدًا لحجم الملف؛ قد يستغرق رفع الملفات الكبيرة وقتًا أطول حسب سرعة الاتصال.</small>
-      {uploading && <p className="adm-upload-status" role="status"><LoaderCircle size={15} className="adm-spin"/> جارٍ رفع الملف والتحقق منه…</p>}
+      <small className="adm-upload-hint">يمكنك اختيار عدة ملفات دفعة واحدة، ثم إضافة روابط في القائمة نفسها. الملفات الكبيرة تحتاج وقتًا أطول.</small>
+      {uploading && <p className="adm-upload-status" role="status"><LoaderCircle size={15} className="adm-spin"/> {uploadStatus}</p>}
       {uploadError && <p className="adm-form-error" role="alert">{uploadError}</p>}
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={block.url} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
       {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={block.url} controls preload="metadata"/>}

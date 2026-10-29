@@ -71,6 +71,16 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       form: { ...current.form, blocks: current.form.blocks.map((block, i) => i === index ? { ...block, ...patch } : block) },
     }));
   };
+  const replaceBlocksWithBatch = (index: number, blocks: SectionBlock[]) => {
+    setFormError("");
+    setEditing(current => current && ({
+      ...current,
+      form: {
+        ...current.form,
+        blocks: [...current.form.blocks.slice(0, index), ...blocks, ...current.form.blocks.slice(index + 1)],
+      },
+    }));
+  };
   const moveBlock = (index: number, direction: -1 | 1) => {
     const nextIndex = index + direction;
     const blocks = editing?.form.blocks;
@@ -95,6 +105,18 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       ? { ...course, materials: course.materials.map((block, j) => j === materialIndex ? { ...block, ...patch } : block) }
       : course);
     setField("courses", courses);
+  };
+  const replaceCourseMaterialWithBatch = (courseIndex: number, materialIndex: number, blocks: SectionBlock[]) => {
+    setFormError("");
+    setEditing(current => current && ({
+      ...current,
+      form: {
+        ...current.form,
+        courses: (current.form.courses ?? []).map((course, index) => index === courseIndex
+          ? { ...course, materials: [...course.materials.slice(0, materialIndex), ...blocks, ...course.materials.slice(materialIndex + 1)] }
+          : course),
+      },
+    }));
   };
   const moveCourseMaterial = (courseIndex: number, materialIndex: number, direction: -1 | 1) => {
     const courses = [...(editing?.form.courses ?? [])];
@@ -195,15 +217,21 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
         onCardStyleChange={cardStyle => setField("cardStyle", cardStyle)}
         previewTitle={editing.form.title}
       />
-      <div className="adm-section-block-heading"><div><h4>محتوى القسم</h4><p>أضف نصوصًا وروابط أو صورًا وفيديوهات وملفات.</p></div><button type="button" className="button button-outline button-compact" disabled={editing.form.blocks.length >= 20} onClick={() => setField("blocks", [...editing.form.blocks, { type: "text", title: "", body: "", url: "" }])}><Plus size={14}/> إضافة عنصر</button></div>
+       <div className="adm-section-block-heading"><div><h4>محتوى القسم</h4><p>اجمع النصوص والروابط والفيديوهات والملفات في قائمة واحدة، وأضف أكثر من ملف دفعة واحدة.</p></div><button type="button" className="button button-outline button-compact" disabled={editing.form.blocks.length >= 20} onClick={() => setField("blocks", [...editing.form.blocks, { type: "text", title: "", body: "", url: "" }])}><Plus size={14}/> إضافة عنصر</button></div>
       <div className="adm-section-block-list">{editing.form.blocks.map((block, index) => <article className="adm-section-block" key={index}>
         <div className="adm-section-block-top"><b>عنصر {index + 1}</b><div className="adm-section-block-tools">
            <button type="button" className="icon-button" aria-label={`تحريك العنصر ${index + 1} لأعلى`} disabled={index === 0} onClick={() => moveBlock(index, -1)}><ArrowUp size={15}/></button>
            <button type="button" className="icon-button" aria-label={`تحريك العنصر ${index + 1} لأسفل`} disabled={index === editing.form.blocks.length - 1} onClick={() => moveBlock(index, 1)}><ArrowDown size={15}/></button>
           {editing.form.blocks.length > 1 && <button type="button" className="icon-button danger-icon" aria-label={`حذف العنصر ${index + 1}`} onClick={() => setField("blocks", editing.form.blocks.filter((_, i) => i !== index))}><Trash2 size={15}/></button>}
         </div></div>
-        <SectionContentBlockEditor block={block} name={`block-kind-${index}`} testIdPrefix={`section-block-${index}`}
-          onChange={patch => setBlock(index, patch)}/>
+         <SectionContentBlockEditor
+           block={block}
+           name={`block-kind-${index}`}
+           testIdPrefix={`section-block-${index}`}
+           maxBatchFileCount={21 - editing.form.blocks.length}
+           onChange={patch => setBlock(index, patch)}
+           onUploadMany={blocks => replaceBlocksWithBatch(index, blocks)}
+         />
       </article>)}</div>
       <div className="adm-course-heading"><div><h4>الدورات التعليمية</h4><p>قسّم المحتوى إلى دورات قصيرة، ولكل دورة موادها المرتبة.</p></div>
         <button type="button" className="button button-outline button-compact" data-testid="button-add-section-course" disabled={(editing.form.courses?.length ?? 0) >= 20} onClick={() => setField("courses", [...(editing.form.courses ?? []), newCourse()])}><Plus size={14}/> إضافة دورة</button>
@@ -219,14 +247,21 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
           <label className="adm-field"><span>وصف الدورة</span><textarea rows={2} maxLength={600} value={course.description} data-testid={`input-course-description-${course.id}`} onChange={e => setCourse(courseIndex, { description: e.target.value })}/></label>
         </div>
         <label className="adm-field"><span>المهارات التي تثبتها الدورة</span><input maxLength={1400} value={(course.skills ?? []).join("، ")} placeholder="مثال: تحليل البيانات، إعداد التقارير" data-testid={`input-course-skills-${course.id}`} onChange={e => setCourse(courseIndex, { skills: e.target.value.split(/[،,]/).map(skill => skill.trim()).filter(Boolean).slice(0, 20) })}/><small className="adm-note">تُضاف هذه المهارات إلى سيرة الطالب بعد إكمال الدورة فقط.</small></label>
-        <div className="adm-section-block-heading"><div><h5>مواد الدورة</h5><p>من مادة واحدة إلى 20 مادة.</p></div><button type="button" className="button button-outline button-compact" data-testid={`button-course-add-material-${course.id}`} disabled={course.materials.length >= 20} onClick={() => setCourse(courseIndex, { materials: [...course.materials, emptyBlock()] })}><Plus size={14}/> إضافة مادة</button></div>
+         <div className="adm-section-block-heading"><div><h5>مواد الدورة</h5><p>أضف روابط وملفات وفيديوهات معًا، ورتّبها كما تظهر للطالب.</p></div><button type="button" className="button button-outline button-compact" data-testid={`button-course-add-material-${course.id}`} disabled={course.materials.length >= 20} onClick={() => setCourse(courseIndex, { materials: [...course.materials, emptyBlock()] })}><Plus size={14}/> إضافة مادة</button></div>
         <div className="adm-section-block-list">{course.materials.map((block, materialIndex) => <article className="adm-section-block adm-course-material" key={`${course.id}-${materialIndex}`}>
           <div className="adm-section-block-top"><b>مادة {materialIndex + 1}</b><div className="adm-section-block-tools">
             <button type="button" className="icon-button" aria-label={`تحريك المادة ${materialIndex + 1} لأعلى`} data-testid={`button-course-material-up-${course.id}-${materialIndex}`} disabled={materialIndex === 0} onClick={() => moveCourseMaterial(courseIndex, materialIndex, -1)}><ArrowUp size={15}/></button>
             <button type="button" className="icon-button" aria-label={`تحريك المادة ${materialIndex + 1} لأسفل`} data-testid={`button-course-material-down-${course.id}-${materialIndex}`} disabled={materialIndex === course.materials.length - 1} onClick={() => moveCourseMaterial(courseIndex, materialIndex, 1)}><ArrowDown size={15}/></button>
             {course.materials.length > 1 && <button type="button" className="icon-button danger-icon" aria-label={`حذف المادة ${materialIndex + 1}`} data-testid={`button-course-material-remove-${course.id}-${materialIndex}`} onClick={() => setCourse(courseIndex, { materials: course.materials.filter((_, i) => i !== materialIndex) })}><Trash2 size={15}/></button>}
           </div></div>
-          <SectionContentBlockEditor block={block} name={`course-${course.id}-material-kind-${materialIndex}`} testIdPrefix={`course-${course.id}-material-${materialIndex}`} onChange={patch => setCourseMaterial(courseIndex, materialIndex, patch)}/>
+          <SectionContentBlockEditor
+            block={block}
+            name={`course-${course.id}-material-kind-${materialIndex}`}
+            testIdPrefix={`course-${course.id}-material-${materialIndex}`}
+            maxBatchFileCount={21 - course.materials.length}
+            onChange={patch => setCourseMaterial(courseIndex, materialIndex, patch)}
+            onUploadMany={blocks => replaceCourseMaterialWithBatch(courseIndex, materialIndex, blocks)}
+          />
         </article>)}</div>
       </article>)}
       <label className="adm-switch"><input type="checkbox" checked={editing.form.published} onChange={e => setField("published", e.target.checked)}/><span>{editing.form.published ? "منشور ويظهر للطلاب" : "مسودة — لا يظهر للطلاب"}</span></label>
