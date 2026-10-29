@@ -100,7 +100,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
       <div className="resume-studio-head resume-studio-tools">
         <div className="resume-studio-title">
           <div className="resume-studio-brand">
-            <img src={`${import.meta.env.BASE_URL}athar-wordmark.png`} alt="أثر" data-testid="img-resume-athar-logo" />
+            <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" data-testid="img-resume-athar-logo" />
             <span>مساحة السيرة الذاتية</span>
           </div>
           <h1>سيرتك، من واقع ما أنجزت</h1>
@@ -227,7 +227,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
               )}
             </section>
             <footer className="rs-paper-footer">
-              <img src={`${import.meta.env.BASE_URL}athar-wordmark.png`} alt="أثر" />
+              <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" />
               <span>أدلة حقيقية على ما تستطيع إنجازه.</span>
             </footer>
           </article>

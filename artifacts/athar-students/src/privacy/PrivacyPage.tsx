@@ -34,7 +34,7 @@ export default function PrivacyPage() {
       <article className="privacy-card">
         <header className="privacy-header">
           <Link href="/" className="privacy-brand" aria-label="العودة إلى أثر">
-            <img src={`${import.meta.env.BASE_URL}athar-wordmark.png`} alt="أثر" />
+            <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" />
           </Link>
           <span>معلومات واضحة عن بياناتك</span>
           <h1>سياسة الخصوصية</h1>

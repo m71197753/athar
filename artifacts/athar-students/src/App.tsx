@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ClerkProvider, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
@@ -7,26 +7,25 @@ import { arSA } from '@clerk/localizations';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from './components/theme-toggle';
 import { RequiredMark } from './components/RequiredMark';
-import AdminPage, { PublishedContent } from './admin/AdminPage';
-import PrivacyPage from './privacy/PrivacyPage';
-import {
-  AcademyPage as AcademyHomePage,
-  AcademySubjectPage,
-  AcademyLessonPage,
-  AcademyAttemptPage,
-  AcademySearchPage,
-  AcademyAssistantPage,
-  AcademyFilesPage,
-} from './academy';
+const AdminPage = lazy(() => import('./admin/AdminPage'));
+const PublishedContent = lazy(() => import('./admin/AdminPage').then(module => ({ default: module.PublishedContent })));
+const PrivacyPage = lazy(() => import('./privacy/PrivacyPage'));
+const AcademyHomePage = lazy(() => import('./academy').then(module => ({ default: module.AcademyPage })));
+const AcademySubjectPage = lazy(() => import('./academy').then(module => ({ default: module.AcademySubjectPage })));
+const AcademyLessonPage = lazy(() => import('./academy').then(module => ({ default: module.AcademyLessonPage })));
+const AcademyAttemptPage = lazy(() => import('./academy').then(module => ({ default: module.AcademyAttemptPage })));
+const AcademySearchPage = lazy(() => import('./academy').then(module => ({ default: module.AcademySearchPage })));
+const AcademyAssistantPage = lazy(() => import('./academy').then(module => ({ default: module.AcademyAssistantPage })));
+const AcademyFilesPage = lazy(() => import('./academy').then(module => ({ default: module.AcademyFilesPage })));
 import { AdSlot } from './ads/AdSlot';
 import { PageAdFrame, MiddlePageAd } from './components/page-ads';
-import { GuestLanguageDemoPage } from './languages/GuestLanguageDemoPage';
-import { LanguageStudyPage } from './languages/study-ui/LanguageStudyPage';
-import { CustomSectionPage } from './sections/CustomSectionPage';
-import { ModuleSectionContent } from './sections/ModuleSectionContent';
-import { GraduatesPage } from './graduates/GraduatesPage';
-import ResumeStudio from './resume/ResumeStudio';
-import { DemoDataPage } from './demo/DemoDataPage';
+const GuestLanguageDemoPage = lazy(() => import('./languages/GuestLanguageDemoPage').then(module => ({ default: module.GuestLanguageDemoPage })));
+const LanguageStudyPage = lazy(() => import('./languages/study-ui/LanguageStudyPage').then(module => ({ default: module.LanguageStudyPage })));
+const CustomSectionPage = lazy(() => import('./sections/CustomSectionPage').then(module => ({ default: module.CustomSectionPage })));
+const ModuleSectionContent = lazy(() => import('./sections/ModuleSectionContent').then(module => ({ default: module.ModuleSectionContent })));
+const GraduatesPage = lazy(() => import('./graduates/GraduatesPage').then(module => ({ default: module.GraduatesPage })));
+const ResumeStudio = lazy(() => import('./resume/ResumeStudio'));
+const DemoDataPage = lazy(() => import('./demo/DemoDataPage').then(module => ({ default: module.DemoDataPage })));
 import {
   ArrowDownLeft, ArrowLeft, Award, BookOpen, BriefcaseBusiness,
   Check, ChevronDown, CircleHelp, ClipboardList, Copy, Download, FileText, Filter,
@@ -85,7 +84,7 @@ const clerkAppearance = {
   options: {
     logoPlacement: 'inside' as const,
     logoLinkUrl: basePath || '/',
-    logoImageUrl: `${window.location.origin}${basePath}/athar-wordmark.png`,
+    logoImageUrl: `${window.location.origin}${basePath}/athar-wordmark-3d.png`,
   },
   variables: {
     colorPrimary: '#4338CA', colorForeground: '#1E293B', colorMutedForeground: '#64748B',
@@ -103,7 +102,7 @@ const clerkAppearance = {
     formFieldLabel: 'text-[var(--athar-auth-fg)] font-medium', footerActionLink: 'text-[var(--athar-auth-link)] font-semibold',
     footerActionText: 'text-[var(--athar-auth-muted)]', dividerText: 'text-[var(--athar-auth-muted)]',
     identityPreviewEditButton: 'text-[var(--athar-auth-link)]', formFieldSuccessText: 'text-[var(--athar-auth-success)]',
-    alertText: 'text-[var(--athar-auth-danger)]', logoBox: 'rounded-xl bg-[#eef4f6]', logoImage: 'rounded-lg',
+    alertText: 'text-[var(--athar-auth-danger)]', logoBox: 'rounded-xl bg-[#101827]', logoImage: 'rounded-lg',
     socialButtonsBlockButton: 'border border-[var(--athar-auth-border)] rounded-xl',
     formButtonPrimary: 'bg-[var(--athar-auth-primary)] hover:bg-[var(--athar-auth-primary-hover)] text-white rounded-xl',
     formFieldInput: 'bg-[var(--athar-auth-input)] border-[var(--athar-auth-border)] rounded-xl text-[var(--athar-auth-fg)]',
@@ -114,7 +113,7 @@ const clerkAppearance = {
 };
 
 function Brand({ small = false }: { small?: boolean }) {
-  return <span className={`brand-lockup ${small ? 'brand-small' : ''}`}><img className="brand-image" src={`${basePath}/athar-wordmark.png`} alt="أثر" data-testid="img-brand-logo" /></span>;
+  return <span className={`brand-lockup ${small ? 'brand-small' : ''}`}><img className="brand-image" src={`${basePath}/athar-wordmark-3d.png`} alt="أثر" data-testid="img-brand-logo" /></span>;
 }
 
 function formatAchievementCount(count: number) {
@@ -285,7 +284,7 @@ function Shell({ children: content }: { children: ReactNode }) {
          return <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`side-link ${active ? 'side-link-active' : ''}`} aria-label={sidebarCollapsed ? item.label : undefined} title={sidebarCollapsed ? item.label : undefined} data-testid={`link-nav-${item.href.slice(1)}`}><Icon size={19}/><span>{item.label}</span>{active && <span className="nav-current"/>}</Link>;
       })}</nav>
       <div className="side-grow"/>
-      <div className="side-help"><div className="help-icon"><img src={`${basePath}/athar-icon.png`} alt="" width={20} height={20}/></div><b>خطوة بخطوة</b><p>دوّن ما تعلّمته اليوم، واجعل كل خطوة واضحة في مسارك.</p></div>
+      <div className="side-help"><div className="help-icon"><img src={`${basePath}/athar-icon-3d.png`} alt="" width={20} height={20}/></div><b>خطوة بخطوة</b><p>دوّن ما تعلّمته اليوم، واجعل كل خطوة واضحة في مسارك.</p></div>
       <div className="sidebar-status"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'المساحة تعمل' : 'جارٍ الاتصال'}</div>
        <div className="side-user"><span className="user-avatar">{user?.firstName?.slice(0, 1) || 'ط'}</span><span className="user-meta"><b>{user?.fullName || 'طالب أثر'}</b><small>مساحتك الشخصية</small></span></div>
     </aside>
@@ -1198,7 +1197,7 @@ function AuthRouter() {
     }}
     routerPush={to => setLocation(stripBase(to))}
     routerReplace={to => setLocation(stripBase(to), { replace: true })}>
-    <ClerkCacheReset/><Switch>
+    <ClerkCacheReset/><Suspense fallback={<div className="auth-loading" role="status">جارٍ تحميل الصفحة…</div>}><Switch>
       <Route path="/" component={HomeRedirect}/>
       <Route path="/about" component={Home}/>
       <Route path="/privacy" component={PrivacyPage}/>
@@ -1226,7 +1225,7 @@ function AuthRouter() {
       <Route path="/profile"><Protected><ProfilePage/></Protected></Route>
       <Route path="/admin"><Protected admin><AdminPage/></Protected></Route>
       <Route component={NotFound}/>
-    </Switch>
+    </Switch></Suspense>
   </ClerkProvider>;
 }
 

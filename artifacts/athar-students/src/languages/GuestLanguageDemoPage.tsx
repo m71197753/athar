@@ -283,7 +283,7 @@ export function GuestLanguageDemoPage() {
   return <main className="guest-language-demo" dir="rtl">
     <header className="gld-header">
       <a className="gld-brand" href="/" aria-label="العودة إلى أثر">
-        <img src={`${import.meta.env.BASE_URL}athar-wordmark.png`} alt="أثر" />
+        <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" />
       </a>
       <span className="gld-header-label">تجربة اللغة الإنجليزية</span>
       <Link href="/about" className="gld-about-link">عن أثر</Link>

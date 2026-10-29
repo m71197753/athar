@@ -780,7 +780,7 @@ export function LanguageStudyPage() {
     <main className={`language-study ${pageSettings.layoutOrder === 'game-first' ? 'is-game-first' : ''}`} style={{ '--language-accent': pageSettings.accentColor } as CSSProperties} dir="rtl">
       <header className="ls-head">
         <div className="ls-brand" aria-label="أثر">
-          <img src={`${import.meta.env.BASE_URL}athar-wordmark.png`} alt="أثر" onError={event => { event.currentTarget.style.display = 'none'; }} />
+          <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" onError={event => { event.currentTarget.style.display = 'none'; }} />
         </div>
         <span className="ls-head-divider" />
         <span className="ls-head-title">مساحة التعلّم · {languageName}</span>

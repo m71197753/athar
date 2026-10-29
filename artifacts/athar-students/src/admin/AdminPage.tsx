@@ -61,7 +61,7 @@ const isSafeContentUrl = (value: string) => { try { const url = new URL(value); 
 const fmtDate = (d: string) => new Date(d).toLocaleString('ar', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 const num = (n: number) => n.toLocaleString('ar');
 
-function Brand() { return <span className="brand-lockup brand-small"><img className="brand-image" src={`${basePath}/athar-wordmark.png`} alt="أثر"/></span>; }
+function Brand() { return <span className="brand-lockup brand-small"><img className="brand-image" src={`${basePath}/athar-wordmark-3d.png`} alt="أثر"/></span>; }
 
 function Skeleton({ rows = 3 }: { rows?: number }) {
   return <div className="adm-skeleton" role="status" aria-label="جارٍ التحميل">{Array.from({ length: rows }).map((_, i) => <span key={i}/>)}</div>;

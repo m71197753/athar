@@ -63,6 +63,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/node_modules/@clerk/')) return 'clerk-vendor';
+          if (id.includes('/node_modules/@tanstack/')) return 'query-vendor';
+        },
+      },
+    },
   },
   server: {
     port,

@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "H6S0qiK_i_O3cngCjs_25"
+uri = "file://artifacts/athar-students/public/athar-wordmark-3d.png"
+type = "image"
+title = "شعار أثر بخلفية شفافة"
+description = "النسخة المعالجة من الشعار الذي أرفقته، للاستخدام في واجهات المنصة."
+logical_id = "7e7ca61c-3473-4e67-a8a5-6f5935519b11"
+content_hash = "sha256:55d05f95fc3329597b780e37c20e7a293f9cd37dddb7fe5905ab28ea6aebfdea"
+size = 148232
+mtime_ms = 1793291919084
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/7e7ca61c-3473-4e67-a8a5-6f5935519b11/483ac32e-f07a-4ab3-bf4a-dad78f20bc20"
+storage_version_token = "1793292572986003"
+content_type = "image/png"
+
+[[outputs]]
+id = "c0zN8bNP3iOYZ8HbYboCi"
+uri = "file://artifacts/athar-students/public/athar-icon-3d.png"
+type = "image"
+title = "أيقونة تطبيق أثر"
+description = "أيقونة مربعة بخلفية داكنة، مستخدمة في أيقونات التثبيت وAndroid."
+logical_id = "9c5ad934-5a86-4aac-b646-b227897d9d60"
+content_hash = "sha256:481fd8a5b92bb252913a7fb98d732adb4355104f0acf2c2df269cc6bcfdec32f"
+size = 308774
+mtime_ms = 1793291919756
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/9c5ad934-5a86-4aac-b646-b227897d9d60/97ffdbf1-5d72-4498-b4a4-88476b659932"
+storage_version_token = "1793292574368987"
+content_type = "image/png"

@@ -626,6 +626,21 @@ body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
+/* The submitted 3D wordmark is designed for a dark tile. */
+img[src$="athar-wordmark-3d.png"] {
+  padding: 3px 6px;
+  border-radius: 9px;
+  background: #101827;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
+}
+.side-brand .brand-lockup { padding: 0; background: transparent; box-shadow: none; }
+.dark .side-brand .brand-lockup { padding: 0; background: transparent; box-shadow: none; }
+.dark .brand-lockup .brand-image[src$="athar-wordmark-3d.png"],
+.dark .side-brand .brand-lockup .brand-image[src$="athar-wordmark-3d.png"] {
+  background: #101827;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+
 /* Theme aliases keep feature surfaces aligned with the configured platform brand. */
 :root {
   --ink: #172033;
