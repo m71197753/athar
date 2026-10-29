@@ -137,6 +137,7 @@ function loadAdminRouter() {
   };
   let uploadCount = 0;
   let validationCount = 0;
+  let validationMaxBytes;
   let uuid = 0;
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL('../src/routes/admin.ts', import.meta.url), 'utf8'), {
@@ -168,7 +169,11 @@ function loadAdminRouter() {
         '../lib/ad-storage': {
           assetFile: () => ({ createReadStream: () => ({ on() { return this; }, pipe() {} }) }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),
-          validateUploadedAsset: async objectPath => { validationCount += 1; return objectPath; },
+          validateUploadedAsset: async (objectPath, _mime, _size, maxBytes) => {
+            validationCount += 1;
+            validationMaxBytes = maxBytes;
+            return objectPath;
+          },
         },
       };
       assert(name in dependencies, `Unexpected dependency ${name}`);
@@ -183,6 +188,7 @@ function loadAdminRouter() {
     routes, mounts, requireAuth, requireAdmin,
     get uploadCount() { return uploadCount; },
     get validationCount() { return validationCount; },
+    get validationMaxBytes() { return validationMaxBytes; },
     reset() { for (const rows of tableRows.values()) rows.length = 0; },
   };
 }
@@ -227,6 +233,7 @@ test('admin can request and confirm a media upload, publish it in a section, edi
   });
   assert.equal(confirmed.statusCode, 200);
   assert.equal(router.validationCount, 1);
+  assert.equal(router.validationMaxBytes, null);
   assert.equal(confirmed.body.url, `/api/platform/section-media/${ticket.body.id}`);
 
   const create = await call(router, 'POST', '/admin/sections', {
@@ -276,14 +283,14 @@ test('admin can request and confirm a media upload, publish it in a section, edi
   assert.equal((await call(router, 'GET', '/admin/sections')).body.items.length, 0);
 });
 
-test('oversized section video is rejected before creating a storage upload', async () => {
+test('large section video uploads have no application-level size limit', async () => {
   const router = loadAdminRouter();
   router.reset();
   const result = await call(router, 'POST', '/admin/section-media/uploads', {
-    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 81 * 1024 * 1024 },
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 5 * 1024 * 1024 * 1024 },
   });
-  assert.equal(result.statusCode, 400);
-  assert.equal(router.uploadCount, 0);
+  assert.equal(result.statusCode, 201);
+  assert.equal(router.uploadCount, 1);
 });
 
 test('section audio formats are accepted by the upload flow', async () => {

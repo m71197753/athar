@@ -38,9 +38,8 @@ export function SectionContentBlockEditor({
       setUploadError("الملف غير مدعوم. اختر صورة أو صوتًا أو فيديو أو PDF أو Word أو ملفًا نصيًا.");
       return;
     }
-    const limit = mime.startsWith("image/") ? 10 : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 : 20;
-    if (file.size < 1 || file.size > limit * 1024 * 1024) {
-      setUploadError(`الحد الأقصى لهذا النوع ${limit} ميجابايت.`);
+    if (file.size < 1) {
+      setUploadError("الملف فارغ.");
       return;
     }
     setUploading(true);
@@ -85,7 +84,7 @@ export function SectionContentBlockEditor({
         <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
           disabled={uploading} onChange={event => { void upload(event.currentTarget.files?.[0]); event.currentTarget.value = ""; }}/>
       </label>
-      <small className="adm-upload-hint">الصور حتى 10 ميجابايت، والصوت والفيديو حتى 80، وملفات PDF وWord والنص حتى 20.</small>
+      <small className="adm-upload-hint">لا يفرض التطبيق حدًا لحجم الملف؛ قد يستغرق رفع الملفات الكبيرة وقتًا أطول حسب سرعة الاتصال.</small>
       {uploading && <p className="adm-upload-status" role="status"><LoaderCircle size={15} className="adm-spin"/> جارٍ رفع الملف والتحقق منه…</p>}
       {uploadError && <p className="adm-form-error" role="alert">{uploadError}</p>}
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={block.url} alt={block.title || "معاينة الصورة"} loading="lazy"/>}

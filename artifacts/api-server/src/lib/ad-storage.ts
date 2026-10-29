@@ -16,7 +16,7 @@ export function assetFile(path: string) {
   const parts = path.replace(/^\/+/, "").split("/");
   return storage.bucket(parts.shift()!).file(parts.join("/"));
 }
-export async function createAssetUpload(folder = "ad-assets") {
+export async function createAssetUpload(folder = "ad-assets", expiresInMs = 15 * 60 * 1000) {
   if (!["ad-assets", "section-assets"].includes(folder)) throw new Error("Invalid asset folder");
   const base = process.env.PRIVATE_OBJECT_DIR;
   if (!base) throw new Error("App Storage is not configured");
@@ -25,21 +25,22 @@ export async function createAssetUpload(folder = "ad-assets") {
   const bucketName = parts.shift()!;
   const response = await fetch(`${sidecar}/object-storage/signed-object-url`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bucket_name: bucketName, object_name: parts.join("/"), method: "PUT", expires_at: new Date(Date.now() + 900000).toISOString() }),
+    body: JSON.stringify({ bucket_name: bucketName, object_name: parts.join("/"), method: "PUT", expires_at: new Date(Date.now() + expiresInMs).toISOString() }),
     signal: AbortSignal.timeout(30000),
   });
   if (!response.ok) throw new Error("Could not create an upload URL");
   const { signed_url } = await response.json() as { signed_url: string };
   return { objectPath, uploadUrl: String(signed_url) };
 }
-export async function validateUploadedAsset(path: string, mime: string, expectedSize: number) {
+export async function validateUploadedAsset(path: string, mime: string, expectedSize: number, maxBytes: number | null = (
+  mime.startsWith("image/") ? 10 * 1024 * 1024
+    : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 * 1024 * 1024
+      : 20 * 1024 * 1024
+)) {
   const file = assetFile(path);
   const [metadata] = await file.getMetadata();
-  const limit = mime.startsWith("image/") ? 10 * 1024 * 1024
-    : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 * 1024 * 1024
-      : 20 * 1024 * 1024;
   const size = Number(metadata.size);
-  if (size !== expectedSize || size > limit || metadata.contentType?.split(";")[0] !== mime) return null;
+  if (size !== expectedSize || (maxBytes !== null && size > maxBytes) || metadata.contentType?.split(";")[0] !== mime) return null;
   // Pin the validated generation and copy to a new immutable key. The still-valid
   // presigned upload URL cannot overwrite a publicly served confirmed asset.
   const pinned = storage.bucket(metadata.bucket!).file(metadata.name!, { generation: metadata.generation });

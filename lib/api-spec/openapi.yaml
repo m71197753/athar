@@ -2629,7 +2629,7 @@ components:
         mime:
           type: string
           enum: [image/jpeg, image/png, image/webp, image/gif, audio/mpeg, audio/mp4, audio/wav, audio/ogg, audio/webm, video/mp4, video/webm, application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain]
-        size: { type: integer, minimum: 1, maximum: 83886080 }
+        size: { type: integer, minimum: 1 }
     SectionMediaUploadRequest:
       type: object
       additionalProperties: false

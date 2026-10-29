@@ -465,13 +465,8 @@ router.post("/admin/section-media/uploads", async (req, res) => {
     res.status(400).json({ error: "Choose an image, audio, video, PDF, Word or text file" }); return;
   }
   const mime = input.data.mime;
-  const maxBytes = mime.startsWith("image/") ? 10 * 1024 * 1024
-    : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 * 1024 * 1024 : 20 * 1024 * 1024;
-  if (input.data.size > maxBytes) {
-    res.status(400).json({ error: `File exceeds the ${Math.floor(maxBytes / (1024 * 1024))} MB limit` }); return;
-  }
   const originalName = input.data.originalName.replace(/[\u0000-\u001f\u007f/\\]/g, " ").trim().slice(0, 240) || "attachment";
-  const { objectPath, uploadUrl } = await createAssetUpload("section-assets");
+  const { objectPath, uploadUrl } = await createAssetUpload("section-assets", 2 * 60 * 60 * 1000);
   const [asset] = await db.insert(platformMediaAssetsTable).values({
     ownerId: res.locals.userId, originalName, mime, size: input.data.size, objectPath, status: "uploading",
   }).returning();
@@ -487,7 +482,7 @@ router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
     eq(platformMediaAssetsTable.status, "uploading"),
   ));
   if (!asset) { res.status(404).json({ error: "Upload not found" }); return; }
-  const confirmedPath = await validateUploadedAsset(asset.objectPath, asset.mime, asset.size);
+  const confirmedPath = await validateUploadedAsset(asset.objectPath, asset.mime, asset.size, null);
   if (!confirmedPath) { res.status(400).json({ error: "Uploaded file failed type or size verification" }); return; }
   await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
     .where(eq(platformMediaAssetsTable.id, asset.id));

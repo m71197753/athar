@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod";
-import { index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 
 export const platformMediaAssetsTable = pgTable(
@@ -9,7 +9,7 @@ export const platformMediaAssetsTable = pgTable(
     ownerId: text("owner_id").notNull(),
     originalName: text("original_name").notNull(),
     mime: text("mime").notNull(),
-    size: integer("size").notNull(),
+    size: bigint("size", { mode: "number" }).notNull(),
     objectPath: text("object_path").notNull(),
     status: text("status").notNull().default("uploading"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

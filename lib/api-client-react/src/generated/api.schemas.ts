@@ -550,10 +550,7 @@ export interface SectionMediaUploadInput {
      */
   originalName: string;
   mime: SectionMediaUploadInputMime;
-  /**
-     * @minimum 1
-     * @maximum 83886080
-     */
+  /** @minimum 1 */
   size: number;
 }
 

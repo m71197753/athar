@@ -1628,14 +1628,13 @@ export const UpdateAdminLanguageContentResponse = zod.object({
 
 export const requestSectionMediaUploadBodyOriginalNameMax = 240;
 
-export const requestSectionMediaUploadBodySizeMax = 83886080;
 
 
 
 export const RequestSectionMediaUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestSectionMediaUploadBodyOriginalNameMax),
   "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/webm', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']),
-  "size": zod.number().int().min(1).max(requestSectionMediaUploadBodySizeMax)
+  "size": zod.number().int().min(1)
 })
 
 export const RequestSectionMediaUploadResponse = zod.object({
