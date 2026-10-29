@@ -28,3 +28,45 @@ mtime_ms = 1793291919756
 storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/9c5ad934-5a86-4aac-b646-b227897d9d60/97ffdbf1-5d72-4498-b4a4-88476b659932"
 storage_version_token = "1793292574368987"
 content_type = "image/png"
+
+[[outputs]]
+id = "YuVCpgQDo8jLYenDkSuX0"
+uri = "file://generated-artifacts/athar-demo-content/athar-demo-english-a1.csv"
+type = "table"
+title = "ملف CSV تجريبي للإنجليزية"
+description = "8 كلمات و4 جمل بمستوى A1، بصيغة جدول عربية UTF-8."
+logical_id = "6051e7d5-1b79-4a24-909a-154978fa700e"
+content_hash = "sha256:52d4280e131c193bcb8baa7840f2e48c2a52e9672c6434505d437b838b87737c"
+size = 2801
+mtime_ms = 1793293054923
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/6051e7d5-1b79-4a24-909a-154978fa700e/f327e1c0-7fe0-441f-a14e-309b1fa7261d"
+storage_version_token = "1793293080030899"
+content_type = "text/csv"
+
+[[outputs]]
+id = "a8Oj1CgWnE8tu5dhRuTmY"
+uri = "file://generated-artifacts/athar-demo-content/athar-demo-english-a1.json"
+type = "unspecified"
+title = "ملف JSON تجريبي للإنجليزية"
+description = "نفس العناصر بصيغة JSON القريبة من نموذج محتوى أثر."
+logical_id = "fda789ca-7d2c-4a68-aaa3-f9ac2294e930"
+content_hash = "sha256:595b1b00f0da776ba8eda3c33c200146866f5fb958e0aeb40e7448375f4aeb3c"
+size = 5797
+mtime_ms = 1793293054917
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/fda789ca-7d2c-4a68-aaa3-f9ac2294e930/dc445b7a-3205-49f8-b07c-05724c6694b6"
+storage_version_token = "1793293080686978"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "tsGqLR1-0SlldbPmSB-y4"
+uri = "file://generated-artifacts/athar-demo-content/README.txt"
+type = "text"
+title = "ملاحظات ملفات المحتوى التجريبية"
+description = "توضح حدود الاستخدام وأن البيانات أمثلة فقط وليست مراجعة للنشر."
+logical_id = "a5b34a29-289b-41ab-82dc-b3228e2a0d12"
+content_hash = "sha256:2feade4a2ae0359dac0e483ae733df792a2b151fc53d5c5b262cb99e22fb7ee7"
+size = 816
+mtime_ms = 1793293054923
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/a5b34a29-289b-41ab-82dc-b3228e2a0d12/6b1b3940-bb27-4381-be33-d5f09eecd658"
+storage_version_token = "1793293081286247"
+content_type = "text/plain"
