@@ -67,7 +67,7 @@ export function CustomSectionPage({ slug }: { slug: string }) {
     const matchesFilter = activeFilter === "all" ||
       (activeFilter === "completed" && isCompleted) ||
       (activeFilter === "incomplete" && !isCompleted);
-    const searchableText = `${course.title} ${course.description} ${course.materials.map(material => `${material.title} ${material.body}`).join(" ")}`.toLocaleLowerCase("ar");
+    const searchableText = `${course.title} ${course.description} ${(course.skills ?? []).join(" ")} ${course.materials.map(material => `${material.title} ${material.body}`).join(" ")}`.toLocaleLowerCase("ar");
     return matchesFilter && (!normalizedSearch || searchableText.includes(normalizedSearch));
   });
   const recordCompletion = (courseId: string) => {
@@ -182,15 +182,48 @@ export function CustomSectionPage({ slug }: { slug: string }) {
       {visibleCourses.length > 0 ? <div className="custom-course-list">{visibleCourses.map(course => {
         const completed = isCourseCompleted(course.id, course.title);
         const pending = completeCourse.isPending && completeCourse.variables?.courseId === course.id;
-        return <article className={`custom-course-card ${completed ? "is-completed" : ""}`} key={course.id} data-testid={`course-card-${course.id}`}>
-          <div className="custom-course-card-topline">
-            <span className="custom-course-number">{String(courses.findIndex(item => item.id === course.id) + 1).padStart(2, "0")}</span>
-            <span className="custom-course-context">دورة تعلّم</span>
-            {completed && <span className="custom-course-complete-badge" data-testid={`course-completed-${course.id}`}><Check size={14}/> مكتملة</span>}
+        const courseIndex = courses.findIndex(item => item.id === course.id);
+        const cardAccents = [accent.color, "#0F766E", "#B45309", "#2563EB", "#BE185D"];
+        const courseAccent = cardAccents[courseIndex % cardAccents.length];
+        const materialCount = course.materials.length;
+        const materialCountLabel = materialCount === 1
+          ? "مادة واحدة"
+          : materialCount === 2
+            ? "مادتان"
+            : `${materialCount.toLocaleString("ar")} ${materialCount >= 3 && materialCount <= 10 ? "مواد" : "مادة"}`;
+        return <article
+          className={`custom-course-card custom-course-card-v3 ${completed ? "is-completed" : ""}`}
+          key={course.id}
+          data-testid={`course-card-${course.id}`}
+          style={{ "--course-accent": courseAccent } as CSSProperties}
+        >
+          <div className="custom-course-cover">
+            <span className="custom-course-number">دورة {String(courseIndex + 1).padStart(2, "0")}</span>
+            {completed
+              ? <span className="custom-course-complete-badge" data-testid={`course-completed-${course.id}`}><Check size={14}/> مكتملة</span>
+              : <span className="custom-course-start-badge">ابدأ التعلّم</span>}
+            <span className="custom-course-cover-icon" aria-hidden="true"><SectionIcon size={28} strokeWidth={1.7}/></span>
+            <span className="custom-course-cover-caption">أثر · {section.title}</span>
           </div>
-          <div className="custom-course-title custom-course-copy"><h3 data-testid={`course-title-${course.id}`}>{course.title}</h3>{course.description && <p>{course.description}</p>}</div>
+          <div className="custom-course-title custom-course-copy">
+            <div className="custom-course-meta">
+              <span><FileText size={14} aria-hidden="true"/> {materialCountLabel}</span>
+              <span>دورة تعليمية</span>
+            </div>
+            <h3 data-testid={`course-title-${course.id}`}>{course.title}</h3>
+            {course.description && <p>{course.description}</p>}
+            {!!course.skills?.length && <div className="custom-course-skills" aria-label="المهارات التي تتناولها الدورة">
+              {course.skills.slice(0, 3).map(skill => <span key={skill}>{skill}</span>)}
+              {course.skills.length > 3 && <span className="custom-course-extra-skills">+{(course.skills.length - 3).toLocaleString("ar")}</span>}
+            </div>}
+          </div>
           <details className="custom-course-details custom-course-details-v2" data-testid={`course-details-${course.id}`}>
-            <summary><span className="custom-course-material-icon"><FileText size={16}/></span><span className="custom-course-material-copy"><b>استكشف مواد الدورة</b><small>{course.materials.length.toLocaleString("ar")} {course.materials.length === 1 ? "مادة" : "مواد"}</small></span><ChevronDown size={17} aria-hidden="true"/></summary>
+            <summary>
+              <span className="custom-course-material-icon"><FileText size={16} aria-hidden="true"/></span>
+              <span className="custom-course-material-copy"><b>{completed ? "راجع مواد الدورة" : "ابدأ الدورة"}</b><small>عرض المحتوى المتاح</small></span>
+              <span className="custom-course-material-cta">فتح</span>
+              <ChevronDown size={17} aria-hidden="true"/>
+            </summary>
             <div className="custom-course-materials">{course.materials.map((material, index) => renderMaterial(material, index, course.id))}</div>
           </details>
           <footer className="custom-course-actions custom-course-actions-v2">

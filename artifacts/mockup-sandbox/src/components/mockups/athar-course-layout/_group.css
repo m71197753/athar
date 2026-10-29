@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: light;
+  --athar-canvas: #F8FAFC;
+  --athar-paper: #F1F5F9;
+  --athar-paper-raised: #FFFFFF;
+  --athar-ink: #172033;
+  --athar-ink-soft: #334155;
+  --athar-muted: #64748B;
+  --athar-line: #E2E8F0;
+  --athar-primary: #4338CA;
+  --athar-primary-deep: #3730A3;
+  --athar-primary-accent: #6366F1;
+  --athar-primary-soft: #F5F3FF;
+  --athar-primary-text: #FFFFFF;
+  --primary: 243 57% 50%;
+  --background: 210 40% 98%;
+  --card: 0 0% 100%;
+}
+
+.dark {
+  color-scheme: dark;
+  --athar-canvas: #111827;
+  --athar-paper: #1E293B;
+  --athar-paper-raised: #202D40;
+  --athar-ink: #F1F5F9;
+  --athar-ink-soft: #D5DEEA;
+  --athar-muted: #A1AEC1;
+  --athar-line: #334155;
+  --athar-primary: #818CF8;
+  --athar-primary-deep: #6366F1;
+  --athar-primary-accent: #A5B4FC;
+  --athar-primary-soft: #292D52;
+  --athar-primary-text: #111827;
+  --primary: 239 84% 67%;
+  --background: 222 47% 11%;
+  --card: 217 33% 17%;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Cairo','IBM Plex Sans Arabic',sans-serif; background: var(--athar-canvas); color: var(--athar-ink); }
