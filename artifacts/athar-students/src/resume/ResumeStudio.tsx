@@ -60,7 +60,10 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
     })),
     courses: (courses ?? [])
       .filter(item => item.kind === "course" && item.status === "completed")
-      .map(item => ({ title: item.title, subject: item.subject, source: item.source, skills: item.skills ?? [] })),
+      .map(item => ({
+        title: item.title, subject: item.subject, source: item.source,
+        skills: item.skills ?? [], studyMinutes: item.studyMinutes,
+      })),
   }), [profile, achievements, courses]);
 
   const skills = useMemo(() => [...new Set([
@@ -219,6 +222,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
                       <div className="rs-entry-top"><h4>{course.title}</h4></div>
                       {(course.subject || course.source) && <p className="rs-entry-context">{[course.subject, course.source].filter(Boolean).join(" · ")}</p>}
                       {course.skills?.length ? <p className="rs-entry-context">مهارات درستها: {course.skills.join(" · ")}</p> : null}
+                      {!!course.studyMinutes && <p className="rs-entry-context" data-testid={`text-resume-course-study-time-${index}`}>وقت التعلّم المسجل داخل أثر: {course.studyMinutes.toLocaleString("ar")} دقيقة</p>}
                     </article>
                   ))}
                 </div>

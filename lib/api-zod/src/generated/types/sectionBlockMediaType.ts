@@ -11,6 +11,7 @@ export type SectionBlockMediaType = typeof SectionBlockMediaType[keyof typeof Se
 
 export const SectionBlockMediaType = {
   image: 'image',
+  audio: 'audio',
   video: 'video',
   file: 'file',
 } as const;

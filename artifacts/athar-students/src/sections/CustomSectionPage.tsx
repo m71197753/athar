@@ -4,17 +4,23 @@ import { ArrowLeft, BookOpen, Check, CheckCircle2, ChevronDown, Download, Extern
 import { Link } from "wouter";
 import { getSectionAccent, getSectionIcon } from "../lib/section-appearance";
 import {
-  getGetPlatformContentQueryKey, getListLearningItemsQueryKey,
+  getGetPlatformContentQueryKey, getGetSectionMediaProgressQueryKey, getListLearningItemsQueryKey,
   useCompletePlatformSectionCourse, useGetPlatformContent, useListLearningItems,
+  useGetSectionMediaProgress,
 } from "@workspace/api-client-react";
 import type { SectionBlock } from "@workspace/api-client-react";
+import { TrackedSectionMedia } from "./TrackedSectionMedia";
 import "./custom-sections.css";
 
 type CourseFilter = "all" | "incomplete" | "completed";
+const sectionMediaId = (url: string) => /^\/api\/platform\/section-media\/([a-f0-9-]{36})$/i.exec(url)?.[1];
 
 export function CustomSectionPage({ slug }: { slug: string }) {
   const queryClient = useQueryClient();
   const query = useGetPlatformContent({ query: { queryKey: getGetPlatformContentQueryKey(), staleTime: 30_000 } });
+  const mediaProgressQuery = useGetSectionMediaProgress(slug, {
+    query: { queryKey: getGetSectionMediaProgressQueryKey(slug), staleTime: 30_000 },
+  });
   const learningQuery = useListLearningItems({ kind: "course" }, { query: { queryKey: getListLearningItemsQueryKey({ kind: "course" }), enabled: true } });
   const completeCourse = useCompletePlatformSectionCourse();
   const [completionError, setCompletionError] = useState("");
@@ -87,16 +93,32 @@ export function CustomSectionPage({ slug }: { slug: string }) {
       onError: () => setCompletionError("تعذّر تسجيل إكمال الدورة. حاول مرة أخرى."),
     });
   };
+  const renderMedia = (block: SectionBlock, contextKey: string, key: string, heading: "h2" | "h3") => {
+    const mediaId = sectionMediaId(block.url);
+    return <section className="custom-section-media" key={key} data-testid={`course-material-media-${key}`}>
+      {heading === "h2" ? <h2>{block.title}</h2> : <h3>{block.title}</h3>}{block.body && <p>{block.body}</p>}
+      {block.mediaType === "image" && <img src={block.url} alt={block.title} loading="lazy"/>}
+      {mediaId && (block.mediaType === "audio" || block.mediaType === "video" || block.mediaType === "file")
+        ? <TrackedSectionMedia
+            sectionSlug={slug}
+            contextKey={contextKey}
+            mediaAssetId={mediaId}
+            mediaType={block.mediaType}
+            url={block.url}
+            title={block.title}
+            savedProgress={mediaProgressQuery.data?.find(row => row.contextKey === contextKey && row.mediaAssetId === mediaId)}
+          />
+        : block.mediaType === "video" ? <video src={block.url} controls playsInline preload="metadata"/>
+          : block.mediaType === "audio" ? <audio src={block.url} controls preload="metadata"/>
+              : block.mediaType === "file" ? <div className="tracked-section-document"><iframe src={`${block.url}?preview=1`} title={`معاينة ${block.title}`} loading="lazy"/><a href={block.url} download><Download size={16}/> تنزيل الملف</a></div>
+              : null}
+    </section>;
+  };
   const renderMaterial = (block: SectionBlock, index: number, courseId: string) => block.type === "link"
     ? <a className="custom-section-link" key={`${courseId}-${index}`} href={block.url} target="_blank" rel="noopener noreferrer" data-testid={`course-material-link-${courseId}-${index}`}>
         <span className="custom-section-link-copy"><b>{block.title}</b>{block.body && <span>{block.body}</span>}</span><ExternalLink size={17} aria-hidden="true"/>
       </a>
-    : block.type === "media" ? <section className="custom-section-media" key={`${courseId}-${index}`} data-testid={`course-material-media-${courseId}-${index}`}>
-        <h3>{block.title}</h3>{block.body && <p>{block.body}</p>}
-        {block.mediaType === "image" && <img src={block.url} alt={block.title} loading="lazy"/>}
-        {block.mediaType === "video" && <video src={block.url} controls preload="metadata"/>}
-        {block.mediaType === "file" && <a href={block.url} download><Download size={16}/> فتح الملف</a>}
-      </section>
+    : block.type === "media" ? renderMedia(block, `course:${courseId}`, `${courseId}-${index}`, "h3")
     : <section className="custom-section-text" key={`${courseId}-${index}`} data-testid={`course-material-text-${courseId}-${index}`}>
         <h3>{block.title}</h3>{block.body && <p>{block.body}</p>}
       </section>;
@@ -116,12 +138,7 @@ export function CustomSectionPage({ slug }: { slug: string }) {
             <span className="custom-section-link-copy"><b>{block.title}</b>{block.body && <span>{block.body}</span>}</span>
             <ExternalLink size={17} aria-hidden="true"/>
           </a>
-        : block.type === "media" ? <section className="custom-section-media" key={`${block.type}-${index}`}>
-            <h2>{block.title}</h2>{block.body && <p>{block.body}</p>}
-            {block.mediaType === "image" && <img src={block.url} alt={block.title} loading="lazy"/>}
-            {block.mediaType === "video" && <video src={block.url} controls preload="metadata"/>}
-            {block.mediaType === "file" && <a href={block.url} download><Download size={16}/> فتح الملف</a>}
-          </section>
+        : block.type === "media" ? renderMedia(block, "section", `${block.type}-${index}`, "h2")
         : <section className="custom-section-text" key={`${block.type}-${index}`}>
             <h2>{block.title}</h2>{block.body && <p>{block.body}</p>}
           </section>)}

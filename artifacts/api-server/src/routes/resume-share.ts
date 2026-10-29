@@ -231,6 +231,7 @@ router.get(
               title: learningItemsTable.title,
               source: learningItemsTable.source,
               subject: learningItemsTable.subject,
+              studyMinutes: learningItemsTable.studyMinutes,
               skills: learningItemsTable.skills,
             })
             .from(learningItemsTable)

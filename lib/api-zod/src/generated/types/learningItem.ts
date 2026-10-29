@@ -21,6 +21,8 @@ export interface LearningItem {
   notes: string;
   skills: string[];
   status: LearningItemStatus;
+  /** @minimum 0 */
+  studyMinutes: number;
   createdAt: Date;
   updatedAt: Date;
 }

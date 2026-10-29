@@ -20,6 +20,7 @@ export type ResumeData = {
     subject?: string | null;
     source?: string | null;
     skills?: string[];
+    studyMinutes?: number;
   }>;
 };
 

@@ -1,19 +1,20 @@
 import { useState } from "react";
-import { FileText, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
+import { FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
 import { RequiredMark } from "../components/RequiredMark";
 import { useConfirmSectionMediaUpload, useRequestSectionMediaUpload } from "@workspace/api-client-react";
 import type { SectionBlock, SectionMediaUploadInput } from "@workspace/api-client-react";
 
 const acceptedMimeTypes = new Set<SectionMediaUploadInput["mime"]>([
   "image/jpeg", "image/png", "image/webp", "image/gif",
+  "audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/webm",
   "video/mp4", "video/webm", "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain",
 ]);
 const mimeByExtension: Record<string, string> = {
   jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif",
-  mp4: "video/mp4", webm: "video/webm", pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", txt: "text/plain",
+  mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", ogg: "audio/ogg", oga: "audio/ogg", mp4: "video/mp4", webm: "video/webm", pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", txt: "text/plain",
 };
-const kindForMime = (mime: string): "image" | "video" | "file" => mime.startsWith("image/") ? "image" : mime.startsWith("video/") ? "video" : "file";
+const kindForMime = (mime: string): "image" | "audio" | "video" | "file" => mime.startsWith("image/") ? "image" : mime.startsWith("audio/") ? "audio" : mime.startsWith("video/") ? "video" : "file";
 
 export function SectionContentBlockEditor({
   block, name, testIdPrefix, onChange,
@@ -34,10 +35,10 @@ export function SectionContentBlockEditor({
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
     const mime = (file.type || mimeByExtension[extension] || "") as SectionMediaUploadInput["mime"];
     if (!acceptedMimeTypes.has(mime)) {
-      setUploadError("الملف غير مدعوم. اختر صورة أو فيديو أو PDF أو Word أو ملفًا نصيًا.");
+      setUploadError("الملف غير مدعوم. اختر صورة أو صوتًا أو فيديو أو PDF أو Word أو ملفًا نصيًا.");
       return;
     }
-    const limit = mime.startsWith("image/") ? 10 : mime.startsWith("video/") ? 80 : 20;
+    const limit = mime.startsWith("image/") ? 10 : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 : 20;
     if (file.size < 1 || file.size > limit * 1024 * 1024) {
       setUploadError(`الحد الأقصى لهذا النوع ${limit} ميجابايت.`);
       return;
@@ -80,17 +81,18 @@ export function SectionContentBlockEditor({
       <input required type="url" dir="ltr" maxLength={2048} placeholder="https://" value={block.url} onChange={event => onChange({ url: event.target.value })} data-testid={testIdPrefix ? `${testIdPrefix}-url` : undefined}/>
     </label>}
     {block.type === "media" && <>
-      <label className="adm-field"><span>اختيار صورة أو فيديو أو ملف</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+      <label className="adm-field"><span>اختيار صورة أو صوت أو فيديو أو ملف</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
           disabled={uploading} onChange={event => { void upload(event.currentTarget.files?.[0]); event.currentTarget.value = ""; }}/>
       </label>
-      <small className="adm-upload-hint">الصور حتى 10 ميجابايت، الفيديوهات حتى 80، وملفات PDF وWord والنص حتى 20.</small>
+      <small className="adm-upload-hint">الصور حتى 10 ميجابايت، والصوت والفيديو حتى 80، وملفات PDF وWord والنص حتى 20.</small>
       {uploading && <p className="adm-upload-status" role="status"><LoaderCircle size={15} className="adm-spin"/> جارٍ رفع الملف والتحقق منه…</p>}
       {uploadError && <p className="adm-form-error" role="alert">{uploadError}</p>}
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={block.url} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
+      {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={block.url} controls preload="metadata"/>}
       {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={block.url} controls preload="metadata"/>}
       {block.url && block.mediaType === "file" && <a className="adm-media-file-link" href={block.url} target="_blank" rel="noopener noreferrer"><FileText size={16}/> فتح المرفق</a>}
-      {block.url && <span className="adm-upload-status">{block.mediaType === "image" ? <ImageIcon size={14}/> : block.mediaType === "video" ? <Video size={14}/> : <FileText size={14}/>} تم التحقق من الملف؛ سيظهر للطلاب بعد نشر المحتوى.</span>}
+      {block.url && <span className="adm-upload-status">{block.mediaType === "image" ? <ImageIcon size={14}/> : block.mediaType === "audio" ? <Headphones size={14}/> : block.mediaType === "video" ? <Video size={14}/> : <FileText size={14}/>} تم التحقق من الملف؛ سيظهر للطلاب بعد نشر المحتوى.</span>}
     </>}
   </div>;
 }

@@ -5,6 +5,9 @@ import {
   db,
   learningItemsTable,
   platformSectionsTable,
+  platformSettingsTable,
+  platformMediaAssetsTable,
+  sectionMediaProgressTable,
 } from "@workspace/db";
 import {
   CompletePlatformSectionCourseParams,
@@ -13,8 +16,13 @@ import {
   CreateLearningItemResponse,
   DeleteLearningItemParams,
   GetAcademyProgressResponse,
+  GetSectionMediaProgressParams,
+  GetSectionMediaProgressResponse,
   ListLearningItemsQueryParams,
   ListLearningItemsResponse,
+  SaveSectionMediaProgressBody,
+  SaveSectionMediaProgressParams,
+  SaveSectionMediaProgressResponse,
   SaveAcademyProgressBody,
   SaveAcademyProgressParams,
   SaveAcademyProgressResponse,
@@ -23,10 +31,114 @@ import {
   UpdateLearningItemResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
+import { enabledModules } from "../lib/platform-access";
 
 const router: IRouter = Router();
 const learningKinds = ["course", "lecture"] as const;
 const learningStatuses = ["planned", "in_progress", "completed"] as const;
+const sectionMediaUrl = (id: string) => `/api/platform/section-media/${id}`;
+const playableMedia = (block: { type: string; mediaType?: string; url: string }, assetId: string, mime: string) =>
+  block.type === "media" &&
+  (block.mediaType === "audio" ? mime.startsWith("audio/") : block.mediaType === "video" && mime.startsWith("video/")) &&
+  block.url === sectionMediaUrl(assetId);
+
+async function getPublishedMediaScope(slug: string) {
+  const [section] = await db.select().from(platformSectionsTable).where(and(
+    eq(platformSectionsTable.slug, slug),
+    eq(platformSectionsTable.published, true),
+  )).limit(1);
+  if (section) return { section, moduleBlocks: null };
+
+  const [settings] = await db.select({ moduleSettings: platformSettingsTable.moduleSettings })
+    .from(platformSettingsTable).where(eq(platformSettingsTable.key, "main")).limit(1);
+  const enabled = await enabledModules();
+  const module = settings?.moduleSettings?.find(item =>
+    item.key === slug && item.enabled && enabled.some(key => key === item.key),
+  );
+  return module ? { section: null, moduleBlocks: module.blocks ?? [] } : null;
+}
+
+router.get("/sections/:slug/media-progress", requireAuth, async (req, res): Promise<void> => {
+  const params = GetSectionMediaProgressParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid section" }); return; }
+  const scope = await getPublishedMediaScope(params.data.slug);
+  if (!scope) { res.status(404).json({ error: "Published section not found" }); return; }
+  res.setHeader("Cache-Control", "private, no-store");
+  const rows = await db.select().from(sectionMediaProgressTable).where(and(
+    eq(sectionMediaProgressTable.userId, res.locals.userId as string),
+    eq(sectionMediaProgressTable.sectionSlug, params.data.slug),
+  ));
+  res.json(GetSectionMediaProgressResponse.parse(rows.map(toSectionMediaProgress)));
+});
+
+router.put("/sections/:slug/media-progress", requireAuth, async (req, res): Promise<void> => {
+  const params = SaveSectionMediaProgressParams.safeParse(req.params);
+  const parsed = SaveSectionMediaProgressBody.safeParse(req.body);
+  if (!params.success || !parsed.success) {
+    res.status(400).json({ error: "Invalid playback progress" }); return;
+  }
+  const { slug } = params.data;
+  const { contextKey, mediaAssetId, watchedSeconds, durationSeconds } = parsed.data;
+  const scope = await getPublishedMediaScope(slug);
+  if (!scope) { res.status(404).json({ error: "Published section not found" }); return; }
+
+  const [asset] = await db.select().from(platformMediaAssetsTable).where(and(
+    eq(platformMediaAssetsTable.id, mediaAssetId),
+    eq(platformMediaAssetsTable.status, "ready"),
+  )).limit(1);
+  if (!asset || (!asset.mime.startsWith("audio/") && !asset.mime.startsWith("video/"))) {
+    res.status(404).json({ error: "Published media not found" }); return;
+  }
+
+  const courseMatch = /^course:([a-f0-9-]{36})$/i.exec(contextKey);
+  const contextIsPublished = scope.section
+    ? courseMatch
+      ? scope.section.courses.some(course =>
+          course.id === courseMatch[1] && course.materials.some(block => playableMedia(block, mediaAssetId, asset.mime)),
+        )
+      : contextKey === "section" && scope.section.blocks.some(block => playableMedia(block, mediaAssetId, asset.mime))
+    : contextKey === "section" && (scope.moduleBlocks ?? []).some(block => playableMedia(block, mediaAssetId, asset.mime));
+  if (!contextIsPublished) { res.status(404).json({ error: "Published media not found" }); return; }
+
+  res.setHeader("Cache-Control", "private, no-store");
+  const userId = res.locals.userId as string;
+  const [saved] = await db.insert(sectionMediaProgressTable).values({
+    userId, sectionSlug: slug, contextKey, mediaAssetId, watchedSeconds, durationSeconds,
+  }).onConflictDoUpdate({
+    target: [
+      sectionMediaProgressTable.userId,
+      sectionMediaProgressTable.sectionSlug,
+      sectionMediaProgressTable.contextKey,
+      sectionMediaProgressTable.mediaAssetId,
+    ],
+    set: {
+      watchedSeconds: sql`GREATEST(${sectionMediaProgressTable.watchedSeconds}, EXCLUDED.watched_seconds)`,
+      durationSeconds: sql`GREATEST(${sectionMediaProgressTable.durationSeconds}, EXCLUDED.duration_seconds)`,
+      updatedAt: new Date(),
+    },
+  }).returning();
+
+  if (courseMatch) {
+    const [aggregate] = await db.select({
+      seconds: sql<number>`COALESCE(SUM(${sectionMediaProgressTable.watchedSeconds}), 0)`,
+    }).from(sectionMediaProgressTable).where(and(
+      eq(sectionMediaProgressTable.userId, userId),
+      eq(sectionMediaProgressTable.sectionSlug, slug),
+      eq(sectionMediaProgressTable.contextKey, contextKey),
+    ));
+    const studyMinutes = Math.floor(Number(aggregate?.seconds ?? 0) / 60);
+    await db.update(learningItemsTable).set({
+      studyMinutes: sql`GREATEST(${learningItemsTable.studyMinutes}, ${studyMinutes})`,
+      updatedAt: new Date(),
+    }).where(and(
+      eq(learningItemsTable.userId, userId),
+      eq(learningItemsTable.sectionCourseId, courseMatch[1]),
+      eq(learningItemsTable.kind, "course"),
+      eq(learningItemsTable.status, "completed"),
+    ));
+  }
+  res.json(SaveSectionMediaProgressResponse.parse(toSectionMediaProgress(saved)));
+});
 
 router.get("/learning-items", requireAuth, async (req, res): Promise<void> => {
   const parsed = ListLearningItemsQueryParams.safeParse(req.query);
@@ -93,6 +205,14 @@ router.post("/sections/:slug/courses/:courseId/complete", requireAuth, async (re
   }
 
   const userId = res.locals.userId as string;
+  const [aggregate] = await db.select({
+    seconds: sql<number>`COALESCE(SUM(${sectionMediaProgressTable.watchedSeconds}), 0)`,
+  }).from(sectionMediaProgressTable).where(and(
+    eq(sectionMediaProgressTable.userId, userId),
+    eq(sectionMediaProgressTable.sectionSlug, section.slug),
+    eq(sectionMediaProgressTable.contextKey, `course:${course.id}`),
+  ));
+  const studyMinutes = Math.floor(Number(aggregate?.seconds ?? 0) / 60);
   const item = await db.transaction(async tx => {
     const [inserted] = await tx.insert(learningItemsTable).values({
       userId,
@@ -105,12 +225,16 @@ router.post("/sections/:slug/courses/:courseId/complete", requireAuth, async (re
       notes: course.description,
       skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
       status: "completed",
+      studyMinutes,
     }).onConflictDoNothing({
       target: [learningItemsTable.userId, learningItemsTable.sectionCourseId],
     }).returning();
     if (inserted) return inserted;
     const [existing] = await tx.update(learningItemsTable)
-      .set({ skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))] })
+      .set({
+        skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
+        studyMinutes: sql`GREATEST(${learningItemsTable.studyMinutes}, ${studyMinutes})`,
+      })
       .where(and(
         eq(learningItemsTable.userId, userId),
         eq(learningItemsTable.sectionCourseId, course.id),
@@ -266,8 +390,19 @@ function toLearningItem(item: typeof learningItemsTable.$inferSelect) {
     status: learningStatuses.includes(item.status as (typeof learningStatuses)[number])
       ? item.status
       : "planned",
+    studyMinutes: item.studyMinutes ?? 0,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
+  };
+}
+
+function toSectionMediaProgress(progress: typeof sectionMediaProgressTable.$inferSelect) {
+  return {
+    contextKey: progress.contextKey,
+    mediaAssetId: progress.mediaAssetId,
+    watchedSeconds: progress.watchedSeconds,
+    durationSeconds: progress.durationSeconds,
+    updatedAt: progress.updatedAt.toISOString(),
   };
 }
 

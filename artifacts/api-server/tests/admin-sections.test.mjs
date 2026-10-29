@@ -95,7 +95,8 @@ function bodySchema(validate = value => value && typeof value === 'object') {
 }
 const passthroughSchema = { parse: value => value };
 const mediaTypes = new Set([
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm',
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/webm',
   'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain',
 ]);
 
@@ -146,6 +147,7 @@ function loadAdminRouter() {
     require: name => {
       const dependencies = {
         express: { Router: () => router },
+        mammoth: { extractRawText: async () => ({ value: 'Document preview' }) },
         '@clerk/express': { clerkClient: { users: { getUserList: async () => ({ data: [] }) } } },
         'node:crypto': { randomUUID: () => `00000000-0000-4000-8000-${String(++uuid).padStart(12, '0')}` },
         'drizzle-orm': {
@@ -282,4 +284,14 @@ test('oversized section video is rejected before creating a storage upload', asy
   });
   assert.equal(result.statusCode, 400);
   assert.equal(router.uploadCount, 0);
+});
+
+test('section audio formats are accepted by the upload flow', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const result = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp3', mime: 'audio/mpeg', size: 1024 },
+  });
+  assert.equal(result.statusCode, 201);
+  assert.equal(router.uploadCount, 1);
 });

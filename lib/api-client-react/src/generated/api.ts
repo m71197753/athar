@@ -154,6 +154,8 @@ import type {
   ResumeShareUpdate,
   SearchAcademyParams,
   SectionInput,
+  SectionMediaProgress,
+  SectionMediaProgressInput,
   SectionMediaUploadInput,
   SectionMediaUploadRequest,
   SectionMediaUploadResult,
@@ -3866,6 +3868,196 @@ export const useCompletePlatformSectionCourse = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCompletePlatformSectionCourseMutationOptions(options), queryClient);
+    }
+
+export const getGetSectionMediaProgressUrl = (slug: string,) => {
+
+
+
+
+  return `/api/sections/${slug}/media-progress`
+}
+
+/**
+ * @summary Get the current student's playback progress in a published section
+ */
+export const getSectionMediaProgress = async (slug: string, options?: Parameters<typeof customFetch>[1]): Promise<SectionMediaProgress[]> => {
+
+  return customFetch<SectionMediaProgress[]>(getGetSectionMediaProgressUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSectionMediaProgressQueryKey = (slug: string,) => {
+    return [
+    `/api/sections/${slug}/media-progress`
+    ] as const;
+    }
+
+
+export const getGetSectionMediaProgressQueryOptions = <TData = Awaited<ReturnType<typeof getSectionMediaProgress>>, TError = ErrorType<void>>(slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSectionMediaProgressQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSectionMediaProgress>>> = ({ signal }) => getSectionMediaProgress(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: slug !== null && slug !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSectionMediaProgressQueryResult = NonNullable<Awaited<ReturnType<typeof getSectionMediaProgress>>>
+export type GetSectionMediaProgressQueryError = ErrorType<void>
+
+
+export function useGetSectionMediaProgress<TData = Awaited<ReturnType<typeof getSectionMediaProgress>>, TError = ErrorType<void>>(
+ slug: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSectionMediaProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getSectionMediaProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSectionMediaProgress<TData = Awaited<ReturnType<typeof getSectionMediaProgress>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSectionMediaProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getSectionMediaProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSectionMediaProgress<TData = Awaited<ReturnType<typeof getSectionMediaProgress>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the current student's playback progress in a published section
+ */
+
+export function useGetSectionMediaProgress<TData = Awaited<ReturnType<typeof getSectionMediaProgress>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSectionMediaProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSectionMediaProgressQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveSectionMediaProgressUrl = (slug: string,) => {
+
+
+
+
+  return `/api/sections/${slug}/media-progress`
+}
+
+/**
+ * @summary Save playback time for a video or audio file in a published section
+ */
+export const saveSectionMediaProgress = async (slug: string,
+    sectionMediaProgressInput: SectionMediaProgressInput, options?: Parameters<typeof customFetch>[1]): Promise<SectionMediaProgress> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SectionMediaProgress>(getSaveSectionMediaProgressUrl(slug),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sectionMediaProgressInput)
+  }
+);}
+
+
+
+
+
+export const getSaveSectionMediaProgressMutationKey = () => ['saveSectionMediaProgress'] as const;
+
+export const getSaveSectionMediaProgressMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSectionMediaProgress>>, TError,SaveSectionMediaProgressMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveSectionMediaProgress>>, TError,SaveSectionMediaProgressMutationVariables, TContext> => {
+
+const mutationKey = getSaveSectionMediaProgressMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveSectionMediaProgress>>, SaveSectionMediaProgressMutationVariables> = (props) => {
+          const {slug,data} = props ?? {};
+
+          return  saveSectionMediaProgress(slug,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveSectionMediaProgressMutationResult = NonNullable<Awaited<ReturnType<typeof saveSectionMediaProgress>>>
+    export type SaveSectionMediaProgressMutationBody = BodyType<SectionMediaProgressInput>
+    export type SaveSectionMediaProgressMutationError = ErrorType<void>
+    export type SaveSectionMediaProgressMutationVariables = {slug: string;data: BodyType<SectionMediaProgressInput>}
+
+    /**
+ * @summary Save playback time for a video or audio file in a published section
+ */
+export const useSaveSectionMediaProgress = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSectionMediaProgress>>, TError,SaveSectionMediaProgressMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveSectionMediaProgress>>,
+        TError,
+        SaveSectionMediaProgressMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveSectionMediaProgressMutationOptions(options), queryClient);
     }
 
 export const getListAdminAuditUrl = (params?: ListAdminAuditParams,) => {

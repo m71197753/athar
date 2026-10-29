@@ -679,7 +679,7 @@ export const GetPlatformContentResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseModuleSettingsItemBlocksItemBodyMax),
   "url": zod.string().max(getPlatformContentResponseModuleSettingsItemBlocksItemUrlMax)
@@ -702,7 +702,7 @@ export const GetPlatformContentResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneBlocksItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseSectionsItemOneBlocksItemBodyMax),
   "url": zod.string().max(getPlatformContentResponseSectionsItemOneBlocksItemUrlMax)
@@ -714,7 +714,7 @@ export const GetPlatformContentResponse = zod.object({
   "skills": zod.array(zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax)).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemUrlMax)
@@ -970,7 +970,7 @@ export const GetAdminSettingsResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemBodyMax),
   "url": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax)
@@ -1030,7 +1030,7 @@ export const SaveAdminSettingsBody = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsBodyModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemBodyMax),
   "url": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax)
@@ -1089,7 +1089,7 @@ export const SaveAdminSettingsResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemBodyMax),
   "url": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax)
@@ -1634,7 +1634,7 @@ export const requestSectionMediaUploadBodySizeMax = 83886080;
 
 export const RequestSectionMediaUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestSectionMediaUploadBodyOriginalNameMax),
-  "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']),
+  "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/webm', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']),
   "size": zod.number().int().min(1).max(requestSectionMediaUploadBodySizeMax)
 })
 
@@ -1708,7 +1708,7 @@ export const ListAdminSectionsResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneBlocksItemTitleMax),
   "body": zod.string().max(listAdminSectionsResponseItemsItemOneBlocksItemBodyMax),
   "url": zod.string().max(listAdminSectionsResponseItemsItemOneBlocksItemUrlMax)
@@ -1720,7 +1720,7 @@ export const ListAdminSectionsResponse = zod.object({
   "skills": zod.array(zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax)).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemUrlMax)
@@ -1782,7 +1782,7 @@ export const CreateAdminSectionBody = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyBlocksItemTitleMax),
   "body": zod.string().max(createAdminSectionBodyBlocksItemBodyMax),
   "url": zod.string().max(createAdminSectionBodyBlocksItemUrlMax)
@@ -1794,7 +1794,7 @@ export const CreateAdminSectionBody = zod.object({
   "skills": zod.array(zod.string().min(1).max(createAdminSectionBodyCoursesItemSkillsItemMax)).max(createAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(createAdminSectionBodyCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(createAdminSectionBodyCoursesItemMaterialsItemUrlMax)
@@ -1851,7 +1851,7 @@ export const CreateAdminSectionResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneBlocksItemTitleMax),
   "body": zod.string().max(createAdminSectionResponseOneBlocksItemBodyMax),
   "url": zod.string().max(createAdminSectionResponseOneBlocksItemUrlMax)
@@ -1863,7 +1863,7 @@ export const CreateAdminSectionResponse = zod.object({
   "skills": zod.array(zod.string().min(1).max(createAdminSectionResponseOneCoursesItemSkillsItemMax)).max(createAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(createAdminSectionResponseOneCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(createAdminSectionResponseOneCoursesItemMaterialsItemUrlMax)
@@ -1928,7 +1928,7 @@ export const UpdateAdminSectionBody = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyBlocksItemTitleMax),
   "body": zod.string().max(updateAdminSectionBodyBlocksItemBodyMax),
   "url": zod.string().max(updateAdminSectionBodyBlocksItemUrlMax)
@@ -1940,7 +1940,7 @@ export const UpdateAdminSectionBody = zod.object({
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionBodyCoursesItemSkillsItemMax)).max(updateAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(updateAdminSectionBodyCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(updateAdminSectionBodyCoursesItemMaterialsItemUrlMax)
@@ -1997,7 +1997,7 @@ export const UpdateAdminSectionResponse = zod.object({
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneBlocksItemTitleMax),
   "body": zod.string().max(updateAdminSectionResponseOneBlocksItemBodyMax),
   "url": zod.string().max(updateAdminSectionResponseOneBlocksItemUrlMax)
@@ -2009,7 +2009,7 @@ export const UpdateAdminSectionResponse = zod.object({
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemSkillsItemMax)).max(updateAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'video', 'file']).optional(),
+  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(updateAdminSectionResponseOneCoursesItemMaterialsItemBodyMax),
   "url": zod.string().max(updateAdminSectionResponseOneCoursesItemMaterialsItemUrlMax)
@@ -2044,6 +2044,10 @@ export const CompletePlatformSectionCourseParams = zod.object({
   "courseId": zod.coerce.string().uuid()
 })
 
+export const completePlatformSectionCourseResponseStudyMinutesMin = 0;
+
+
+
 export const CompletePlatformSectionCourseResponse = zod.object({
   "id": zod.string().uuid(),
   "kind": zod.enum(['course', 'lecture']),
@@ -2054,7 +2058,91 @@ export const CompletePlatformSectionCourseResponse = zod.object({
   "notes": zod.string(),
   "skills": zod.array(zod.string()),
   "status": zod.enum(['planned', 'in_progress', 'completed']),
+  "studyMinutes": zod.number().int().min(completePlatformSectionCourseResponseStudyMinutesMin),
   "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get the current student's playback progress in a published section
+ */
+export const getSectionMediaProgressPathSlugMin = 2;
+export const getSectionMediaProgressPathSlugMax = 80;
+
+
+
+export const GetSectionMediaProgressParams = zod.object({
+  "slug": zod.coerce.string().min(getSectionMediaProgressPathSlugMin).max(getSectionMediaProgressPathSlugMax)
+})
+
+export const getSectionMediaProgressResponseContextKeyMin = 2;
+export const getSectionMediaProgressResponseContextKeyMax = 120;
+
+export const getSectionMediaProgressResponseWatchedSecondsMin = 0;
+export const getSectionMediaProgressResponseWatchedSecondsMax = 86400;
+
+export const getSectionMediaProgressResponseDurationSecondsMin = 0;
+export const getSectionMediaProgressResponseDurationSecondsMax = 86400;
+
+
+
+export const GetSectionMediaProgressResponseItem = zod.object({
+  "contextKey": zod.string().min(getSectionMediaProgressResponseContextKeyMin).max(getSectionMediaProgressResponseContextKeyMax),
+  "mediaAssetId": zod.string().uuid(),
+  "watchedSeconds": zod.number().int().min(getSectionMediaProgressResponseWatchedSecondsMin).max(getSectionMediaProgressResponseWatchedSecondsMax),
+  "durationSeconds": zod.number().int().min(getSectionMediaProgressResponseDurationSecondsMin).max(getSectionMediaProgressResponseDurationSecondsMax),
+  "updatedAt": zod.coerce.date()
+})
+export const GetSectionMediaProgressResponse = zod.array(GetSectionMediaProgressResponseItem)
+
+
+/**
+ * @summary Save playback time for a video or audio file in a published section
+ */
+export const saveSectionMediaProgressPathSlugMin = 2;
+export const saveSectionMediaProgressPathSlugMax = 80;
+
+
+
+export const SaveSectionMediaProgressParams = zod.object({
+  "slug": zod.coerce.string().min(saveSectionMediaProgressPathSlugMin).max(saveSectionMediaProgressPathSlugMax)
+})
+
+export const saveSectionMediaProgressBodyContextKeyMin = 2;
+export const saveSectionMediaProgressBodyContextKeyMax = 120;
+
+export const saveSectionMediaProgressBodyWatchedSecondsMin = 0;
+export const saveSectionMediaProgressBodyWatchedSecondsMax = 86400;
+
+export const saveSectionMediaProgressBodyDurationSecondsMin = 0;
+export const saveSectionMediaProgressBodyDurationSecondsMax = 86400;
+
+
+
+export const SaveSectionMediaProgressBody = zod.object({
+  "contextKey": zod.string().min(saveSectionMediaProgressBodyContextKeyMin).max(saveSectionMediaProgressBodyContextKeyMax),
+  "mediaAssetId": zod.string().uuid(),
+  "watchedSeconds": zod.number().int().min(saveSectionMediaProgressBodyWatchedSecondsMin).max(saveSectionMediaProgressBodyWatchedSecondsMax),
+  "durationSeconds": zod.number().int().min(saveSectionMediaProgressBodyDurationSecondsMin).max(saveSectionMediaProgressBodyDurationSecondsMax)
+})
+
+export const saveSectionMediaProgressResponseContextKeyMin = 2;
+export const saveSectionMediaProgressResponseContextKeyMax = 120;
+
+export const saveSectionMediaProgressResponseWatchedSecondsMin = 0;
+export const saveSectionMediaProgressResponseWatchedSecondsMax = 86400;
+
+export const saveSectionMediaProgressResponseDurationSecondsMin = 0;
+export const saveSectionMediaProgressResponseDurationSecondsMax = 86400;
+
+
+
+export const SaveSectionMediaProgressResponse = zod.object({
+  "contextKey": zod.string().min(saveSectionMediaProgressResponseContextKeyMin).max(saveSectionMediaProgressResponseContextKeyMax),
+  "mediaAssetId": zod.string().uuid(),
+  "watchedSeconds": zod.number().int().min(saveSectionMediaProgressResponseWatchedSecondsMin).max(saveSectionMediaProgressResponseWatchedSecondsMax),
+  "durationSeconds": zod.number().int().min(saveSectionMediaProgressResponseDurationSecondsMin).max(saveSectionMediaProgressResponseDurationSecondsMax),
   "updatedAt": zod.coerce.date()
 })
 
@@ -2311,6 +2399,10 @@ export const GetPublicResumeParams = zod.object({
   "token": zod.coerce.string().min(getPublicResumePathTokenMin).max(getPublicResumePathTokenMax)
 })
 
+export const getPublicResumeResponseCoursesItemStudyMinutesMin = 0;
+
+
+
 export const GetPublicResumeResponse = zod.object({
   "fullName": zod.string().nullable(),
   "headline": zod.string().nullable(),
@@ -2327,7 +2419,8 @@ export const GetPublicResumeResponse = zod.object({
   "courses": zod.array(zod.object({
   "title": zod.string(),
   "source": zod.string().nullable(),
-  "subject": zod.string().nullable()
+  "subject": zod.string().nullable(),
+  "studyMinutes": zod.number().int().min(getPublicResumeResponseCoursesItemStudyMinutesMin)
 }))
 })
 
@@ -3162,6 +3255,10 @@ export const ListLearningItemsQueryParams = zod.object({
   "kind": zod.enum(['course', 'lecture']).optional()
 })
 
+export const listLearningItemsResponseStudyMinutesMin = 0;
+
+
+
 export const ListLearningItemsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "kind": zod.enum(['course', 'lecture']),
@@ -3172,6 +3269,7 @@ export const ListLearningItemsResponseItem = zod.object({
   "notes": zod.string(),
   "skills": zod.array(zod.string()),
   "status": zod.enum(['planned', 'in_progress', 'completed']),
+  "studyMinutes": zod.number().int().min(listLearningItemsResponseStudyMinutesMin),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3204,6 +3302,10 @@ export const CreateLearningItemBody = zod.object({
   "status": zod.enum(['planned', 'in_progress', 'completed']).optional()
 })
 
+export const createLearningItemResponseStudyMinutesMin = 0;
+
+
+
 export const CreateLearningItemResponse = zod.object({
   "id": zod.string().uuid(),
   "kind": zod.enum(['course', 'lecture']),
@@ -3214,6 +3316,7 @@ export const CreateLearningItemResponse = zod.object({
   "notes": zod.string(),
   "skills": zod.array(zod.string()),
   "status": zod.enum(['planned', 'in_progress', 'completed']),
+  "studyMinutes": zod.number().int().min(createLearningItemResponseStudyMinutesMin),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3248,6 +3351,10 @@ export const UpdateLearningItemBody = zod.object({
   "status": zod.enum(['planned', 'in_progress', 'completed']).optional()
 })
 
+export const updateLearningItemResponseStudyMinutesMin = 0;
+
+
+
 export const UpdateLearningItemResponse = zod.object({
   "id": zod.string().uuid(),
   "kind": zod.enum(['course', 'lecture']),
@@ -3258,6 +3365,7 @@ export const UpdateLearningItemResponse = zod.object({
   "notes": zod.string(),
   "skills": zod.array(zod.string()),
   "status": zod.enum(['planned', 'in_progress', 'completed']),
+  "studyMinutes": zod.number().int().min(updateLearningItemResponseStudyMinutesMin),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

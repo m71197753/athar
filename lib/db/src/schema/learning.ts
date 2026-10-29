@@ -24,6 +24,7 @@ export const learningItemsTable = pgTable(
     academyLessonId: uuid("academy_lesson_id"),
     /** Non-null for completion records created from an administrator-published platform course. */
     sectionCourseId: uuid("section_course_id"),
+    studyMinutes: integer("study_minutes").notNull().default(0),
     subject: text("subject"),
     url: text("url"),
     notes: text("notes").notNull().default(""),
@@ -44,6 +45,36 @@ export const learningItemsTable = pgTable(
       table.userId,
       table.kind,
       table.createdAt,
+    ),
+  ],
+);
+
+export const sectionMediaProgressTable = pgTable(
+  "section_media_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull(),
+    sectionSlug: text("section_slug").notNull(),
+    contextKey: text("context_key").notNull(),
+    mediaAssetId: uuid("media_asset_id").notNull(),
+    watchedSeconds: integer("watched_seconds").notNull().default(0),
+    durationSeconds: integer("duration_seconds").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("section_media_progress_user_context_asset_idx").on(
+      table.userId,
+      table.sectionSlug,
+      table.contextKey,
+      table.mediaAssetId,
+    ),
+    index("section_media_progress_user_course_idx").on(
+      table.userId,
+      table.sectionSlug,
+      table.contextKey,
     ),
   ],
 );
@@ -81,5 +112,6 @@ export const insertAcademyProgressSchema = createInsertSchema(
 ).omit({ id: true, updatedAt: true });
 export type InsertLearningItem = z.infer<typeof insertLearningItemSchema>;
 export type LearningItem = typeof learningItemsTable.$inferSelect;
+export type SectionMediaProgress = typeof sectionMediaProgressTable.$inferSelect;
 export type InsertAcademyProgress = z.infer<typeof insertAcademyProgressSchema>;
 export type AcademyProgress = typeof academyProgressTable.$inferSelect;

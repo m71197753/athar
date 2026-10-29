@@ -333,6 +333,7 @@ export type SectionBlockMediaType = typeof SectionBlockMediaType[keyof typeof Se
 
 export const SectionBlockMediaType = {
   image: 'image',
+  audio: 'audio',
   video: 'video',
   file: 'file',
 } as const;
@@ -530,6 +531,11 @@ export const SectionMediaUploadInputMime = {
   'image/png': 'image/png',
   'image/webp': 'image/webp',
   'image/gif': 'image/gif',
+  'audio/mpeg': 'audio/mpeg',
+  'audio/mp4': 'audio/mp4',
+  'audio/wav': 'audio/wav',
+  'audio/ogg': 'audio/ogg',
+  'audio/webm': 'audio/webm',
   'video/mp4': 'video/mp4',
   'video/webm': 'video/webm',
   'application/pdf': 'application/pdf',
@@ -777,6 +783,8 @@ export type PublicResumeCoursesItem = {
   source: string | null;
   /** @nullable */
   subject: string | null;
+  /** @minimum 0 */
+  studyMinutes: number;
 };
 
 export interface PublicResume {
@@ -1034,8 +1042,49 @@ export interface LearningItem {
   notes: string;
   skills: string[];
   status: LearningItemStatus;
+  /** @minimum 0 */
+  studyMinutes: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SectionMediaProgress {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  contextKey: string;
+  mediaAssetId: string;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  watchedSeconds: number;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  durationSeconds: number;
+  updatedAt: string;
+}
+
+export interface SectionMediaProgressInput {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  contextKey: string;
+  mediaAssetId: string;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  watchedSeconds: number;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  durationSeconds: number;
 }
 
 export type LearningItemInputKind = typeof LearningItemInputKind[keyof typeof LearningItemInputKind];

@@ -1,13 +1,20 @@
-import { BookOpen, Download, ExternalLink, FileText } from "lucide-react";
+import { BookOpen, ExternalLink, FileText } from "lucide-react";
 import {
-  getGetPlatformContentQueryKey, useGetPlatformContent,
+  getGetPlatformContentQueryKey, getGetSectionMediaProgressQueryKey,
+  useGetPlatformContent, useGetSectionMediaProgress,
 } from "@workspace/api-client-react";
 import type { ModuleKey, SectionBlock } from "@workspace/api-client-react";
+import { TrackedSectionMedia } from "./TrackedSectionMedia";
 import "./module-section-content.css";
+
+const sectionMediaId = (url: string) => /^\/api\/platform\/section-media\/([a-f0-9-]{36})$/i.exec(url)?.[1];
 
 export function ModuleSectionContent({ moduleKey }: { moduleKey: ModuleKey }) {
   const query = useGetPlatformContent({
     query: { queryKey: getGetPlatformContentQueryKey(), staleTime: 30_000 },
+  });
+  const progressQuery = useGetSectionMediaProgress(moduleKey, {
+    query: { queryKey: getGetSectionMediaProgressQueryKey(moduleKey), staleTime: 30_000 },
   });
   if (query.isLoading) return null;
   if (query.isError) return <div className="module-managed-error" role="alert">
@@ -34,8 +41,20 @@ export function ModuleSectionContent({ moduleKey }: { moduleKey: ModuleKey }) {
         : block.type === "media" ? <article className="module-managed-media" key={`${index}-${block.title}`} data-testid={`module-managed-media-${moduleKey}-${index}`}>
             <h3>{block.title}</h3>{block.body && <p>{block.body}</p>}
             {block.mediaType === "image" && <img src={block.url} alt={block.title} loading="lazy"/>}
-            {block.mediaType === "video" && <video src={block.url} controls preload="metadata"/>}
-            {block.mediaType === "file" && <a className="module-managed-file" href={block.url} download><Download size={16}/> فتح الملف</a>}
+            {sectionMediaId(block.url) && (block.mediaType === "audio" || block.mediaType === "video" || block.mediaType === "file")
+              ? <TrackedSectionMedia
+                  sectionSlug={moduleKey}
+                  contextKey="section"
+                  mediaAssetId={sectionMediaId(block.url)!}
+                  mediaType={block.mediaType}
+                  url={block.url}
+                  title={block.title}
+                  savedProgress={progressQuery.data?.find(row => row.contextKey === "section" && row.mediaAssetId === sectionMediaId(block.url))}
+                />
+              : block.mediaType === "video" ? <video src={block.url} controls playsInline preload="metadata"/>
+                : block.mediaType === "audio" ? <audio src={block.url} controls preload="metadata"/>
+                  : block.mediaType === "file" ? <div className="tracked-section-document"><iframe src={`${block.url}?preview=1`} title={`معاينة ${block.title}`} loading="lazy"/><a href={block.url} download>تنزيل الملف</a></div>
+                    : null}
           </article>
         : <article className="module-managed-text" key={`${index}-${block.title}`} data-testid={`module-managed-text-${moduleKey}-${index}`}>
             <span className="module-managed-text-icon"><FileText size={16}/></span>

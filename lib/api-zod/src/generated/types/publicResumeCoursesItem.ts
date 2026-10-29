@@ -12,4 +12,6 @@ export type PublicResumeCoursesItem = {
   source: string | null;
   /** @nullable */
   subject: string | null;
+  /** @minimum 0 */
+  studyMinutes: number;
 };

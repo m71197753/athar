@@ -4,7 +4,7 @@ import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, 
 
 export type PlatformSectionBlock = {
   type: "text" | "link" | "media";
-  mediaType?: "image" | "video" | "file";
+  mediaType?: "image" | "audio" | "video" | "file";
   title: string;
   body: string;
   url: string;

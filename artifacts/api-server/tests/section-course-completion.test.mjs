@@ -10,11 +10,22 @@ const tables = {
     userId: "learning.userId",
     sectionCourseId: "learning.sectionCourseId",
   },
+  sectionMediaProgressTable: {
+    userId: "mediaProgress.userId",
+    sectionSlug: "mediaProgress.sectionSlug",
+    contextKey: "mediaProgress.contextKey",
+    mediaAssetId: "mediaProgress.mediaAssetId",
+    watchedSeconds: "mediaProgress.watchedSeconds",
+    durationSeconds: "mediaProgress.durationSeconds",
+  },
+  platformMediaAssetsTable: { id: "media.id", status: "media.status", mime: "media.mime" },
+  platformSettingsTable: { key: "settings.key", moduleSettings: "settings.moduleSettings" },
   platformSectionsTable: {
     slug: "sections.slug",
     published: "sections.published",
   },
 };
+const mediaId = "26e2f993-7247-4b73-a8fb-26cb7e56fa03";
 
 function conditionMatches(row, condition) {
   if (!condition) return true;
@@ -27,16 +38,20 @@ function conditionMatches(row, condition) {
 function createHarness() {
   const rows = new Map([
     [tables.learningItemsTable, []],
+    [tables.sectionMediaProgressTable, []],
+    [tables.platformMediaAssetsTable, [{ id: mediaId, status: "ready", mime: "video/mp4" }]],
+    [tables.platformSettingsTable, []],
     [tables.platformSectionsTable, [{
       slug: "section-abcdef123456",
       title: "المهارات المهنية",
       published: true,
+      blocks: [{ type: "media", mediaType: "video", title: "محاضرة", body: "", url: `/api/platform/section-media/${mediaId}` }],
       courses: [{
         id: "6f099430-30a7-4afc-9b42-10c1cba1d220",
         title: "أساسيات التواصل",
         description: "تدريب على التواصل في العمل.",
         skills: ["التواصل المهني"],
-        materials: [],
+        materials: [{ type: "media", mediaType: "video", title: "محاضرة", body: "", url: `/api/platform/section-media/${mediaId}` }],
       }],
     }, {
       slug: "section-123456abcdef",
@@ -79,6 +94,19 @@ function createHarness() {
             if (conflict) inserted = undefined;
             else rows.get(table).push(inserted);
             return { returning: async () => inserted ? [inserted] : [] };
+          },
+          onConflictDoUpdate: ({ target }) => {
+            const existing = (rows.get(table) ?? []).find(row =>
+              target.every(column => row[column.split(".").at(-1)] === inserted[column.split(".").at(-1)]),
+            );
+            if (existing) Object.assign(existing, {
+              watchedSeconds: inserted.watchedSeconds,
+              durationSeconds: inserted.durationSeconds,
+              updatedAt: new Date(),
+            });
+            else rows.get(table).push(inserted);
+            inserted = existing ?? inserted;
+            return { returning: async () => [inserted] };
           },
         };
       },
@@ -131,16 +159,22 @@ function createHarness() {
           CreateLearningItemResponse: passthrough,
           DeleteLearningItemParams: passthrough,
           GetAcademyProgressResponse: passthrough,
+          GetSectionMediaProgressParams: passthrough,
+          GetSectionMediaProgressResponse: passthrough,
           ListLearningItemsQueryParams: passthrough,
           ListLearningItemsResponse: passthrough,
           SaveAcademyProgressBody: passthrough,
           SaveAcademyProgressParams: passthrough,
           SaveAcademyProgressResponse: passthrough,
+          SaveSectionMediaProgressBody: passthrough,
+          SaveSectionMediaProgressParams: passthrough,
+          SaveSectionMediaProgressResponse: passthrough,
           UpdateLearningItemBody: passthrough,
           UpdateLearningItemParams: passthrough,
           UpdateLearningItemResponse: passthrough,
         },
         "../middlewares/requireAuth": { requireAuth() {} },
+        "../lib/platform-access": { enabledModules: async () => [] },
       };
       assert.ok(name in dependencies, `Unexpected dependency ${name}`);
       return dependencies[name];
@@ -184,4 +218,32 @@ test("course completion is idempotent, user-scoped, and only accepts published s
   assert.equal(draftCourse.statusCode, 404);
   const unknownCourse = await complete(harness, "student-one", "section-abcdef123456", "fa7a4ae4-b423-40db-93fa-f465679b9344");
   assert.equal(unknownCourse.statusCode, 404);
+});
+
+test("section playback progress only accepts published media and remains private per student", async () => {
+  const harness = createHarness();
+  const save = harness.router.routes.get("PUT /sections/:slug/media-progress");
+  const payload = {
+    contextKey: "course:6f099430-30a7-4afc-9b42-10c1cba1d220",
+    mediaAssetId: mediaId,
+    watchedSeconds: 145,
+    durationSeconds: 360,
+  };
+  const saveResponse = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; }, setHeader() {} };
+  saveResponse.locals = { userId: "student-one" };
+  await save({ params: { slug: "section-abcdef123456" }, body: payload }, saveResponse);
+  assert.equal(saveResponse.statusCode, 200);
+  assert.equal(saveResponse.body.watchedSeconds, 145);
+
+  const rejected = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; }, setHeader() {} };
+  rejected.locals = { userId: "student-one" };
+  await save({ params: { slug: "section-abcdef123456" }, body: { ...payload, mediaAssetId: "5fa383b7-8cb6-4bc7-858a-85d13022e3e4" } }, rejected);
+  assert.equal(rejected.statusCode, 404);
+
+  const list = harness.router.routes.get("GET /sections/:slug/media-progress");
+  const privateResponse = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; }, setHeader() {} };
+  privateResponse.locals = { userId: "student-two" };
+  await list({ params: { slug: "section-abcdef123456" } }, privateResponse);
+  assert.deepEqual(Array.from(privateResponse.body), []);
+  assert.equal(harness.rows.get(tables.sectionMediaProgressTable).length, 1);
 });

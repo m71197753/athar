@@ -82,6 +82,7 @@ export async function downloadResumeDocx(data: ResumeData, template: "ats" | "pr
       children.push(paragraph(item.title, { bold: true }));
       const details = [item.subject, item.source].filter(Boolean).join(" · ");
       if (details) children.push(paragraph(details, { color: "536377" }));
+      if (item.studyMinutes) children.push(paragraph(`وقت التعلّم المسجل داخل أثر: ${item.studyMinutes.toLocaleString("ar")} دقيقة`, { color: "536377" }));
     });
   }
 

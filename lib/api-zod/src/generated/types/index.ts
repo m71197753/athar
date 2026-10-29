@@ -268,6 +268,8 @@ export * from './sectionCourse';
 export * from './sectionIconKey';
 export * from './sectionInput';
 export * from './sectionInputKind';
+export * from './sectionMediaProgress';
+export * from './sectionMediaProgressInput';
 export * from './sectionMediaUploadInput';
 export * from './sectionMediaUploadInputMime';
 export * from './sectionMediaUploadRequest';

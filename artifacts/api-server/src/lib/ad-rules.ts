@@ -36,6 +36,11 @@ export function matchesMagic(mime: string, bytes: Buffer) {
     case "image/webp": return bytes.subarray(0,4).toString() === "RIFF" && bytes.subarray(8,12).toString() === "WEBP";
     case "video/mp4": return bytes.subarray(4,8).toString() === "ftyp";
     case "video/webm": return bytes.subarray(0,4).equals(Buffer.from([26,69,223,163]));
+    case "audio/mpeg": return bytes.subarray(0,3).toString() === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
+    case "audio/mp4": return bytes.subarray(4,8).toString() === "ftyp";
+    case "audio/wav": return bytes.subarray(0,4).toString() === "RIFF" && bytes.subarray(8,12).toString() === "WAVE";
+    case "audio/ogg": return bytes.subarray(0,4).toString() === "OggS";
+    case "audio/webm": return bytes.subarray(0,4).equals(Buffer.from([26,69,223,163]));
     case "application/pdf": return bytes.subarray(0,5).toString("ascii") === "%PDF-";
     case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
       return bytes.subarray(0,4).equals(Buffer.from([0x50,0x4b,0x03,0x04]));

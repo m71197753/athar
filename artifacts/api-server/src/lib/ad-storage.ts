@@ -36,7 +36,7 @@ export async function validateUploadedAsset(path: string, mime: string, expected
   const file = assetFile(path);
   const [metadata] = await file.getMetadata();
   const limit = mime.startsWith("image/") ? 10 * 1024 * 1024
-    : mime.startsWith("video/") ? 80 * 1024 * 1024
+    : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 * 1024 * 1024
       : 20 * 1024 * 1024;
   const size = Number(metadata.size);
   if (size !== expectedSize || size > limit || metadata.contentType?.split(";")[0] !== mime) return null;

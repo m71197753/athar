@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { clerkClient } from "@clerk/express";
 import { randomUUID } from "node:crypto";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import mammoth from "mammoth";
 import {
   db, membershipsTable, adminAuditTable, platformContentTable, platformSettingsTable, platformSectionsTable,
   platformMediaAssetsTable, studentsTable, achievementsTable, learningItemsTable, careerPlansTable, resumeSharesTable,
@@ -24,8 +25,9 @@ const router: IRouter = Router();
 const PAGE_SIZE = 20;
 const serializedContent = (item: typeof platformContentTable.$inferSelect) => ({ ...item, updatedAt: item.updatedAt.toISOString() });
 const serializedSection = (item: typeof platformSectionsTable.$inferSelect) => ({ ...item, updatedAt: item.updatedAt.toISOString() });
-const sectionMimeKind: Record<string, "image" | "video" | "file"> = {
+const sectionMimeKind: Record<string, "image" | "audio" | "video" | "file"> = {
   "image/jpeg": "image", "image/png": "image", "image/webp": "image", "image/gif": "image",
+  "audio/mpeg": "audio", "audio/mp4": "audio", "audio/wav": "audio", "audio/ogg": "audio", "audio/webm": "audio",
   "video/mp4": "video", "video/webm": "video",
   "application/pdf": "file",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "file",
@@ -89,13 +91,29 @@ router.get("/platform/section-media/:id", async (req, res) => {
     Boolean(settings[0]?.moduleSettings?.some(module => module.enabled && module.blocks?.some(block => block.type === "media" && block.url === url)));
   if (!referenced) { res.status(404).end(); return; }
 
+  if (req.query?.["preview"] === "1" && asset.mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    try {
+      const [bytes] = await assetFile(asset.objectPath).download({ validation: false });
+      const preview = await mammoth.extractRawText({ buffer: bytes });
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self'");
+      res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+      res.send(preview.value);
+    } catch (error) {
+      req.log.warn({ assetId: id, error }, "Unable to render document preview");
+      res.status(500).json({ error: "Document preview unavailable" });
+    }
+    return;
+  }
+
   const range = req.get("range");
   res.setHeader("Content-Type", asset.mime);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cache-Control", "public, max-age=86400, immutable");
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
-  if (range && asset.mime.startsWith("video/")) {
+  if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
     const start = match?.[1] ? Number(match[1]) : 0;
     const end = match?.[2] ? Math.min(Number(match[2]), asset.size - 1) : asset.size - 1;
@@ -399,7 +417,7 @@ router.put("/admin/settings", async (req, res) => {
 function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType?: string }>) {
   return blocks.every(block => block.type === "text" ? block.url === "" && !block.mediaType
     : block.type === "link" ? !block.mediaType && validUrl("resource", block.url)
-      : block.type === "media" ? Boolean(block.mediaType && ["image", "video", "file"].includes(block.mediaType) && sectionMediaIdFromUrl(block.url))
+      : block.type === "media" ? Boolean(block.mediaType && ["image", "audio", "video", "file"].includes(block.mediaType) && sectionMediaIdFromUrl(block.url))
         : false);
 }
 function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; materials: Array<{ type: string; url: string; mediaType?: string }> }>) {
@@ -444,11 +462,11 @@ router.get("/admin/sections", async (_req, res) => {
 router.post("/admin/section-media/uploads", async (req, res) => {
   const input = RequestSectionMediaUploadBody.strict().safeParse(req.body);
   if (!input.success || !sectionMimeKind[input.data.mime]) {
-    res.status(400).json({ error: "Choose an image, video, PDF, Word or text file" }); return;
+    res.status(400).json({ error: "Choose an image, audio, video, PDF, Word or text file" }); return;
   }
   const mime = input.data.mime;
   const maxBytes = mime.startsWith("image/") ? 10 * 1024 * 1024
-    : mime.startsWith("video/") ? 80 * 1024 * 1024 : 20 * 1024 * 1024;
+    : mime.startsWith("video/") || mime.startsWith("audio/") ? 80 * 1024 * 1024 : 20 * 1024 * 1024;
   if (input.data.size > maxBytes) {
     res.status(400).json({ error: `File exceeds the ${Math.floor(maxBytes / (1024 * 1024))} MB limit` }); return;
   }
