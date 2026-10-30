@@ -13,6 +13,14 @@ export type ResumeSectionEntryRecord = {
 
 export type StudentResumeOrigin = "guided" | "manual";
 
+export type StudentResumeAppearanceRecord = {
+  fontFamily: "Arial" | "Tahoma" | "Verdana" | "Georgia";
+  pageColor: string;
+  textColor: string;
+  headingColor: string;
+  accentColor: string;
+};
+
 export type StudentResumeContentRecord = {
   fullName: string;
   email: string;
@@ -29,6 +37,7 @@ export type StudentResumeContentRecord = {
   skills: string[];
   certifications: string[];
   languages: string[];
+  appearance?: StudentResumeAppearanceRecord;
 };
 
 export const studentResumesTable = pgTable(

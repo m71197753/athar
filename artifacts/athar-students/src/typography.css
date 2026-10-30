@@ -1,0 +1,51 @@
+/* Shared application typography. Resume documents retain their own font settings. */
+:root {
+  --app-font-sans: var(--platform-font-body, 'IBM Plex Sans Arabic', 'Cairo', Arial, sans-serif);
+  --app-font-serif: var(--platform-font-heading, 'Cairo', 'IBM Plex Sans Arabic', sans-serif);
+}
+body {
+  font-family: var(--app-font-sans);
+  font-size: 15px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+#root :is(p, a, button, input, textarea, select, label, small, strong, b, li, dt, dd, td, th, legend, summary):not(:where(.ats-paper *, .resume-paper *, pre *, code *)) {
+  font-family: var(--app-font-sans);
+}
+#root :is(h1, h2, h3, h4, h5, h6):not(:where(.ats-paper *, .resume-paper *)) {
+  font-family: var(--app-font-serif);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+#root :is(.page-title h1, .hero h1, .welcome-copy h2) {
+  font-weight: 800;
+}
+#root :is(.page-title p, .student-submissions-heading p, .adm-note, .adm-appearance-heading p) {
+  font-size: 13px;
+  line-height: 1.9;
+}
+#root :is(.side-link, .adm-nav button) {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+#root :is(.field, .adm-field) :is(input, textarea, select) {
+  font-size: 14px;
+  line-height: 1.8;
+}
+#root :is(.field, .adm-field) > span { line-height: 1.8; }
+#root .button { font-weight: 600; letter-spacing: 0; }
+#root .student-module-submissions :is(label, textarea, strong) { font-size: 13px; line-height: 1.8; }
+#root .student-module-submissions :is(small, .student-submissions-size-note, .student-submissions-privacy, .student-submissions-empty) { font-size: 12px; line-height: 1.8; }
+.adm-appearance .adm-field { margin-bottom: 14px; }
+.adm-appearance-preview-card { font-family: var(--app-font-sans); }
+@media (max-width: 640px) {
+  #root :is(.field, .adm-field) :is(input, textarea, select) { font-size: 16px; }
+  #root .page-title h1 { font-size: clamp(25px, 7vw, 31px); }
+}
+@media print {
+  body { -webkit-font-smoothing: auto; }
+}

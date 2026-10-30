@@ -3049,6 +3049,9 @@ components:
         accentColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         canvasColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         surfaceColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        fontFamily: { type: string, enum: [IBM Plex Sans Arabic, Cairo, Tahoma, Arial] }
+        textColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        headingColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         welcomeTitle: { type: string, minLength: 2, maxLength: 80 }
         welcomeDescription: { type: string, minLength: 2, maxLength: 220 }
     PlatformAccess:
@@ -3325,6 +3328,15 @@ components:
         period: { type: string, maxLength: 100 }
         description: { type: string, maxLength: 2000 }
         link: { type: string, maxLength: 400 }
+    StudentResumeAppearance:
+      type: object
+      required: [fontFamily, pageColor, textColor, headingColor, accentColor]
+      properties:
+        fontFamily: { type: string, enum: [Arial, Tahoma, Verdana, Georgia] }
+        pageColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        textColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        headingColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        accentColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
     StudentResumeContent:
       type: object
       required: [fullName, email, phone, location, linkedin, website, headline, summary, education, experience, projects, courses, skills, certifications, languages]
@@ -3365,6 +3377,7 @@ components:
           type: array
           maxItems: 20
           items: { type: string, maxLength: 100 }
+        appearance: { $ref: "#/components/schemas/StudentResumeAppearance" }
     StudentResumeOrigin:
       type: string
       enum: [guided, manual]

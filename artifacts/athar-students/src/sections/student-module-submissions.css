@@ -3,10 +3,15 @@
   gap: 14px;
   margin: 18px 0 24px;
   padding: clamp(15px, 2.5vw, 23px);
-  border: 1px solid var(--line, #d6e0e5);
+  --submission-ink: var(--athar-ink-soft, #334155);
+  --submission-muted: var(--athar-muted, #64748b);
+  --submission-accent: var(--athar-primary, #4338ca);
+  --submission-surface: var(--athar-paper-raised, #fff);
+  --submission-canvas: var(--athar-paper, #f1f5f9);
+  border: 1px solid var(--athar-line, #d6e0e5);
   border-radius: 16px;
-  color: var(--ink, #24384b);
-  background: var(--surface, #fff);
+  color: var(--submission-ink);
+  background: var(--submission-surface);
   box-shadow: 0 5px 20px rgba(25, 43, 59, .045);
 }
 .student-submissions-heading { display: flex; align-items: flex-start; gap: 12px; }
@@ -15,7 +20,7 @@
   border-radius: 12px; color: var(--accent, #39877f); background: color-mix(in srgb, var(--accent, #39877f) 12%, white);
 }
 .student-submissions-kicker { display: inline-flex; align-items: center; gap: 5px; color: var(--accent, #39877f); font-size: 10px; font-weight: 800; }
-.student-submissions-heading h2 { margin: 4px 0; font-size: clamp(16px, 2vw, 20px); }
+.student-submissions-heading h2 { margin: 4px 0; color: var(--athar-ink, #172033); font-size: clamp(16px, 2vw, 20px); }
 .student-submissions-heading p,.student-submissions-privacy,.student-submissions-size-note { margin: 0; color: var(--muted, #607387); font-size: 11px; line-height: 1.8; }
 .student-submissions-privacy { padding: 9px 11px; border-radius: 9px; color: #35584f; background: #edf7f1; }
 .student-submissions-form { display: grid; gap: 11px; }
@@ -73,10 +78,15 @@
   .student-submissions-submit { width: 100%; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .student-submissions-spin { animation: none; } }
-@media (prefers-color-scheme: dark) {
-  .student-submissions-privacy { color: #9fe0c2; background: #142f29; }
-  .student-submissions-picker { border-color: #4b7e77; background: #172c30; }
-  .student-submissions-picker-icon { background: var(--accent, #69bcb1); color: #10222a; }
-  .student-submissions-message.is-error { color: #ffb4aa; background: #3a2022; }
-  .student-submissions-message.is-success { color: #a4e7be; background: #173228; }
-}
+.student-module-submissions :is(.student-submissions-heading p, .student-submissions-size-note, .student-submissions-picker small, .student-submission-copy small, .student-submission-copy p, .student-submissions-progress, .student-submissions-empty, .student-submissions-list-heading span) { color: var(--submission-muted); }
+.student-module-submissions :is(.student-submissions-picker, .student-submission-card, .student-submissions-selection li) { color: var(--submission-ink); background: var(--submission-canvas); }
+.student-module-submissions :is(textarea, .student-submission-actions a, .student-submission-actions button) { color: var(--submission-ink); background: var(--submission-surface); }
+.student-module-submissions :is(.student-submissions-mark, .student-submission-file-icon, .student-submissions-kicker) { color: var(--submission-accent); }
+.student-module-submissions :is(.student-submissions-mark, .student-submission-file-icon) { background: color-mix(in srgb, var(--submission-accent) 12%, var(--submission-surface)); }
+.student-module-submissions .student-submissions-picker-icon { background: var(--submission-accent); color: var(--athar-primary-text, #fff); }
+.dark .student-submissions-privacy { color: #9fe0c2; background: #142f29; }
+.dark .student-submissions-message.is-error { color: #ffb4aa; background: #3a2022; }
+.dark .student-submissions-message.is-success { color: #a4e7be; background: #173228; }
+.dark .student-submission-status.is-approved { color: #86efac; }
+.dark .student-submission-status.is-pending { color: #fbbf72; }
+.dark .student-submission-status.is-rejected { color: #fda4af; }

@@ -5,9 +5,31 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   accentColor: "#6366F1",
   canvasColor: "#F8FAFC",
   surfaceColor: "#FFFFFF",
+  fontFamily: "IBM Plex Sans Arabic",
+  textColor: "#334155",
+  headingColor: "#172033",
   welcomeTitle: "ابدأ من هنا واختر مساحتك",
   welcomeDescription: "تعلّم، وثّق ما أنجزته، وخطّط لخطوتك المهنية القادمة من المكان نفسه.",
 };
+
+export const PLATFORM_FONTS = {
+  "IBM Plex Sans Arabic": "'IBM Plex Sans Arabic', 'Cairo', Arial, sans-serif",
+  Cairo: "'Cairo', 'IBM Plex Sans Arabic', Arial, sans-serif",
+  Tahoma: "Tahoma, 'IBM Plex Sans Arabic', Arial, sans-serif",
+  Arial: "Arial, 'IBM Plex Sans Arabic', sans-serif",
+} as const;
+
+export function appearanceContrast(foreground: string, background: string) {
+  const luminance = (color: string) => {
+    const [r, g, b] = rgb(color).map(value => {
+      const channel = value / 255;
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+    return .2126 * r + .7152 * g + .0722 * b;
+  };
+  const a = luminance(foreground), b = luminance(background);
+  return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+}
 
 export const APPEARANCE_PRESETS: { label: string; value: AppearanceSettings }[] = [
   { label: "هوية أثر", value: DEFAULT_APPEARANCE },
@@ -67,6 +89,11 @@ export function getAppearancePrimary(settings: AppearanceSettings, dark = false)
 
 export function applyPlatformAppearance(settings: AppearanceSettings) {
   const root = document.documentElement.style;
+  const font = settings.fontFamily ?? "IBM Plex Sans Arabic";
+  root.setProperty("--platform-font-body", PLATFORM_FONTS[font]);
+  root.setProperty("--platform-font-heading", font === "IBM Plex Sans Arabic" ? PLATFORM_FONTS.Cairo : PLATFORM_FONTS[font]);
+  root.setProperty("--platform-text-light", settings.textColor ?? "#334155");
+  root.setProperty("--platform-heading-light", settings.headingColor ?? "#172033");
   const primaryDark = getAppearancePrimary(settings, true);
   const accentDark = mix(settings.accentColor, "#FFFFFF", 0.4);
   const deepLight = mix(settings.primaryColor, "#000000", 0.16);

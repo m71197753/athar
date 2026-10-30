@@ -413,15 +413,16 @@ router.put("/admin/settings", async (req, res) => {
     res.status(400).json({ error: "An attached media file is missing or does not match its type" }); return;
   }
   const enabled = moduleSettings.filter(module => module.enabled).map(module => module.key);
+  const appearance = { ...await platformAppearance(), ...input.data.appearance };
   await db.transaction(async tx => {
     await tx.insert(platformSettingsTable).values({
-      key: "main", enabledModules: enabled, moduleSettings, appearance: input.data.appearance,
+      key: "main", enabledModules: enabled, moduleSettings, appearance,
     }).onConflictDoUpdate({ target: platformSettingsTable.key, set: {
-      enabledModules: enabled, moduleSettings, appearance: input.data.appearance,
+      enabledModules: enabled, moduleSettings, appearance,
     } });
     await tx.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "settings.save", target: "platform" });
   });
-  res.json({ moduleSettings, appearance: input.data.appearance });
+  res.json({ moduleSettings, appearance });
 });
 
 function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType?: string; unitId?: string }>, allowUnits = false) {

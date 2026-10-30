@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { StudentResume, StudentResumeContent } from "@workspace/api-client-react";
 import {
@@ -14,6 +14,16 @@ import {
 } from "lucide-react";
 import { downloadStudentResumeDocx } from "./resume-export";
 import { scoreStudentResume } from "./resume-document";
+import {
+  colorContrastRatio,
+  DEFAULT_RESUME_APPEARANCE,
+  RESUME_COLOR_PRESETS,
+  RESUME_FONT_LABELS,
+  RESUME_FONT_STACKS,
+  withResumeAppearance,
+  type ResumeAppearance,
+  type ResumeFontFamily,
+} from "./resume-appearance";
 import "./resume-template-studio.css";
 
 type ManualTemplate = "ats" | "classic" | "modern" | "sidebar";
@@ -38,6 +48,7 @@ const blankContent = (): StudentResumeContent => ({
   skills: [],
   certifications: [],
   languages: [],
+  appearance: { ...DEFAULT_RESUME_APPEARANCE },
 });
 const blankEntry = (): ResumeEntry => ({
   title: "",
@@ -117,11 +128,12 @@ export default function ResumeTemplateStudio() {
       initializedId.current = selected.id;
       setTitle(selected.title);
       setTemplate(selected.template as ManualTemplate);
-      setContent(selected.content);
+      const normalizedContent = withResumeAppearance(selected.content);
+      setContent(normalizedContent);
       lastSaved.current = JSON.stringify({
         title: selected.title,
         template: selected.template,
-        content: selected.content,
+        content: normalizedContent,
       });
       failedSaveKey.current = "";
       setSaveState("saved");
@@ -232,7 +244,7 @@ export default function ResumeTemplateStudio() {
     initializedId.current = null;
     setTitle("");
     setContent(blankContent());
-    setTemplate("classic");
+    setTemplate("ats");
     setSaveState("saved");
     setDeleteError("");
     setExportError("");
@@ -271,6 +283,14 @@ export default function ResumeTemplateStudio() {
   const updateContent = (updater: (previous: StudentResumeContent) => StudentResumeContent) => {
     setContent(previous => updater(previous));
   };
+  const updateAppearance = (patch: Partial<ResumeAppearance>) => updateContent(previous => ({
+    ...previous,
+    appearance: {
+      ...DEFAULT_RESUME_APPEARANCE,
+      ...previous.appearance,
+      ...patch,
+    },
+  }));
   const updateEntry = (section: EntrySection, index: number, field: keyof ResumeEntry, value: string) => {
     updateContent(previous => ({
       ...previous,
@@ -425,8 +445,22 @@ export default function ResumeTemplateStudio() {
       "education", "experience", "projects", "courses", "skills", "certifications", "languages",
     ];
     const summaryHeading = template === "ats" ? "PROFESSIONAL SUMMARY | الملخص المهني" : "الملخص المهني";
+    const appearance = content.appearance ?? DEFAULT_RESUME_APPEARANCE;
+    const paperStyle: CSSProperties & {
+      "--resume-page-color": string;
+      "--resume-text-color": string;
+      "--resume-heading-color": string;
+      "--resume-accent-color": string;
+      "--resume-font-family": string;
+    } = {
+      "--resume-page-color": appearance.pageColor,
+      "--resume-text-color": appearance.textColor,
+      "--resume-heading-color": appearance.headingColor,
+      "--resume-accent-color": appearance.accentColor,
+      "--resume-font-family": RESUME_FONT_STACKS[appearance.fontFamily],
+    };
     return (
-      <article className={`ats-paper ats-${template}`} dir={template === "ats" ? "auto" : "rtl"} data-testid="section-resume-preview">
+      <article className={`ats-paper ats-${template} ats-customized`} dir={template === "ats" ? "auto" : "rtl"} style={paperStyle} data-testid="section-resume-preview">
         <header className="ats-paper-header">
           <div className="ats-paper-identity">
             {template !== "ats" && <span className="ats-doc-label">السيرة الذاتية</span>}
@@ -578,6 +612,52 @@ export default function ResumeTemplateStudio() {
                 <div className="ats-readiness-track" aria-hidden="true"><span style={{ width: `${readiness.score}%` }} /></div>
                 <p>{readiness.completed} من {readiness.total} نقاط أساسية مكتملة</p>
               </div>
+            </section>
+
+            <section className="ats-card ats-appearance-card" aria-labelledby="ats-appearance-title" data-testid="section-resume-appearance">
+              <div className="ats-card-heading">
+                <div><span className="ats-index">02</span><h3 id="ats-appearance-title">الخطوط والألوان</h3></div>
+                <button type="button" className="ats-appearance-reset" onClick={() => updateAppearance(DEFAULT_RESUME_APPEARANCE)} data-testid="button-reset-resume-appearance">
+                  استعادة الافتراضي
+                </button>
+              </div>
+              <div className="ats-appearance-grid">
+                <label className="ats-field">
+                  <span>نوع الخط</span>
+                  <select value={content.appearance?.fontFamily ?? DEFAULT_RESUME_APPEARANCE.fontFamily}
+                    onChange={event => updateAppearance({ fontFamily: event.target.value as ResumeFontFamily })}
+                    data-testid="select-resume-font">
+                    {(Object.keys(RESUME_FONT_LABELS) as ResumeFontFamily[]).map(font => <option value={font} key={font}>{RESUME_FONT_LABELS[font]}</option>)}
+                  </select>
+                </label>
+                <div className="ats-appearance-colors">
+                  {([
+                    ["pageColor", "لون خلفية الصفحة"],
+                    ["textColor", "لون النص"],
+                    ["headingColor", "لون العناوين"],
+                    ["accentColor", "لون التمييز"],
+                  ] as const).map(([key, label]) => <label className="ats-color-field" key={key}>
+                    <span>{label}</span>
+                    <span className="ats-color-input-wrap">
+                      <input type="color" value={content.appearance?.[key] ?? DEFAULT_RESUME_APPEARANCE[key]}
+                        aria-label={label} onChange={event => updateAppearance({ [key]: event.target.value })}
+                        data-testid={`input-resume-${key}`}/>
+                      <code>{content.appearance?.[key] ?? DEFAULT_RESUME_APPEARANCE[key]}</code>
+                    </span>
+                  </label>)}
+                </div>
+              </div>
+              <div className="ats-appearance-presets" role="group" aria-label="ألوان جاهزة">
+                <span>ألوان جاهزة</span>
+                {RESUME_COLOR_PRESETS.map(preset => <button type="button" key={preset.label} onClick={() => updateAppearance(preset.appearance)} data-testid={`button-resume-preset-${preset.label}`}>
+                  <i style={{ backgroundColor: preset.appearance.accentColor }} aria-hidden="true"/>
+                  {preset.label}
+                </button>)}
+              </div>
+              {colorContrastRatio(content.appearance?.textColor ?? DEFAULT_RESUME_APPEARANCE.textColor, content.appearance?.pageColor ?? DEFAULT_RESUME_APPEARANCE.pageColor) < 4.5
+                || colorContrastRatio(content.appearance?.headingColor ?? DEFAULT_RESUME_APPEARANCE.headingColor, content.appearance?.pageColor ?? DEFAULT_RESUME_APPEARANCE.pageColor) < 3
+                ? <p className="ats-appearance-warning" role="status">التباين منخفض وقد يصعب قراءة السيرة؛ اختر لونًا أوضح قبل التصدير.</p>
+                : <p className="ats-appearance-hint">تظهر تغييراتك مباشرة في المعاينة، وتُحفظ مع هذه المسودة.</p>}
             </section>
 
             <section className="ats-card" aria-labelledby="ats-contact-title" data-testid="section-editor-contact">

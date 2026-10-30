@@ -4,8 +4,8 @@
   --athar-canvas: var(--platform-canvas-light, #F8FAFC);
   --athar-paper: var(--platform-paper-light, #F1F5F9);
   --athar-paper-raised: var(--platform-surface-light, #FFFFFF);
-  --athar-ink: #172033;
-  --athar-ink-soft: #334155;
+  --athar-ink: var(--platform-heading-light, #172033);
+  --athar-ink-soft: var(--platform-text-light, #334155);
   --athar-muted: #64748B;
   --athar-line: #E2E8F0;
   --athar-primary: var(--platform-primary-light, #4338CA);

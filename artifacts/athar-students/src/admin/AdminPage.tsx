@@ -22,7 +22,7 @@ import { SectionAppearanceFields } from '../components/SectionAppearanceFields';
 import './admin.css';
 import AdsAdminPanel from '../ads/AdsAdminPanel';
 import { AcademyAdminPanel } from '../academy';
-import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, getAppearanceTextColor } from '../lib/platform-appearance';
+import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, PLATFORM_FONTS, appearanceContrast, getAppearanceTextColor } from '../lib/platform-appearance';
 import { SectionsAdminPanel } from './SectionsAdminPanel';
 import { GraduatesAdminPanel } from './GraduatesAdminPanel';
 import { SectionContentBlockEditor } from './SectionContentBlockEditor';
@@ -382,7 +382,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   };
   const choosePreset = (preset: AppearanceSettings) => {
     setMsg(null);
-    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor }));
+    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor }));
   };
   const persist = (modules: ModuleSetting[], appearance: AppearanceSettings) => {
     const invalidContent = modules.some(module => (module.blocks ?? []).length > 20 || (module.blocks ?? []).some(block =>
@@ -451,7 +451,13 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
       </article>;
     })}</div>
     <section className="adm-appearance" aria-labelledby="adm-appearance-title">
-      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">ألوان ورسالة الواجهة</h2><p>اختر ألوان أثر وعدّل رسالة الترحيب التي تظهر للطلاب.</p></div></div>
+      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">الخطوط وألوان الواجهة</h2><p>إعدادات عامة لكل الطلاب، تشمل الإنجازات. ألوان النص والخلفيات المخصصة للوضع الفاتح؛ الوضع الداكن يحتفظ بألوان مريحة للقراءة.</p></div></div>
+      <label className="adm-field"><span>خط المنصة</span><select value={appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'} onChange={e => updateAppearance('fontFamily', e.target.value as AppearanceSettings['fontFamily'])} data-testid="select-platform-font">
+        <option value="IBM Plex Sans Arabic">أثر — نص واضح وعناوين كايرو</option>
+        <option value="Cairo">كايرو — عربي هندسي</option>
+        <option value="Tahoma">تاهوما — كلاسيكي واضح</option>
+        <option value="Arial">أريال — بسيط ورسمي</option>
+      </select></label>
       <div className="adm-appearance-presets" aria-label="لوحات ألوان جاهزة">{APPEARANCE_PRESETS.map(preset => <button key={preset.label} type="button" className="adm-preset" aria-pressed={appearanceDraft.primaryColor === preset.value.primaryColor && appearanceDraft.accentColor === preset.value.accentColor && appearanceDraft.canvasColor === preset.value.canvasColor} onClick={() => choosePreset(preset.value)}><span className="adm-preset-swatches"><i style={{ background: preset.value.primaryColor }}/><i style={{ background: preset.value.accentColor }}/><i style={{ background: preset.value.canvasColor }}/></span>{preset.label}</button>)}</div>
       <div className="adm-color-grid">
         {([
@@ -459,18 +465,21 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           ['accentColor', 'لون الإبراز'],
           ['canvasColor', 'خلفية الصفحات'],
           ['surfaceColor', 'خلفية البطاقات'],
+          ['textColor', 'لون النصوص'],
+          ['headingColor', 'لون العناوين'],
         ] as const).map(([key, label]) => <label className="adm-color-field" key={key}>
-          <span>{label}</span><span className="adm-color-value"><input type="color" value={appearanceDraft[key]} onChange={e => updateAppearance(key, e.target.value.toUpperCase())} aria-label={label}/><code dir="ltr">{appearanceDraft[key]}</code></span>
+          <span>{label}</span><span className="adm-color-value"><input type="color" value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]} onChange={e => updateAppearance(key, e.target.value.toUpperCase())} aria-label={label}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]}</code></span>
         </label>)}
       </div>
       <div className="adm-editor adm-copy-editor">
          <label className="adm-field"><span>عنوان الترحيب <RequiredMark/></span><input required minLength={2} maxLength={80} value={appearanceDraft.welcomeTitle} onChange={e => updateAppearance('welcomeTitle', e.target.value)} /></label>
          <label className="adm-field"><span>النص التعريفي <RequiredMark/></span><textarea required minLength={2} maxLength={220} rows={3} value={appearanceDraft.welcomeDescription} onChange={e => updateAppearance('welcomeDescription', e.target.value)} /></label>
       </div>
-      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
+      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3) && <p className="adm-form-error" role="status">تباين النص مع البطاقة منخفض. اختر نصًا أغمق على الخلفيات الفاتحة، أو نصًا أفتح على الخلفيات الداكنة.</p>}
+      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor, '--platform-font-body': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'], '--platform-font-heading': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'Cairo'] } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
         <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.accentColor } as CSSProperties}>
           <span className="adm-preview-label" style={{ color: appearanceDraft.primaryColor }}>معاينة الواجهة</span>
-          <b>{appearanceDraft.welcomeTitle}</b><p>{appearanceDraft.welcomeDescription}</p>
+          <b style={{ color: appearanceDraft.headingColor ?? '#172033' }}>{appearanceDraft.welcomeTitle}</b><p style={{ color: appearanceDraft.textColor ?? '#334155' }}>{appearanceDraft.welcomeDescription}</p>
           <button type="button" style={{ background: appearanceDraft.primaryColor, color: getAppearanceTextColor(appearanceDraft.primaryColor) }}>ابدأ الآن</button>
         </div>
       </div>

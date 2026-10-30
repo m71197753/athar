@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ResumeSectionEntry } from './resumeSectionEntry';
+import type { StudentResumeAppearance } from './studentResumeAppearance';
 
 export interface StudentResumeContent {
   /** @maxLength 120 */
@@ -47,4 +48,5 @@ export interface StudentResumeContent {
      * @items.maxLength 100
      */
   languages: string[];
+  appearance?: StudentResumeAppearance;
 }

@@ -86,12 +86,12 @@
 .ats-create-controls { grid-column: 1/-1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
 .ats-field { display: block; min-width: 0; }
 .ats-field > span { display: block; margin-bottom: 5px; color: var(--ats-ink-soft); font-size: 9px; font-weight: 800; }
-.ats-field input,.ats-field textarea,.ats-string-row input {
+.ats-field input,.ats-field textarea,.ats-field select,.ats-string-row input {
   display: block; width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--ats-line); border-radius: 9px;
   outline: none; color: var(--ats-ink); background: #fdfdff; font-size: 10px; line-height: 1.8;
   transition: border-color .16s ease, box-shadow .16s ease;
 }
-.ats-field input:focus,.ats-field textarea:focus,.ats-string-row input:focus { border-color: #918be1; box-shadow: 0 0 0 3px rgba(91,82,216,.08); }
+.ats-field input:focus,.ats-field textarea:focus,.ats-field select:focus,.ats-string-row input:focus { border-color: #918be1; box-shadow: 0 0 0 3px rgba(91,82,216,.08); }
 .ats-field textarea { min-height: 88px; resize: vertical; }
 .ats-field-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
 .ats-wide { grid-column: 1/-1; }
@@ -267,4 +267,50 @@
 @media print {
   .ats-paper.ats-ats { border: 0; border-radius: 0; box-shadow: none; font-size: 10pt; }
   .ats-ats .ats-paper-section h3 { color: #000; }
+}
+.ats-appearance-card { display: grid; gap: 10px; }
+.ats-appearance-card .ats-card-heading { margin-bottom: 0; }
+.ats-appearance-reset { padding: 5px 8px; border: 1px solid var(--ats-line); border-radius: 8px; color: var(--ats-indigo); background: #fff; font-size: 8px !important; font-weight: 800; cursor: pointer; }
+.ats-appearance-grid { display: grid; gap: 11px; }
+.ats-appearance-grid .ats-field select { display: block; width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid var(--ats-line); border-radius: 9px; color: var(--ats-ink); background: #fdfdff; font-size: 10px; }
+.ats-appearance-colors { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.ats-color-field { display: grid; gap: 5px; min-width: 0; }
+.ats-color-field > span:first-child { color: var(--ats-ink-soft); font-size: 8px; font-weight: 800; }
+.ats-color-input-wrap { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 4px 7px; border: 1px solid var(--ats-line); border-radius: 9px; background: #fdfdff; }
+.ats-color-input-wrap input[type="color"] { flex: 0 0 28px; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+.ats-color-input-wrap input[type="color"]::-webkit-color-swatch-wrapper { padding: 1px; }
+.ats-color-input-wrap input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(0,0,0,.12); border-radius: 5px; }
+.ats-color-input-wrap code { color: var(--ats-ink-soft); font: 8px var(--app-font-mono, monospace); direction: ltr; }
+.ats-appearance-presets { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ats-appearance-presets > span { margin-inline-end: 2px; color: var(--ats-muted); font-size: 8px; }
+.ats-appearance-presets button { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 4px 7px; border: 1px solid var(--ats-line); border-radius: 8px; color: var(--ats-ink-soft); background: #fff; font-size: 8px; cursor: pointer; }
+.ats-appearance-presets button i { width: 11px; height: 11px; border: 1px solid rgba(0,0,0,.1); border-radius: 50%; }
+.ats-appearance-hint,.ats-appearance-warning { margin: 0; font-size: 8px; line-height: 1.8; }
+.ats-appearance-hint { color: var(--ats-muted); }
+.ats-appearance-warning { padding: 7px 9px; border-radius: 8px; color: #8b4c17; background: #fff4df; }
+.ats-paper.ats-customized {
+  color: var(--resume-text-color);
+  background-color: var(--resume-page-color);
+  font-family: var(--resume-font-family);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.ats-customized .ats-paper-identity h2,.ats-customized .ats-paper-section h3,
+.ats-customized .ats-paper-entry h4 { color: var(--resume-heading-color); font-family: var(--resume-font-family); }
+.ats-customized .ats-paper-headline,.ats-customized .ats-paper-contact,
+.ats-customized .ats-paper-summary,.ats-customized .ats-paper-meta,
+.ats-customized .ats-paper-desc,.ats-customized .ats-paper-entry time { color: var(--resume-text-color); font-family: var(--resume-font-family); }
+.ats-customized .ats-paper-mark { color: var(--resume-accent-color); background: color-mix(in srgb, var(--resume-accent-color) 12%, var(--resume-page-color)); }
+.ats-customized .ats-paper-section h3 { border-color: color-mix(in srgb, var(--resume-accent-color) 35%, var(--resume-page-color)); }
+.ats-customized .ats-paper-entry { border-inline-start-color: color-mix(in srgb, var(--resume-accent-color) 45%, var(--resume-page-color)); }
+.ats-customized .ats-paper-chips li { border-color: color-mix(in srgb, var(--resume-accent-color) 28%, var(--resume-page-color)); color: var(--resume-text-color); background: color-mix(in srgb, var(--resume-accent-color) 8%, var(--resume-page-color)); }
+.ats-customized.ats-modern { border-top-color: var(--resume-accent-color); }
+.ats-customized.ats-modern .ats-doc-label { color: var(--resume-accent-color); }
+.ats-customized.ats-sidebar .ats-paper-header { background: var(--resume-accent-color); }
+.ats-customized.ats-sidebar .ats-paper-header h2,.ats-customized.ats-sidebar .ats-paper-headline,
+.ats-customized.ats-sidebar .ats-paper-contact { color: #fff; }
+.ats-customized.ats-sidebar .ats-paper-mark { color: var(--resume-accent-color); background: var(--resume-page-color); }
+.ats-customized.ats-sidebar .ats-sidebar-aside { background: color-mix(in srgb, var(--resume-accent-color) 10%, var(--resume-page-color)); }
+@media print {
+  .ats-paper.ats-customized { background-color: var(--resume-page-color) !important; }
 }

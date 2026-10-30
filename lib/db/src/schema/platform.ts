@@ -54,6 +54,9 @@ export const platformSettingsTable = pgTable("platform_settings", {
     accentColor: string;
     canvasColor: string;
     surfaceColor: string;
+    fontFamily?: "IBM Plex Sans Arabic" | "Cairo" | "Tahoma" | "Arial";
+    textColor?: string;
+    headingColor?: string;
     welcomeTitle: string;
     welcomeDescription: string;
   }>().notNull().default({

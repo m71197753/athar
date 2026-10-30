@@ -1,5 +1,6 @@
 import type { ResumeData } from "./resume-ats";
 import type { StudentResumeContent, StudentResumeTemplate } from "@workspace/api-client-react";
+import { DEFAULT_RESUME_APPEARANCE } from "./resume-appearance";
 import type { Paragraph as ParagraphType } from "docx";
 
 const ink = "203239";
@@ -112,18 +113,21 @@ export async function downloadStudentResumeDocx(
   documentTitle: string,
 ) {
   const { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } = await import("docx");
-  const professional = ["professional", "modern", "sidebar"].includes(template);
-  const color = professional ? teal : ink;
+  const appearance = { ...DEFAULT_RESUME_APPEARANCE, ...content.appearance };
+  const headingColor = appearance.headingColor.replace("#", "").toUpperCase();
+  const bodyColor = appearance.textColor.replace("#", "").toUpperCase();
+  const accentColor = appearance.accentColor.replace("#", "").toUpperCase();
+  const pageColor = appearance.pageColor.replace("#", "").toUpperCase();
   const rightToLeft = template !== "ats" || /[\u0600-\u06ff]/.test(JSON.stringify(content));
   const alignment = rightToLeft ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const headingLabel = (arabic: string, english: string) => template === "ats" ? `${english} | ${arabic}` : arabic;
   const paragraph = (text: string, options?: { bold?: boolean; color?: string; size?: number }) => new Paragraph({
     children: [new TextRun({
       text,
-      font: "Arial",
+      font: appearance.fontFamily,
       size: options?.size ?? 21,
       bold: options?.bold,
-      color: options?.color ?? ink,
+      color: options?.color ?? bodyColor,
       rightToLeft,
     })],
     alignment,
@@ -135,11 +139,11 @@ export async function downloadStudentResumeDocx(
     heading: HeadingLevel.HEADING_2,
     alignment,
     bidirectional: rightToLeft,
-    run: { color, bold: true, font: "Arial" },
+    run: { color: headingColor, bold: true, font: appearance.fontFamily },
     spacing: { before: 230, after: 100 },
   });
   const children: ParagraphType[] = [
-    paragraph(content.fullName.trim() || "السيرة الذاتية", { bold: true, color, size: 36 }),
+    paragraph(content.fullName.trim() || "السيرة الذاتية", { bold: true, color: headingColor, size: 36 }),
   ];
   const contact = [
     content.headline,
@@ -149,7 +153,7 @@ export async function downloadStudentResumeDocx(
     content.linkedin,
     content.website,
   ].map(value => value.trim()).filter(Boolean);
-  if (contact.length) children.push(paragraph(contact.join(" · "), { color: "536377" }));
+  if (contact.length) children.push(paragraph(contact.join(" · "), { color: bodyColor }));
   if (content.summary.trim()) {
     children.push(heading(headingLabel("الملخص المهني", "PROFESSIONAL SUMMARY")));
     children.push(paragraph(content.summary.trim()));
@@ -164,11 +168,11 @@ export async function downloadStudentResumeDocx(
     for (const entry of populated) {
       if (entry.title.trim()) children.push(paragraph(entry.title.trim(), { bold: true }));
       const meta = [entry.organization, entry.location, entry.period].map(value => value.trim()).filter(Boolean);
-      if (meta.length) children.push(paragraph(meta.join(" · "), { color: "536377" }));
+        if (meta.length) children.push(paragraph(meta.join(" · "), { color: bodyColor }));
       for (const line of entry.description.split(/\r?\n/).map(value => value.trim()).filter(Boolean)) {
         children.push(paragraph(line));
       }
-      if (entry.link.trim()) children.push(paragraph(entry.link.trim(), { color: "3B706B" }));
+      if (entry.link.trim()) children.push(paragraph(entry.link.trim(), { color: accentColor }));
     }
   };
 
@@ -195,6 +199,7 @@ export async function downloadStudentResumeDocx(
   }
 
   const doc = new Document({
+    background: { color: pageColor },
     sections: [{
       properties: {
         page: {

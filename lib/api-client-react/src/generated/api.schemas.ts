@@ -375,6 +375,16 @@ export interface ModuleSetting {
   blocks?: SectionBlock[];
 }
 
+export type AppearanceSettingsFontFamily = typeof AppearanceSettingsFontFamily[keyof typeof AppearanceSettingsFontFamily];
+
+
+export const AppearanceSettingsFontFamily = {
+  IBM_Plex_Sans_Arabic: 'IBM Plex Sans Arabic',
+  Cairo: 'Cairo',
+  Tahoma: 'Tahoma',
+  Arial: 'Arial',
+} as const;
+
 export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   primaryColor: string;
@@ -384,6 +394,11 @@ export interface AppearanceSettings {
   canvasColor: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   surfaceColor: string;
+  fontFamily?: AppearanceSettingsFontFamily;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  textColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  headingColor?: string;
   /**
      * @minLength 2
      * @maxLength 80
@@ -767,6 +782,28 @@ export interface ResumeSectionEntry {
   link: string;
 }
 
+export type StudentResumeAppearanceFontFamily = typeof StudentResumeAppearanceFontFamily[keyof typeof StudentResumeAppearanceFontFamily];
+
+
+export const StudentResumeAppearanceFontFamily = {
+  Arial: 'Arial',
+  Tahoma: 'Tahoma',
+  Verdana: 'Verdana',
+  Georgia: 'Georgia',
+} as const;
+
+export interface StudentResumeAppearance {
+  fontFamily: StudentResumeAppearanceFontFamily;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  pageColor: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  textColor: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  headingColor: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  accentColor: string;
+}
+
 export interface StudentResumeContent {
   /** @maxLength 120 */
   fullName: string;
@@ -807,6 +844,7 @@ export interface StudentResumeContent {
      * @items.maxLength 100
      */
   languages: string[];
+  appearance?: StudentResumeAppearance;
 }
 
 export type StudentResumeOrigin = typeof StudentResumeOrigin[keyof typeof StudentResumeOrigin];
