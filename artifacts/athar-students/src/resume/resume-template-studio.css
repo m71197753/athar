@@ -293,34 +293,120 @@
   position: fixed;
   z-index: 1400;
   width: min(360px, calc(100vw - 16px));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 7px;
-  border: 1px solid #d9dced;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #c7c4ed;
+  border-top: 3px solid var(--ats-indigo);
   border-radius: 12px;
+  color: var(--ats-ink);
   background: #fff;
-  box-shadow: 0 12px 32px rgba(18, 28, 54, .2);
+  box-shadow: 0 14px 34px rgba(32, 29, 83, .24), 0 2px 6px rgba(32, 29, 83, .1);
   direction: rtl;
 }
-.ats-format-button {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid #e2e5ef;
-  border-radius: 8px;
-  color: #27384b;
-  background: #fff;
-  cursor: pointer;
+.ats-format-ribbon-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  padding: 0 2px 7px;
+  border-bottom: 1px solid #e8e7f4;
+  color: #383475;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
 }
-.ats-format-button[aria-pressed="true"] { border-color: #5147c8; color: #4338ca; background: #f2f0ff; }
-.ats-format-size { display: flex; align-items: center; gap: 4px; color: #64748b; font-size: 9px; }
-.ats-format-size select { width: 66px; height: 32px; padding: 3px 6px; border: 1px solid #e2e5ef; border-radius: 8px; color: #27384b; background: #fff; }
-.ats-inline-format-toolbar .named-color-trigger { min-height: 32px; padding: 5px 7px; font-size: 9px; }
+.ats-format-ribbon-mark {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  border-radius: 6px 6px 6px 2px;
+  color: #fff;
+  background: var(--ats-indigo);
+  font-size: 13px;
+  font-weight: 800;
+}
+.ats-format-ribbon-hint {
+  margin-inline-start: auto;
+  color: #77768e;
+  font-size: 9px;
+  font-weight: 600;
+}
+.ats-format-ribbon-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.ats-format-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid #ecebf5;
+  border-radius: 9px;
+  background: #f8f8fc;
+}
+.ats-format-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 42px;
+  min-height: 40px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #34334f;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.ats-format-button:hover { border-color: #d8d5f2; color: #37328a; background: #fff; }
+.ats-format-button:active { transform: translateY(1px); }
+.ats-format-button[aria-pressed="true"] { border-color: #7069d0; color: #fff; background: #5147c8; }
+.ats-format-size { display: grid; align-content: center; gap: 3px; color: #4f5068; font-size: 9px; font-weight: 800; }
+.ats-format-size select {
+  width: 77px;
+  height: 38px;
+  padding: 4px 7px;
+  border: 1px solid #d8d7e8;
+  border-radius: 7px;
+  color: #292943;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ats-format-options { gap: 8px; padding: 4px 6px; }
+.ats-inline-format-toolbar .named-color-trigger { min-height: 40px; padding: 6px 8px; font-size: 10px; }
+@media (max-width: 640px) {
+  .ats-inline-format-toolbar {
+    top: auto !important;
+    right: 8px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 8px !important;
+    width: auto;
+    max-width: none;
+    padding: 11px;
+    border-radius: 16px;
+  }
+  .ats-format-button { min-height: 44px; }
+  .ats-format-size select,.ats-inline-format-toolbar .named-color-trigger { min-height: 44px; }
+}
+@media (max-width: 400px) {
+  .ats-inline-format-toolbar { gap: 7px; padding: 9px; }
+  .ats-format-ribbon-controls { align-items: stretch; flex-direction: column; }
+  .ats-format-group { justify-content: center; }
+  .ats-format-options { justify-content: space-between; }
+  .ats-format-size { display: flex; align-items: center; gap: 7px; }
+  .ats-format-size select { width: 90px; }
+  .ats-inline-format-toolbar .named-color-trigger { flex: 1; justify-content: center; }
+}
 .ats-paper.ats-customized {
   color: var(--resume-text-color);
   background-color: var(--resume-page-color);

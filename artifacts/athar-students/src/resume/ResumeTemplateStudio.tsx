@@ -168,7 +168,7 @@ export default function ResumeTemplateStudio() {
       top: Math.max(8, rect.top - 64),
     });
   };
-  const capturePreviewSelection = () => {
+  const capturePreviewSelection = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.rangeCount) {
       setInlineSelection(null);
@@ -207,7 +207,22 @@ export default function ResumeTemplateStudio() {
       left: Math.max(8, Math.min(window.innerWidth - toolbarWidth - 8, rect.left + (rect.width - toolbarWidth) / 2)),
       top: Math.max(8, rect.top - 64),
     });
-  };
+  }, []);
+  useEffect(() => {
+    const handlePreviewSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const node = range.startContainer.nodeType === Node.ELEMENT_NODE
+        ? range.startContainer as Element
+        : range.startContainer.parentElement;
+      const field = node?.closest("[data-resume-format-field]");
+      if (!field || !document.querySelector(".ats-preview-column")?.contains(field)) return;
+      window.requestAnimationFrame(capturePreviewSelection);
+    };
+    document.addEventListener("selectionchange", handlePreviewSelectionChange);
+    return () => document.removeEventListener("selectionchange", handlePreviewSelectionChange);
+  }, [capturePreviewSelection]);
   const selectableFieldProps = (field: string) => ({
     "data-resume-inline-field": field,
     onSelect: captureInlineSelection,
@@ -869,18 +884,25 @@ export default function ResumeTemplateStudio() {
           </section>
         </div>
       )}
-      {inlineSelection && <div className="ats-inline-format-toolbar" role="toolbar" aria-label="تنسيق النص المحدد"
+      {inlineSelection && <div className="ats-inline-format-toolbar" role="toolbar" aria-label="شريط تنسيق النص المحدد"
         style={{ left: inlineSelection.left, top: inlineSelection.top }} data-testid="toolbar-resume-inline-format"
         onMouseDown={event => {
           if ((event.target as HTMLElement).closest("button")) event.preventDefault();
         }}>
-        <button type="button" className="ats-format-button ats-format-letter" aria-label="غامق" aria-pressed={selectedInlineStyle.bold === true}
-          onClick={() => toggleInlineStyle("bold")} data-testid="button-resume-format-bold"><Bold size={15}/></button>
-        <button type="button" className="ats-format-button" aria-label="مائل" aria-pressed={selectedInlineStyle.italic === true}
-          onClick={() => toggleInlineStyle("italic")} data-testid="button-resume-format-italic"><Italic size={15}/></button>
-        <button type="button" className="ats-format-button" aria-label="تحته خط" aria-pressed={selectedInlineStyle.underline === true}
-          onClick={() => toggleInlineStyle("underline")} data-testid="button-resume-format-underline"><Underline size={15}/></button>
-        <label className="ats-format-size"><span>الحجم</span>
+        <div className="ats-format-ribbon-heading"><span className="ats-format-ribbon-mark" aria-hidden="true">أ</span>
+          <span>تنسيق النص المحدد</span><span className="ats-format-ribbon-hint">أثر · تحرير السيرة</span>
+        </div>
+        <div className="ats-format-ribbon-controls">
+          <div className="ats-format-group" role="group" aria-label="أنماط الخط">
+            <button type="button" className="ats-format-button" aria-label="غامق" aria-pressed={selectedInlineStyle.bold === true}
+              onClick={() => toggleInlineStyle("bold")} data-testid="button-resume-format-bold"><Bold size={16}/><span>غامق</span></button>
+            <button type="button" className="ats-format-button" aria-label="مائل" aria-pressed={selectedInlineStyle.italic === true}
+              onClick={() => toggleInlineStyle("italic")} data-testid="button-resume-format-italic"><Italic size={16}/><span>مائل</span></button>
+            <button type="button" className="ats-format-button" aria-label="تحته خط" aria-pressed={selectedInlineStyle.underline === true}
+              onClick={() => toggleInlineStyle("underline")} data-testid="button-resume-format-underline"><Underline size={16}/><span>تحته خط</span></button>
+          </div>
+          <div className="ats-format-group ats-format-options" role="group" aria-label="حجم النص ولونه">
+          <label className="ats-format-size"><span>الحجم</span>
           <select aria-label="حجم النص المحدد" value={selectedInlineStyle.fontSize ?? ""}
             onChange={event => event.target.value && applySelectionStyle({ fontSize: Number(event.target.value) })}
             data-testid="select-resume-format-size">
@@ -890,6 +912,8 @@ export default function ResumeTemplateStudio() {
         </label>
         <NamedColorPicker label="لون النص المحدد" value={selectedInlineStyle.color ?? "#303746"}
           onChange={color => applySelectionStyle({ color })} testId="button-resume-format-color"/>
+          </div>
+        </div>
       </div>}
     </main>
   );
