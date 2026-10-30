@@ -1,0 +1,39 @@
+.sb-units { display: grid; gap: 14px; }
+.sb-unit { border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-inline-start: 4px solid #0f766e; border-radius: 14px; padding: 14px; display: grid; gap: 12px; background: color-mix(in srgb, #0f766e 4%, transparent); }
+.sb-unit-loose { border-inline-start-color: #b45309; background: color-mix(in srgb, #b45309 4%, transparent); border-style: dashed; }
+.sb-unit-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sb-unit-index { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; font-size: .9rem; }
+.sb-assign select { font: inherit; font-size: .8rem; padding: 4px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); background: transparent; max-width: 150px; }
+.sb-add-lesson { justify-self: start; display: inline-flex; gap: 6px; align-items: center; border: 1px dashed color-mix(in srgb, currentColor 30%, transparent); border-radius: 10px; padding: 8px 14px; background: transparent; font: inherit; cursor: pointer; }
+.sb-add-lesson:disabled { opacity: .5; cursor: not-allowed; }
+.sb-empty-group { margin: 0; opacity: .7; font-size: .88rem; }
+.sb-notice { margin: 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, #b45309 12%, transparent); font-size: .88rem; }
+.sb-notice button { margin-inline-start: 8px; background: none; border: 0; text-decoration: underline; cursor: pointer; font: inherit; }
+.sb-ph { opacity: .55; font-style: italic; }
+.sb-ph-box { border: 1px dashed color-mix(in srgb, currentColor 25%, transparent); border-radius: 12px; padding: 14px; text-align: center; margin: 0; }
+.sb-preview { border: 2px dashed #b45309; border-radius: 18px; overflow: hidden; margin-bottom: 18px; }
+.sb-preview-bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; background: #fdf3e3; color: #7c3d06; font-weight: 600; font-size: .9rem; }
+.sb-preview-bar span { display: inline-flex; gap: 6px; align-items: center; }
+.sb-preview-course { display: grid; gap: 10px; padding: 18px; border-radius: 16px; border: 1px solid color-mix(in srgb, currentColor 12%, transparent); margin-bottom: 14px; }
+.sb-preview-course h3, .sb-preview-course p { margin: 0; }
+.sb-preview-unit, .custom-unit { display: grid; gap: 8px; padding-inline-start: 12px; border-inline-start: 3px solid var(--section-accent, #0f766e); }
+.sb-preview-loose, .custom-unit-loose { border-inline-start-style: dashed; }
+.sb-preview-unit-title, .custom-unit-title { display: flex; gap: 6px; align-items: center; margin: 0; font-size: 1rem; }
+.sb-preview-lessons { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.sb-templates { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: color-mix(in srgb, #0f766e 6%, transparent); }
+.sb-templates button { border: 1px solid color-mix(in srgb, currentColor 20%, transparent); background: transparent; border-radius: 999px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.sb-dirty { font-size: .8rem; color: #b45309; font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.adm-section-editor, .sb-units, .sb-unit, .sb-preview-course, .sb-preview-unit, .sb-preview-lessons > li, .custom-unit { min-width: 0; }
+.sb-preview, .custom-unit { overflow-wrap: anywhere; }
+.adm-section-editor-title, .adm-section-editor-title > .adm-user-actions { flex-wrap: wrap; }
+.adm-section-editor .adm-kind { flex-wrap: wrap; }
+.adm-section-editor .adm-field { min-width: 0; }
+.sb-preview-bar > span { min-width: 0; flex: 1 1 200px; }
+@media (max-width: 560px) {
+  .adm-section-editor .adm-kind label { flex: 1 1 130px; min-width: 0; }
+  .adm-section-editor .adm-course-top, .adm-section-editor .adm-section-block-top { flex-wrap: wrap; }
+  .sb-unit { padding: 10px; }
+  .sb-unit .adm-section-block-tools { flex-wrap: wrap; max-width: 100%; }
+  .sb-preview-course { padding: 12px; }
+}

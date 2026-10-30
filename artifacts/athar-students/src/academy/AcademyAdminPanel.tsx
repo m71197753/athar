@@ -15,6 +15,7 @@ import type {
   AcademyCourseFileInputMime,
 } from '@workspace/api-client-react';
 import './academy.css';
+import { uploadFile } from '../lib/upload-file';
 
 type Section = 'subjects' | 'lessons' | 'exams' | 'submissions';
 const blankSubject: AcademySubjectInput = { slug: '', title: '', description: '', level: 'beginner', skillTags: [], position: 0, published: false };
@@ -66,6 +67,8 @@ export function AcademyAdminPanel({ focusSubmissions = false }: { focusSubmissio
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
+  const [uploadLabel, setUploadLabel] = useState('');
   const [submissionNotes, setSubmissionNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -117,21 +120,32 @@ export function AcademyAdminPanel({ focusSubmissions = false }: { focusSubmissio
     if (editingExamId) updateExam.mutate({ examId: editingExamId, data: safeToEdit }, { onSuccess: result => finalize(result.id), onError: er => setError(displayError(er)) });
     else createExam.mutate({ data: safeToEdit }, { onSuccess: result => finalize(result.id), onError: er => setError(displayError(er)) });
   };
-  async function uploadCourseFile(file?: File) {
-    if (!file || !selectedLesson) return;
-    const mime = fileMime(file.name);
-    if (!mime) { setError('الامتدادات المتاحة هي PDF وDOCX وTXT وMP4 وWebM.'); return; }
-    const maxSize = mime.startsWith('video/') ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
-    if (file.size < 1 || file.size > maxSize) { setError(mime.startsWith('video/') ? 'حجم الفيديو يجب ألا يتجاوز ١٠٠ م.ب.' : 'حجم الملف يجب ألا يتجاوز ١٠ م.ب.'); return; }
+  async function uploadCourseFiles(files: File[]) {
+    if (!files.length || !selectedLesson || uploadBusy) return;
+    const lessonId = selectedLesson.id;
+    const selected = files.map(file => ({ file, mime: fileMime(file.name) }));
+    if (selected.some(({ file, mime }) => !mime || file.size < 1 || !Number.isSafeInteger(file.size))) {
+      setError('اختر ملفات غير فارغة بصيغ PDF وDOCX وTXT وMP4 وWebM.'); return;
+    }
     setUploadBusy(true); setError('');
+    let completed = 0;
     try {
-      const signed = await requestFile.mutateAsync({ lessonId: selectedLesson.id, data: { title: file.name.slice(0, 160), originalName: file.name.slice(0, 180), mime, size: file.size } });
-      const res = await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'Content-Type': mime }, body: file });
-      if (!res.ok) throw new Error('upload');
-      await confirmFile.mutateAsync({ fileId: signed.id });
-      await invalidate(); setMessage('تم إرفاق الملف بالدرس.');
-    } catch { setError('تعذّر رفع الملف أو تأكيده.'); }
-    finally { setUploadBusy(false); }
+      for (const [index, { file, mime }] of selected.entries()) {
+        setUploadPercent(0);
+        setUploadLabel(`${index + 1} من ${selected.length}: ${file.name}`);
+        const signed = await requestFile.mutateAsync({ lessonId, data: { title: file.name.slice(0, 160), originalName: file.name.slice(0, 180), mime: mime!, size: file.size } });
+        await uploadFile(signed.uploadUrl, file, mime!, setUploadPercent);
+        setUploadLabel(`جارٍ التحقق من ${file.name}`);
+        await confirmFile.mutateAsync({ fileId: signed.id });
+        completed++;
+      }
+      setMessage(`تم إرفاق ${completed.toLocaleString('ar')} ملف بالدرس.`);
+    } catch {
+      setError(`تعذّر إكمال الرفع. تم حفظ ${completed.toLocaleString('ar')} ملف بنجاح؛ أعد اختيار الملفات المتبقية فقط.`);
+    } finally {
+      if (completed) await invalidate();
+      setUploadBusy(false);
+    }
   }
 
   if (catalog.isLoading) return <div className="academy ac-admin"><AdminSkeleton/></div>;
@@ -171,7 +185,9 @@ export function AcademyAdminPanel({ focusSubmissions = false }: { focusSubmissio
       {selectedSubject.lessons.length ? <ul className="ac-list">{selectedSubject.lessons.map(lesson => <li className="ac-row" key={lesson.id}><span className="ac-row-icon"><FileText size={18}/></span><div className="ac-row-copy"><b>{lesson.title}</b><small>{lesson.published ? 'منشور' : 'مسودة'} · {lesson.estimatedMinutes.toLocaleString('ar')} دقيقة</small></div><button className="ac-button" type="button" onClick={() => editLesson(lesson)}><Pencil size={14}/> تحرير</button></li>)}</ul> : <AdminState text="لا توجد دروس لهذه المادة."/>}
       {selectedLesson && <section className="ac-admin-section"><h3>مواد الدرس: {selectedLesson.title}</h3>
         <p style={{ color: 'var(--ac-muted)', fontSize: 11, lineHeight: 1.8 }}>ملفات PDF وDOCX وTXT تدخل في البحث النصي؛ الفيديوهات تظهر للطلاب للمشاهدة بعد نشر الدرس.</p>
-        <label className="ac-button" style={{ cursor: uploadBusy ? 'wait' : 'pointer' }}><Upload size={15}/>{uploadBusy ? 'جارٍ الرفع…' : 'إرفاق ملف أو فيديو'}<input className="ac-sr" type="file" disabled={uploadBusy} accept=".pdf,.docx,.txt,.mp4,.webm" onChange={e => void uploadCourseFile(e.target.files?.[0])}/></label>
+        <label className="ac-button" style={{ cursor: uploadBusy ? 'wait' : 'pointer' }}><Upload size={15}/>{uploadBusy ? 'جارٍ الرفع…' : 'إرفاق ملفات أو فيديوهات'}<input className="ac-sr" type="file" multiple disabled={uploadBusy} accept=".pdf,.docx,.txt,.mp4,.webm" onChange={e => { const files = Array.from(e.target.files ?? []); e.target.value = ''; void uploadCourseFiles(files); }}/></label>
+        {uploadBusy && <div role="status"><p>{uploadLabel} — {uploadPercent.toLocaleString('ar')}٪</p><progress max={100} value={uploadPercent} aria-label="نسبة رفع مرفق الدرس" style={{ width: '100%' }}/></div>}
+        <p className="ac-meta">لا نفرض حد الحجم السابق على مرفقات الدروس؛ يظل الرفع خاضعًا لخدمة التخزين والاتصال. المستندات الأكبر من ١٠ م.ب. متاحة للقراءة والتنزيل، لكنها لا تُفهرس للبحث أو المساعد الذكي.</p>
         {selectedLesson.files.length ? <ul className="ac-list" style={{ marginTop: 12 }}>{selectedLesson.files.map(file => <li className="ac-row" key={file.id}><span className="ac-row-icon"><FileText size={18}/></span><div className="ac-row-copy"><b>{file.title}</b><small>{file.originalName} · {file.mime}</small></div><button className="ac-button ac-button-danger" type="button" disabled={deleteFile.isPending} onClick={() => { if (window.confirm(`حذف الملف «${file.title}»؟`)) deleteFile.mutate({ fileId: file.id }, { onSuccess: invalidate, onError: e => setError(displayError(e)) }); }}><Trash2 size={14}/> حذف</button></li>)}</ul> : <p style={{ color: 'var(--ac-muted)', fontSize: 12 }}>لا توجد مرفقات.</p>}
       </section>}
     </>}

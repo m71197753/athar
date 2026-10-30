@@ -2,6 +2,10 @@ import { Router, type IRouter } from "express";
 import { and, asc, eq, sql } from "drizzle-orm";
 import {
   academyProgressTable,
+  academyLessonsTable,
+  academySubjectsTable,
+  academyCourseFilesTable,
+  academyCourseSubmissionsTable,
   db,
   learningItemsTable,
   platformSectionsTable,
@@ -43,11 +47,27 @@ const playableMedia = (block: { type: string; mediaType?: string; url: string },
   block.url === sectionMediaUrl(assetId);
 
 async function getPublishedMediaScope(slug: string) {
+  const lessonMatch = /^academy-lesson-([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.exec(slug);
+  const communityMatch = /^community-course-([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.exec(slug);
+  if ((lessonMatch || communityMatch) && !(await enabledModules()).includes("academy")) return null;
+  if (lessonMatch) {
+    const [lesson] = await db.select({ id: academyLessonsTable.id }).from(academyLessonsTable)
+      .innerJoin(academySubjectsTable, eq(academySubjectsTable.id, academyLessonsTable.subjectId))
+      .where(and(eq(academyLessonsTable.id, lessonMatch[1]), eq(academyLessonsTable.published, true),
+        eq(academySubjectsTable.published, true))).limit(1);
+    return lesson ? { section: null, moduleBlocks: null, academyLessonId: lesson.id, communityCourseId: null } : null;
+  }
+  if (communityMatch) {
+    const [course] = await db.select({ id: academyCourseSubmissionsTable.id }).from(academyCourseSubmissionsTable)
+      .where(and(eq(academyCourseSubmissionsTable.id, communityMatch[1]),
+        eq(academyCourseSubmissionsTable.status, "approved"))).limit(1);
+    return course ? { section: null, moduleBlocks: null, academyLessonId: null, communityCourseId: course.id } : null;
+  }
   const [section] = await db.select().from(platformSectionsTable).where(and(
     eq(platformSectionsTable.slug, slug),
     eq(platformSectionsTable.published, true),
   )).limit(1);
-  if (section) return { section, moduleBlocks: null };
+  if (section) return { section, moduleBlocks: null, academyLessonId: null, communityCourseId: null };
 
   const [settings] = await db.select({ moduleSettings: platformSettingsTable.moduleSettings })
     .from(platformSettingsTable).where(eq(platformSettingsTable.key, "main")).limit(1);
@@ -55,7 +75,7 @@ async function getPublishedMediaScope(slug: string) {
   const module = settings?.moduleSettings?.find(item =>
     item.key === slug && item.enabled && enabled.some(key => key === item.key),
   );
-  return module ? { section: null, moduleBlocks: module.blocks ?? [] } : null;
+  return module ? { section: null, moduleBlocks: module.blocks ?? [], academyLessonId: null, communityCourseId: null } : null;
 }
 
 router.get("/sections/:slug/media-progress", requireAuth, async (req, res): Promise<void> => {
@@ -78,32 +98,46 @@ router.put("/sections/:slug/media-progress", requireAuth, async (req, res): Prom
     res.status(400).json({ error: "Invalid playback progress" }); return;
   }
   const { slug } = params.data;
-  const { contextKey, mediaAssetId, watchedSeconds, durationSeconds } = parsed.data;
+  const { contextKey, mediaAssetId, watchedSeconds, durationSeconds, resumePositionSeconds } = parsed.data;
+  const resumePosition = resumePositionSeconds === undefined ? undefined
+    : Math.min(resumePositionSeconds, durationSeconds || 86400);
   const scope = await getPublishedMediaScope(slug);
   if (!scope) { res.status(404).json({ error: "Published section not found" }); return; }
 
-  const [asset] = await db.select().from(platformMediaAssetsTable).where(and(
-    eq(platformMediaAssetsTable.id, mediaAssetId),
-    eq(platformMediaAssetsTable.status, "ready"),
-  )).limit(1);
-  if (!asset || (!asset.mime.startsWith("audio/") && !asset.mime.startsWith("video/"))) {
-    res.status(404).json({ error: "Published media not found" }); return;
-  }
-
   const courseMatch = /^course:([a-f0-9-]{36})$/i.exec(contextKey);
-  const contextIsPublished = scope.section
-    ? courseMatch
-      ? scope.section.courses.some(course =>
-          course.id === courseMatch[1] && course.materials.some(block => playableMedia(block, mediaAssetId, asset.mime)),
-        )
-      : contextKey === "section" && scope.section.blocks.some(block => playableMedia(block, mediaAssetId, asset.mime))
-    : contextKey === "section" && (scope.moduleBlocks ?? []).some(block => playableMedia(block, mediaAssetId, asset.mime));
+  let contextIsPublished = false;
+  if (scope.academyLessonId) {
+    const [file] = await db.select().from(academyCourseFilesTable).where(and(
+      eq(academyCourseFilesTable.id, mediaAssetId), eq(academyCourseFilesTable.lessonId, scope.academyLessonId),
+      eq(academyCourseFilesTable.status, "ready"),
+    )).limit(1);
+    contextIsPublished = contextKey === "section" && Boolean(file?.mime.startsWith("video/"));
+  } else if (scope.communityCourseId) {
+    const [file] = await db.select().from(academyCourseSubmissionsTable).where(and(
+      eq(academyCourseSubmissionsTable.id, mediaAssetId), eq(academyCourseSubmissionsTable.status, "approved"),
+    )).limit(1);
+    contextIsPublished = contextKey === "section" && mediaAssetId === scope.communityCourseId &&
+      Boolean(file?.mime?.startsWith("video/") && file.objectPath);
+  } else {
+    const [asset] = await db.select().from(platformMediaAssetsTable).where(and(
+      eq(platformMediaAssetsTable.id, mediaAssetId), eq(platformMediaAssetsTable.status, "ready"),
+    )).limit(1);
+    if (asset && (asset.mime.startsWith("audio/") || asset.mime.startsWith("video/"))) {
+      contextIsPublished = scope.section
+        ? courseMatch
+          ? scope.section.courses.some(course =>
+              course.id === courseMatch[1] && course.materials.some(block => playableMedia(block, mediaAssetId, asset.mime)))
+          : contextKey === "section" && scope.section.blocks.some(block => playableMedia(block, mediaAssetId, asset.mime))
+        : contextKey === "section" && (scope.moduleBlocks ?? []).some(block => playableMedia(block, mediaAssetId, asset.mime));
+    }
+  }
   if (!contextIsPublished) { res.status(404).json({ error: "Published media not found" }); return; }
 
   res.setHeader("Cache-Control", "private, no-store");
   const userId = res.locals.userId as string;
   const [saved] = await db.insert(sectionMediaProgressTable).values({
     userId, sectionSlug: slug, contextKey, mediaAssetId, watchedSeconds, durationSeconds,
+    resumePositionSeconds: resumePosition ?? 0,
   }).onConflictDoUpdate({
     target: [
       sectionMediaProgressTable.userId,
@@ -114,6 +148,7 @@ router.put("/sections/:slug/media-progress", requireAuth, async (req, res): Prom
     set: {
       watchedSeconds: sql`GREATEST(${sectionMediaProgressTable.watchedSeconds}, EXCLUDED.watched_seconds)`,
       durationSeconds: sql`GREATEST(${sectionMediaProgressTable.durationSeconds}, EXCLUDED.duration_seconds)`,
+      ...(resumePosition === undefined ? {} : { resumePositionSeconds: resumePosition }),
       updatedAt: new Date(),
     },
   }).returning();
@@ -402,6 +437,7 @@ function toSectionMediaProgress(progress: typeof sectionMediaProgressTable.$infe
     mediaAssetId: progress.mediaAssetId,
     watchedSeconds: progress.watchedSeconds,
     durationSeconds: progress.durationSeconds,
+    resumePositionSeconds: progress.resumePositionSeconds ?? 0,
     updatedAt: progress.updatedAt.toISOString(),
   };
 }

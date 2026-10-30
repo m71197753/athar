@@ -2,6 +2,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  bigint,
   check,
   index,
   integer,
@@ -64,7 +65,7 @@ export const academyCourseFilesTable = pgTable(
     originalName: text("original_name").notNull(),
     objectPath: text("object_path").notNull(),
     mime: text("mime").notNull(),
-    size: integer("size").notNull(),
+    size: bigint("size", { mode: "number" }).notNull(),
     status: text("status").notNull().default("pending"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -239,7 +240,7 @@ export const academyCourseSubmissionsTable = pgTable(
     objectPath: text("object_path"),
     originalName: text("original_name"),
     mime: text("mime"),
-    size: integer("size"),
+    size: bigint("size", { mode: "number" }),
     status: text("status").notNull().default("uploading"),
     reviewNote: text("review_note"),
     reviewedBy: text("reviewed_by"),

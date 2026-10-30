@@ -176,8 +176,8 @@ function Home() {
 
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useUser();
-  if (!isLoaded) return <div className="auth-loading" dir="rtl"><Brand/><LoadingPanel label="نفتح مساحتك بأمان"/></div>;
-  return isSignedIn ? <Redirect to="/dashboard"/> : <Home/>;
+  // The public landing must remain available even if authentication is slow.
+  return isLoaded && isSignedIn ? <Redirect to="/dashboard"/> : <Home/>;
 }
 function SignInPage() {
   const preserveDemo = new URLSearchParams(window.location.search).get('from') === 'language-demo';

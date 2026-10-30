@@ -17,6 +17,7 @@ const tables = {
     mediaAssetId: "mediaProgress.mediaAssetId",
     watchedSeconds: "mediaProgress.watchedSeconds",
     durationSeconds: "mediaProgress.durationSeconds",
+    resumePositionSeconds: "mediaProgress.resumePositionSeconds",
   },
   platformMediaAssetsTable: { id: "media.id", status: "media.status", mime: "media.mime" },
   platformSettingsTable: { key: "settings.key", moduleSettings: "settings.moduleSettings" },
@@ -95,13 +96,14 @@ function createHarness() {
             else rows.get(table).push(inserted);
             return { returning: async () => inserted ? [inserted] : [] };
           },
-          onConflictDoUpdate: ({ target }) => {
+          onConflictDoUpdate: ({ target, set }) => {
             const existing = (rows.get(table) ?? []).find(row =>
               target.every(column => row[column.split(".").at(-1)] === inserted[column.split(".").at(-1)]),
             );
             if (existing) Object.assign(existing, {
-              watchedSeconds: inserted.watchedSeconds,
-              durationSeconds: inserted.durationSeconds,
+              watchedSeconds: Math.max(existing.watchedSeconds, inserted.watchedSeconds),
+              durationSeconds: Math.max(existing.durationSeconds, inserted.durationSeconds),
+              ...(set.resumePositionSeconds === undefined ? {} : { resumePositionSeconds: set.resumePositionSeconds }),
               updatedAt: new Date(),
             });
             else rows.get(table).push(inserted);
@@ -228,12 +230,14 @@ test("section playback progress only accepts published media and remains private
     mediaAssetId: mediaId,
     watchedSeconds: 145,
     durationSeconds: 360,
+    resumePositionSeconds: 120,
   };
   const saveResponse = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; }, setHeader() {} };
   saveResponse.locals = { userId: "student-one" };
   await save({ params: { slug: "section-abcdef123456" }, body: payload }, saveResponse);
   assert.equal(saveResponse.statusCode, 200);
   assert.equal(saveResponse.body.watchedSeconds, 145);
+  assert.equal(saveResponse.body.resumePositionSeconds, 120);
 
   const rejected = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; }, setHeader() {} };
   rejected.locals = { userId: "student-one" };

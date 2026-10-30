@@ -10,8 +10,8 @@
     "reminders:send": "node --enable-source-maps ./dist/reminders.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:access": "node --test tests/platform-access.test.mjs",
-    "test:sections": "node --test tests/admin-sections.test.mjs tests/section-course-completion.test.mjs",
-    "test:security": "node --test tests/platform-access.test.mjs tests/language-security.test.mjs tests/admin-sections.test.mjs tests/section-course-completion.test.mjs tests/academy-study.test.mjs",
+    "test:sections": "node --test tests/admin-sections.test.mjs tests/section-course-completion.test.mjs tests/section-course-units.test.mjs",
+    "test:security": "node --test tests/platform-access.test.mjs tests/language-security.test.mjs tests/admin-sections.test.mjs tests/section-course-completion.test.mjs tests/section-course-units.test.mjs tests/academy-study.test.mjs",
     "test:ads": "node --test tests/ads.test.mjs"
   },
   "dependencies": {

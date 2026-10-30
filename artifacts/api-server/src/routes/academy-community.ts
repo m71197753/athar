@@ -14,8 +14,6 @@ import { and, desc, eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   isAcademyVideoMime,
-  MAX_ACADEMY_FILE_BYTES,
-  MAX_ACADEMY_VIDEO_BYTES,
   supportedAcademyCourseUpload,
   type AcademyCourseUploadMime,
 } from "../lib/academy-content";
@@ -122,8 +120,7 @@ router.post("/academy/course-submissions/upload-url", requireAuth, async (req, r
   const parsed = RequestAcademyCourseSubmissionUploadBody.safeParse(req.body);
   if (!parsed.success) return void res.status(400).json({ error: parsed.error.message });
   const { originalName, mime, size, title, description } = parsed.data;
-  const maxSize = isAcademyVideoMime(mime) ? MAX_ACADEMY_VIDEO_BYTES : MAX_ACADEMY_FILE_BYTES;
-  if (size > maxSize || !supportedAcademyCourseUpload(originalName, mime)) {
+  if (!Number.isSafeInteger(size) || !supportedAcademyCourseUpload(originalName, mime)) {
     return void res.status(400).json({ error: "الصيغ المتاحة PDF وDOCX وTXT وMP4 وWebM ضمن حد الرفع." });
   }
   const upload = await createAcademyUpload();
@@ -162,7 +159,7 @@ router.post("/academy/course-submissions/:submissionId/confirm", requireAuth, as
   if (!supportedAcademyCourseUpload(row.originalName, row.mime)) {
     return void res.status(400).json({ error: "صيغة الملف غير مدعومة." });
   }
-  const confirmedPath = await validateAcademyUpload(row.objectPath, row.mime as AcademyCourseUploadMime, row.size);
+  const confirmedPath = await validateAcademyUpload(row.objectPath, row.mime as AcademyCourseUploadMime, row.size, null);
   if (!confirmedPath) return void res.status(400).json({ error: "تعذّر التحقق من الملف المرفوع." });
   const [updated] = await db.update(academyCourseSubmissionsTable).set({
     objectPath: confirmedPath,

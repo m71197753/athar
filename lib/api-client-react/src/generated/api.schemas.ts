@@ -350,6 +350,7 @@ export interface SectionBlock {
   body: string;
   /** @maxLength 2048 */
   url: string;
+  unitId?: string;
 }
 
 export interface ModuleSetting {
@@ -602,6 +603,17 @@ export const SectionInputKind = {
   module: 'module',
 } as const;
 
+export interface SectionCourseUnit {
+  id: string;
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  title: string;
+  /** @maxLength 600 */
+  description: string;
+}
+
 export interface SectionCourse {
   id: string;
   /**
@@ -611,6 +623,8 @@ export interface SectionCourse {
   title: string;
   /** @maxLength 600 */
   description: string;
+  /** @maxItems 20 */
+  units?: SectionCourseUnit[];
   /**
      * @maxItems 20
      * @items.minLength 1
@@ -1062,6 +1076,11 @@ export interface SectionMediaProgress {
      * @maximum 86400
      */
   durationSeconds: number;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  resumePositionSeconds: number;
   updatedAt: string;
 }
 
@@ -1082,6 +1101,11 @@ export interface SectionMediaProgressInput {
      * @maximum 86400
      */
   durationSeconds: number;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  resumePositionSeconds?: number;
 }
 
 export type LearningItemInputKind = typeof LearningItemInputKind[keyof typeof LearningItemInputKind];
@@ -2639,7 +2663,7 @@ export interface AcademyCourseFileInput {
   mime: AcademyCourseFileInputMime;
   /**
      * @minimum 1
-     * @maximum 104857600
+     * @maximum 9007199254740991
      */
   size: number;
 }
@@ -3273,7 +3297,7 @@ export interface AcademyCourseFileSubmissionInput {
   mime: AcademyCourseFileSubmissionInputMime;
   /**
      * @minimum 1
-     * @maximum 104857600
+     * @maximum 9007199254740991
      */
   size: number;
 }

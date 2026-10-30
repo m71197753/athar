@@ -4,6 +4,11 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 
+const unitModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/lib/section-course-units.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: unitModule.exports });
+
 const tables = {
   membershipsTable: {}, adminAuditTable: {},
   platformContentTable: {},
@@ -162,6 +167,7 @@ function loadAdminRouter() {
         '@workspace/api-zod': apiZod,
         '../middlewares/requireAuth': { requireAuth },
         '../middlewares/requireAdmin': { requireAdmin },
+        '../lib/section-course-units': unitModule.exports,
         '../lib/platform-access': {
           ALL_MODULES: [], enabledModules: async () => [], platformAppearance: async () => ({}),
           platformModuleSettings: async () => [],
@@ -207,7 +213,7 @@ const call = async (router, method, path, { body = {}, params = {}, userId = 'ad
   assert.equal(typeof handler, 'function', `Missing route ${method} ${path}`);
   const res = response();
   res.locals = { userId, role: 'admin' };
-  await handler({ body, params, headers: {}, get: () => undefined }, res);
+  await handler({ body, params, path, query: {}, headers: {}, get: () => undefined }, res);
   return res;
 };
 
@@ -244,7 +250,8 @@ test('admin can request and confirm a media upload, publish it in a section, edi
         id: '6f099430-30a7-4afc-9b42-10c1cba1d220',
         title: 'مدخل إلى التصميم',
         description: 'دورة قصيرة بمحتوى عملي.',
-        materials: [{ type: 'media', mediaType: 'image', title: 'ملف الدرس', body: '', url: confirmed.body.url }],
+        units: [{ id: '045be0bb-3cb8-4872-a66b-555dcaa66238', title: '  الوحدة الأولى  ', description: '  تمهيد  ' }],
+        materials: [{ unitId: '045be0bb-3cb8-4872-a66b-555dcaa66238', type: 'media', mediaType: 'image', title: 'ملف الدرس', body: '', url: confirmed.body.url }],
       }],
       published: false, sortOrder: 20,
     },
@@ -254,6 +261,13 @@ test('admin can request and confirm a media upload, publish it in a section, edi
   assert.equal(create.body.blocks[0].mediaType, 'image');
   assert.equal(create.body.courses[0].title, 'مدخل إلى التصميم');
   assert.equal(create.body.courses[0].materials[0].url, confirmed.body.url);
+  assert.equal(create.body.courses[0].units[0].title, 'الوحدة الأولى');
+  assert.equal(create.body.courses[0].units[0].description, 'تمهيد');
+  const hiddenMedia = await call(router, 'GET', '/platform/section-media/:id', { params: { id: ticket.body.id } });
+  assert.equal(hiddenMedia.statusCode, 404);
+  const draftPreview = await call(router, 'GET', '/admin/section-media/:id/preview', { params: { id: ticket.body.id } });
+  assert.equal(draftPreview.statusCode, 200);
+  assert.equal(draftPreview.headers['Cache-Control'], 'private, no-store');
 
   const update = await call(router, 'PUT', '/admin/sections/:id', {
     params: { id: create.body.id },
@@ -271,6 +285,7 @@ test('admin can request and confirm a media upload, publish it in a section, edi
   assert.equal(list.body.items.length, 1);
   assert.equal(list.body.items[0].blocks[0].url, confirmed.body.url);
   assert.equal(list.body.items[0].courses[0].id, create.body.courses[0].id);
+  assert.equal(list.body.items[0].courses[0].materials[0].unitId, '045be0bb-3cb8-4872-a66b-555dcaa66238');
 
   const courseMedia = await call(router, 'GET', '/platform/section-media/:id', {
     params: { id: ticket.body.id },

@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export type PlatformSectionBlock = {
+  unitId?: string;
   type: "text" | "link" | "media";
   mediaType?: "image" | "audio" | "video" | "file";
   title: string;
@@ -14,6 +15,7 @@ export type PlatformSectionCourse = {
   id: string;
   title: string;
   description: string;
+  units?: Array<{ id: string; title: string; description: string }>;
   skills?: string[];
   materials: PlatformSectionBlock[];
 };

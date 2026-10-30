@@ -3,6 +3,8 @@ import { FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, 
 import { RequiredMark } from "../components/RequiredMark";
 import { useConfirmSectionMediaUpload, useRequestSectionMediaUpload } from "@workspace/api-client-react";
 import type { SectionBlock, SectionMediaUploadInput } from "@workspace/api-client-react";
+import { uploadFile } from "../lib/upload-file";
+import { adminPreviewMediaUrl } from "../lib/section-units";
 
 const acceptedMimeTypes = new Set<SectionMediaUploadInput["mime"]>([
   "image/jpeg", "image/png", "image/webp", "image/gif",
@@ -31,6 +33,7 @@ export function SectionContentBlockEditor({
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
+  const [uploadPercent, setUploadPercent] = useState(0);
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
@@ -62,12 +65,8 @@ export function SectionContentBlockEditor({
           ? `جارٍ رفع الملف ${index + 1} من ${files.length}: ${file.name}`
           : `جارٍ رفع ${file.name}…`);
         const ticket = await requestUpload.mutateAsync({ data: { originalName: file.name, mime, size: file.size } });
-        const uploaded = await fetch(ticket.uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": mime },
-          body: file,
-        });
-        if (!uploaded.ok) throw new Error("تعذّر رفع الملف إلى التخزين.");
+        await uploadFile(ticket.uploadUrl, file, mime, setUploadPercent);
+        setUploadStatus(`جارٍ التحقق من ${file.name}…`);
         const confirmed = await confirmUpload.mutateAsync({ id: ticket.id });
         uploadedBlocks.push({
           type: "media",
@@ -116,12 +115,12 @@ export function SectionContentBlockEditor({
           disabled={uploading} onChange={event => { void upload(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ""; }}/>
       </label>
       <small className="adm-upload-hint">يمكنك اختيار عدة ملفات دفعة واحدة، ثم إضافة روابط في القائمة نفسها. الملفات الكبيرة تحتاج وقتًا أطول.</small>
-      {uploading && <p className="adm-upload-status" role="status"><LoaderCircle size={15} className="adm-spin"/> {uploadStatus}</p>}
+      {uploading && <div role="status"><p className="adm-upload-status"><LoaderCircle size={15} className="adm-spin"/> {uploadStatus} — {uploadPercent.toLocaleString("ar")}٪</p><progress value={uploadPercent} max={100} aria-label="نسبة رفع الملف" style={{ width: "100%" }}/></div>}
       {uploadError && <p className="adm-form-error" role="alert">{uploadError}</p>}
-      {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={block.url} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
-      {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={block.url} controls preload="metadata"/>}
-      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={block.url} controls preload="metadata"/>}
-      {block.url && block.mediaType === "file" && <a className="adm-media-file-link" href={block.url} target="_blank" rel="noopener noreferrer"><FileText size={16}/> فتح المرفق</a>}
+      {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
+      {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
+      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
+      {block.url && block.mediaType === "file" && <a className="adm-media-file-link" href={adminPreviewMediaUrl(block.url)} target="_blank" rel="noopener noreferrer"><FileText size={16}/> فتح المرفق</a>}
       {block.url && <span className="adm-upload-status">{block.mediaType === "image" ? <ImageIcon size={14}/> : block.mediaType === "audio" ? <Headphones size={14}/> : block.mediaType === "video" ? <Video size={14}/> : <FileText size={14}/>} تم التحقق من الملف؛ سيظهر للطلاب بعد نشر المحتوى.</span>}
     </>}
   </div>;

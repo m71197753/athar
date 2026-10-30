@@ -49,6 +49,9 @@ export function ModuleSectionContent({ moduleKey }: { moduleKey: ModuleKey }) {
                   mediaType={block.mediaType}
                   url={block.url}
                   title={block.title}
+                  progressReady={progressQuery.isSuccess}
+                  progressError={progressQuery.isError}
+                  onRetryProgress={() => void progressQuery.refetch()}
                   savedProgress={progressQuery.data?.find(row => row.contextKey === "section" && row.mediaAssetId === sectionMediaId(block.url))}
                 />
               : block.mediaType === "video" ? <video src={block.url} controls playsInline preload="metadata"/>

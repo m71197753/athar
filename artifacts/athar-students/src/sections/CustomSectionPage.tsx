@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, Check, CheckCircle2, ChevronDown, Download, ExternalLink, FileText, LoaderCircle, Search, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, CheckCircle2, ChevronDown, Download, FolderOpen, ExternalLink, FileText, LoaderCircle, Search, X } from "lucide-react";
 import { Link } from "wouter";
 import { getSectionAccent, getSectionIcon } from "../lib/section-appearance";
 import {
@@ -10,7 +10,9 @@ import {
 } from "@workspace/api-client-react";
 import type { SectionBlock } from "@workspace/api-client-react";
 import { TrackedSectionMedia } from "./TrackedSectionMedia";
+import { groupCourseMaterials } from "../lib/section-units";
 import "./custom-sections.css";
+import "../admin/section-builder.css";
 
 type CourseFilter = "all" | "incomplete" | "completed";
 const sectionMediaId = (url: string) => /^\/api\/platform\/section-media\/([a-f0-9-]{36})$/i.exec(url)?.[1];
@@ -73,7 +75,7 @@ export function CustomSectionPage({ slug }: { slug: string }) {
     const matchesFilter = activeFilter === "all" ||
       (activeFilter === "completed" && isCompleted) ||
       (activeFilter === "incomplete" && !isCompleted);
-    const searchableText = `${course.title} ${course.description} ${(course.skills ?? []).join(" ")} ${course.materials.map(material => `${material.title} ${material.body}`).join(" ")}`.toLocaleLowerCase("ar");
+    const searchableText = `${course.title} ${course.description} ${(course.skills ?? []).join(" ")} ${(course.units ?? []).map(unit => `${unit.title} ${unit.description}`).join(" ")} ${course.materials.map(material => `${material.title} ${material.body}`).join(" ")}`.toLocaleLowerCase("ar");
     return matchesFilter && (!normalizedSearch || searchableText.includes(normalizedSearch));
   });
   const recordCompletion = (courseId: string) => {
@@ -100,6 +102,9 @@ export function CustomSectionPage({ slug }: { slug: string }) {
       {block.mediaType === "image" && <img src={block.url} alt={block.title} loading="lazy"/>}
       {mediaId && (block.mediaType === "audio" || block.mediaType === "video" || block.mediaType === "file")
         ? <TrackedSectionMedia
+            progressReady={mediaProgressQuery.isSuccess}
+            progressError={mediaProgressQuery.isError}
+            onRetryProgress={() => void mediaProgressQuery.refetch()}
             sectionSlug={slug}
             contextKey={contextKey}
             mediaAssetId={mediaId}
@@ -241,7 +246,21 @@ export function CustomSectionPage({ slug }: { slug: string }) {
               <span className="custom-course-material-cta">فتح</span>
               <ChevronDown size={17} aria-hidden="true"/>
             </summary>
-            <div className="custom-course-materials">{course.materials.map((material, index) => renderMaterial(material, index, course.id))}</div>
+            <div className="custom-course-materials">{(() => {
+              const { groups, loose } = groupCourseMaterials(course);
+              if (!groups.length) return loose.map(({ block, index }) => renderMaterial(block, index, course.id));
+              return <>
+                {groups.filter(group => group.lessons.length).map(({ unit, lessons }, unitIndex) => <section className="custom-unit" key={unit.id} data-testid={`course-unit-${unit.id}`}>
+                  <h4 className="custom-unit-title"><FolderOpen size={15} aria-hidden="true"/> الوحدة {(unitIndex + 1).toLocaleString("ar")}: {unit.title}</h4>
+                  {unit.description && <p>{unit.description}</p>}
+                  {lessons.map(({ block, index }) => renderMaterial(block, index, course.id))}
+                </section>)}
+                {loose.length > 0 && <section className="custom-unit custom-unit-loose" data-testid={`course-loose-${course.id}`}>
+                  <h4 className="custom-unit-title">دروس أخرى</h4>
+                  {loose.map(({ block, index }) => renderMaterial(block, index, course.id))}
+                </section>}
+              </>;
+            })()}</div>
           </details>
           <footer className="custom-course-actions custom-course-actions-v2">
             {completed ? <span className="custom-course-record"><CheckCircle2 size={16}/> أُضيفت إلى سجلّ تعلّمك</span>

@@ -20,4 +20,5 @@ export interface SectionBlock {
   body: string;
   /** @maxLength 2048 */
   url: string;
+  unitId?: string;
 }

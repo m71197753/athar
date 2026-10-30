@@ -23,5 +23,10 @@ export interface SectionMediaProgress {
      * @maximum 86400
      */
   durationSeconds: number;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  resumePositionSeconds: number;
   updatedAt: Date;
 }

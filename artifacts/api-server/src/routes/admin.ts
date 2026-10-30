@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type RequestHandler } from "express";
 import { clerkClient } from "@clerk/express";
 import { randomUUID } from "node:crypto";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
@@ -20,6 +20,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
 import { assetFile, createAssetUpload, validateUploadedAsset } from "../lib/ad-storage";
+import { validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
 const PAGE_SIZE = 20;
@@ -71,8 +72,9 @@ router.get("/platform", async (_req, res) => {
     moduleSettings, enabledModules: modules, appearance,
   }));
 });
-router.get("/platform/section-media/:id", async (req, res) => {
-  const id = req.params.id;
+const serveSectionMedia: RequestHandler = async (req, res) => {
+  const adminPreview = req.path?.startsWith("/admin/section-media/") ?? false;
+  const id = typeof req.params.id === "string" ? req.params.id : "";
   if (!/^[a-f0-9-]{36}$/i.test(id)) { res.status(404).end(); return; }
   const [asset] = await db.select().from(platformMediaAssetsTable)
     .where(and(eq(platformMediaAssetsTable.id, id), eq(platformMediaAssetsTable.status, "ready")));
@@ -89,16 +91,22 @@ router.get("/platform/section-media/:id", async (req, res) => {
     section.blocks.some(block => block.type === "media" && block.url === url) ||
     section.courses.some(course => course.materials.some(block => block.type === "media" && block.url === url))) ||
     Boolean(settings[0]?.moduleSettings?.some(module => module.enabled && module.blocks?.some(block => block.type === "media" && block.url === url)));
-  if (!referenced) { res.status(404).end(); return; }
+  if (!referenced && !adminPreview) { res.status(404).end(); return; }
+  const cacheControl = adminPreview ? "private, no-store" : "public, max-age=86400, immutable";
+  res.setHeader("Cache-Control", cacheControl);
 
   if (req.query?.["preview"] === "1" && asset.mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    if (asset.size > 10 * 1024 * 1024) {
+      res.type("text/plain").send("هذا المستند كبير للمعاينة النصية. استخدم زر تنزيل الملف لفتحه على جهازك.");
+      return;
+    }
     try {
       const [bytes] = await assetFile(asset.objectPath).download({ validation: false });
       const preview = await mammoth.extractRawText({ buffer: bytes });
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self'");
-      res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+      res.setHeader("Cache-Control", cacheControl);
       res.send(preview.value);
     } catch (error) {
       req.log.warn({ assetId: id, error }, "Unable to render document preview");
@@ -110,7 +118,7 @@ router.get("/platform/section-media/:id", async (req, res) => {
   const range = req.get("range");
   res.setHeader("Content-Type", asset.mime);
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+  res.setHeader("Cache-Control", cacheControl);
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
@@ -130,8 +138,10 @@ router.get("/platform/section-media/:id", async (req, res) => {
   }
   res.setHeader("Content-Length", String(asset.size));
   assetFile(asset.objectPath).createReadStream().on("error", () => res.destroy()).pipe(res);
-});
+};
+router.get("/platform/section-media/:id", serveSectionMedia);
 router.use("/admin", requireAuth, requireAdmin);
+router.get("/admin/section-media/:id/preview", serveSectionMedia);
 
 router.get("/admin/overview", async (_req, res) => {
   const [accounts, students, achievements, learningItems, careerPlans, activeShares, admins, suspended] = await Promise.all([
@@ -414,13 +424,13 @@ router.put("/admin/settings", async (req, res) => {
   res.json({ moduleSettings, appearance: input.data.appearance });
 });
 
-function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType?: string }>) {
-  return blocks.every(block => block.type === "text" ? block.url === "" && !block.mediaType
+function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType?: string; unitId?: string }>, allowUnits = false) {
+  return blocks.every(block => (!allowUnits && block.unitId !== undefined) ? false : block.type === "text" ? block.url === "" && !block.mediaType
     : block.type === "link" ? !block.mediaType && validUrl("resource", block.url)
       : block.type === "media" ? Boolean(block.mediaType && ["image", "audio", "video", "file"].includes(block.mediaType) && sectionMediaIdFromUrl(block.url))
         : false);
 }
-function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; materials: Array<{ type: string; url: string; mediaType?: string }> }>) {
+function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; units?: Array<{ id: string; title: string; description: string }>; materials: Array<{ type: string; url: string; mediaType?: string; unitId?: string }> }>) {
   const ids = new Set<string>();
   return courses.length <= 20 && courses.every(course => {
     const idIsUniqueUuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(course.id) && !ids.has(course.id);
@@ -429,7 +439,7 @@ function validSectionCourses(courses: Array<{ id: string; title: string; skills?
       (course.skills ?? []).length <= 20 &&
       (course.skills ?? []).every(skill => skill.trim().length > 0 && skill.trim().length <= 60) &&
       course.materials.length >= 1 && course.materials.length <= 20 &&
-      validSectionBlocks(course.materials);
+      validCourseUnits(course) && validSectionBlocks(course.materials, true);
   });
 }
 function normalizeSection(input: ReturnType<typeof CreateAdminSectionBody.parse>) {
@@ -447,6 +457,7 @@ function normalizeSection(input: ReturnType<typeof CreateAdminSectionBody.parse>
       ...course,
       title: course.title.trim(),
       description: course.description.trim(),
+      units: course.units?.map(unit => ({ ...unit, title: unit.title.trim(), description: unit.description.trim() })),
       skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
       materials: course.materials.map(block => ({
         ...block, title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),

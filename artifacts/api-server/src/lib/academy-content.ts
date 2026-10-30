@@ -2,7 +2,6 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 
 export const MAX_ACADEMY_FILE_BYTES = 10 * 1024 * 1024;
-export const MAX_ACADEMY_VIDEO_BYTES = 100 * 1024 * 1024;
 export const MAX_ACADEMY_EXTRACTED_CHARS = 250_000;
 const CHUNK_SIZE = 1_200;
 const CHUNK_OVERLAP = 180;

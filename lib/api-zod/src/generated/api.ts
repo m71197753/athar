@@ -636,6 +636,13 @@ export const getPlatformContentResponseSectionsItemOneCoursesItemTitleMax = 120;
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemDescriptionMax = 600;
 
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleMin = 2;
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleMax = 120;
+
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemDescriptionMax = 600;
+
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax = 20;
+
 export const getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax = 60;
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemSkillsMax = 20;
@@ -682,7 +689,8 @@ export const GetPlatformContentResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseModuleSettingsItemBlocksItemBodyMax),
-  "url": zod.string().max(getPlatformContentResponseModuleSettingsItemBlocksItemUrlMax)
+  "url": zod.string().max(getPlatformContentResponseModuleSettingsItemBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).max(getPlatformContentResponseModuleSettingsItemBlocksMax).optional()
 })),
   "appearance": zod.object({
@@ -705,19 +713,26 @@ export const GetPlatformContentResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneBlocksItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseSectionsItemOneBlocksItemBodyMax),
-  "url": zod.string().max(getPlatformContentResponseSectionsItemOneBlocksItemUrlMax)
+  "url": zod.string().max(getPlatformContentResponseSectionsItemOneBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(getPlatformContentResponseSectionsItemOneBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(getPlatformContentResponseSectionsItemOneCoursesItemTitleMin).max(getPlatformContentResponseSectionsItemOneCoursesItemTitleMax),
   "description": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleMin).max(getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemDescriptionMax)
+})).max(getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax)).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsMax)
 })).max(getPlatformContentResponseSectionsItemOneCoursesMax).optional(),
   "published": zod.boolean(),
@@ -973,7 +988,8 @@ export const GetAdminSettingsResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemBodyMax),
-  "url": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax)
+  "url": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).max(getAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
 })).min(getAdminSettingsResponseModuleSettingsMin).max(getAdminSettingsResponseModuleSettingsMax),
   "appearance": zod.object({
@@ -1033,7 +1049,8 @@ export const SaveAdminSettingsBody = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsBodyModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemBodyMax),
-  "url": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax)
+  "url": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsBodyModuleSettingsItemBlocksMax).optional()
 })).min(saveAdminSettingsBodyModuleSettingsMin).max(saveAdminSettingsBodyModuleSettingsMax),
   "appearance": zod.object({
@@ -1092,7 +1109,8 @@ export const SaveAdminSettingsResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
   "body": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemBodyMax),
-  "url": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax)
+  "url": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
 })).min(saveAdminSettingsResponseModuleSettingsMin).max(saveAdminSettingsResponseModuleSettingsMax),
   "appearance": zod.object({
@@ -1626,6 +1644,16 @@ export const UpdateAdminLanguageContentResponse = zod.object({
 })
 
 
+/**
+ * @summary Privately preview a verified section attachment before publishing
+ */
+export const GetAdminSectionMediaPreviewParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetAdminSectionMediaPreviewResponse = zod.unknown()
+
+
 export const requestSectionMediaUploadBodyOriginalNameMax = 240;
 
 
@@ -1677,6 +1705,13 @@ export const listAdminSectionsResponseItemsItemOneCoursesItemTitleMax = 120;
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemDescriptionMax = 600;
 
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMin = 2;
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMax = 120;
+
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemDescriptionMax = 600;
+
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax = 20;
+
 export const listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax = 60;
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemSkillsMax = 20;
@@ -1710,19 +1745,26 @@ export const ListAdminSectionsResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneBlocksItemTitleMax),
   "body": zod.string().max(listAdminSectionsResponseItemsItemOneBlocksItemBodyMax),
-  "url": zod.string().max(listAdminSectionsResponseItemsItemOneBlocksItemUrlMax)
+  "url": zod.string().max(listAdminSectionsResponseItemsItemOneBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(listAdminSectionsResponseItemsItemOneBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(listAdminSectionsResponseItemsItemOneCoursesItemTitleMin).max(listAdminSectionsResponseItemsItemOneCoursesItemTitleMax),
   "description": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMin).max(listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemDescriptionMax)
+})).max(listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax)).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsMax)
 })).max(listAdminSectionsResponseItemsItemOneCoursesMax).optional(),
   "published": zod.boolean(),
@@ -1752,6 +1794,13 @@ export const createAdminSectionBodyCoursesItemTitleMin = 2;
 export const createAdminSectionBodyCoursesItemTitleMax = 120;
 
 export const createAdminSectionBodyCoursesItemDescriptionMax = 600;
+
+export const createAdminSectionBodyCoursesItemUnitsItemTitleMin = 2;
+export const createAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
+
+export const createAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
+
+export const createAdminSectionBodyCoursesItemUnitsMax = 20;
 
 export const createAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
@@ -1784,19 +1833,26 @@ export const CreateAdminSectionBody = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyBlocksItemTitleMax),
   "body": zod.string().max(createAdminSectionBodyBlocksItemBodyMax),
-  "url": zod.string().max(createAdminSectionBodyBlocksItemUrlMax)
+  "url": zod.string().max(createAdminSectionBodyBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(createAdminSectionBodyBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(createAdminSectionBodyCoursesItemTitleMin).max(createAdminSectionBodyCoursesItemTitleMax),
   "description": zod.string().max(createAdminSectionBodyCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(createAdminSectionBodyCoursesItemUnitsItemTitleMin).max(createAdminSectionBodyCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(createAdminSectionBodyCoursesItemUnitsItemDescriptionMax)
+})).max(createAdminSectionBodyCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(createAdminSectionBodyCoursesItemSkillsItemMax)).max(createAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(createAdminSectionBodyCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(createAdminSectionBodyCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(createAdminSectionBodyCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(createAdminSectionBodyCoursesItemMaterialsMax)
 })).max(createAdminSectionBodyCoursesMax).optional(),
   "published": zod.boolean(),
@@ -1820,6 +1876,13 @@ export const createAdminSectionResponseOneCoursesItemTitleMin = 2;
 export const createAdminSectionResponseOneCoursesItemTitleMax = 120;
 
 export const createAdminSectionResponseOneCoursesItemDescriptionMax = 600;
+
+export const createAdminSectionResponseOneCoursesItemUnitsItemTitleMin = 2;
+export const createAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
+
+export const createAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
+
+export const createAdminSectionResponseOneCoursesItemUnitsMax = 20;
 
 export const createAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -1853,19 +1916,26 @@ export const CreateAdminSectionResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneBlocksItemTitleMax),
   "body": zod.string().max(createAdminSectionResponseOneBlocksItemBodyMax),
-  "url": zod.string().max(createAdminSectionResponseOneBlocksItemUrlMax)
+  "url": zod.string().max(createAdminSectionResponseOneBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(createAdminSectionResponseOneBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(createAdminSectionResponseOneCoursesItemTitleMin).max(createAdminSectionResponseOneCoursesItemTitleMax),
   "description": zod.string().max(createAdminSectionResponseOneCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(createAdminSectionResponseOneCoursesItemUnitsItemTitleMin).max(createAdminSectionResponseOneCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(createAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax)
+})).max(createAdminSectionResponseOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(createAdminSectionResponseOneCoursesItemSkillsItemMax)).max(createAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(createAdminSectionResponseOneCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(createAdminSectionResponseOneCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(createAdminSectionResponseOneCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(createAdminSectionResponseOneCoursesItemMaterialsMax)
 })).max(createAdminSectionResponseOneCoursesMax).optional(),
   "published": zod.boolean(),
@@ -1899,6 +1969,13 @@ export const updateAdminSectionBodyCoursesItemTitleMax = 120;
 
 export const updateAdminSectionBodyCoursesItemDescriptionMax = 600;
 
+export const updateAdminSectionBodyCoursesItemUnitsItemTitleMin = 2;
+export const updateAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
+
+export const updateAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
+
+export const updateAdminSectionBodyCoursesItemUnitsMax = 20;
+
 export const updateAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
 export const updateAdminSectionBodyCoursesItemSkillsMax = 20;
@@ -1930,19 +2007,26 @@ export const UpdateAdminSectionBody = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyBlocksItemTitleMax),
   "body": zod.string().max(updateAdminSectionBodyBlocksItemBodyMax),
-  "url": zod.string().max(updateAdminSectionBodyBlocksItemUrlMax)
+  "url": zod.string().max(updateAdminSectionBodyBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(updateAdminSectionBodyBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(updateAdminSectionBodyCoursesItemTitleMin).max(updateAdminSectionBodyCoursesItemTitleMax),
   "description": zod.string().max(updateAdminSectionBodyCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(updateAdminSectionBodyCoursesItemUnitsItemTitleMin).max(updateAdminSectionBodyCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(updateAdminSectionBodyCoursesItemUnitsItemDescriptionMax)
+})).max(updateAdminSectionBodyCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionBodyCoursesItemSkillsItemMax)).max(updateAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(updateAdminSectionBodyCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(updateAdminSectionBodyCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(updateAdminSectionBodyCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(updateAdminSectionBodyCoursesItemMaterialsMax)
 })).max(updateAdminSectionBodyCoursesMax).optional(),
   "published": zod.boolean(),
@@ -1966,6 +2050,13 @@ export const updateAdminSectionResponseOneCoursesItemTitleMin = 2;
 export const updateAdminSectionResponseOneCoursesItemTitleMax = 120;
 
 export const updateAdminSectionResponseOneCoursesItemDescriptionMax = 600;
+
+export const updateAdminSectionResponseOneCoursesItemUnitsItemTitleMin = 2;
+export const updateAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
+
+export const updateAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
+
+export const updateAdminSectionResponseOneCoursesItemUnitsMax = 20;
 
 export const updateAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -1999,19 +2090,26 @@ export const UpdateAdminSectionResponse = zod.object({
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneBlocksItemTitleMax),
   "body": zod.string().max(updateAdminSectionResponseOneBlocksItemBodyMax),
-  "url": zod.string().max(updateAdminSectionResponseOneBlocksItemUrlMax)
+  "url": zod.string().max(updateAdminSectionResponseOneBlocksItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(updateAdminSectionResponseOneBlocksMax),
   "courses": zod.array(zod.object({
   "id": zod.string().uuid(),
   "title": zod.string().min(updateAdminSectionResponseOneCoursesItemTitleMin).max(updateAdminSectionResponseOneCoursesItemTitleMax),
   "description": zod.string().max(updateAdminSectionResponseOneCoursesItemDescriptionMax),
+  "units": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(updateAdminSectionResponseOneCoursesItemUnitsItemTitleMin).max(updateAdminSectionResponseOneCoursesItemUnitsItemTitleMax),
+  "description": zod.string().max(updateAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax)
+})).max(updateAdminSectionResponseOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemSkillsItemMax)).max(updateAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
   "body": zod.string().max(updateAdminSectionResponseOneCoursesItemMaterialsItemBodyMax),
-  "url": zod.string().max(updateAdminSectionResponseOneCoursesItemMaterialsItemUrlMax)
+  "url": zod.string().max(updateAdminSectionResponseOneCoursesItemMaterialsItemUrlMax),
+  "unitId": zod.string().uuid().optional()
 })).min(1).max(updateAdminSectionResponseOneCoursesItemMaterialsMax)
 })).max(updateAdminSectionResponseOneCoursesMax).optional(),
   "published": zod.boolean(),
@@ -2084,6 +2182,9 @@ export const getSectionMediaProgressResponseWatchedSecondsMax = 86400;
 export const getSectionMediaProgressResponseDurationSecondsMin = 0;
 export const getSectionMediaProgressResponseDurationSecondsMax = 86400;
 
+export const getSectionMediaProgressResponseResumePositionSecondsMin = 0;
+export const getSectionMediaProgressResponseResumePositionSecondsMax = 86400;
+
 
 
 export const GetSectionMediaProgressResponseItem = zod.object({
@@ -2091,6 +2192,7 @@ export const GetSectionMediaProgressResponseItem = zod.object({
   "mediaAssetId": zod.string().uuid(),
   "watchedSeconds": zod.number().int().min(getSectionMediaProgressResponseWatchedSecondsMin).max(getSectionMediaProgressResponseWatchedSecondsMax),
   "durationSeconds": zod.number().int().min(getSectionMediaProgressResponseDurationSecondsMin).max(getSectionMediaProgressResponseDurationSecondsMax),
+  "resumePositionSeconds": zod.number().int().min(getSectionMediaProgressResponseResumePositionSecondsMin).max(getSectionMediaProgressResponseResumePositionSecondsMax),
   "updatedAt": zod.coerce.date()
 })
 export const GetSectionMediaProgressResponse = zod.array(GetSectionMediaProgressResponseItem)
@@ -2117,13 +2219,17 @@ export const saveSectionMediaProgressBodyWatchedSecondsMax = 86400;
 export const saveSectionMediaProgressBodyDurationSecondsMin = 0;
 export const saveSectionMediaProgressBodyDurationSecondsMax = 86400;
 
+export const saveSectionMediaProgressBodyResumePositionSecondsMin = 0;
+export const saveSectionMediaProgressBodyResumePositionSecondsMax = 86400;
+
 
 
 export const SaveSectionMediaProgressBody = zod.object({
   "contextKey": zod.string().min(saveSectionMediaProgressBodyContextKeyMin).max(saveSectionMediaProgressBodyContextKeyMax),
   "mediaAssetId": zod.string().uuid(),
   "watchedSeconds": zod.number().int().min(saveSectionMediaProgressBodyWatchedSecondsMin).max(saveSectionMediaProgressBodyWatchedSecondsMax),
-  "durationSeconds": zod.number().int().min(saveSectionMediaProgressBodyDurationSecondsMin).max(saveSectionMediaProgressBodyDurationSecondsMax)
+  "durationSeconds": zod.number().int().min(saveSectionMediaProgressBodyDurationSecondsMin).max(saveSectionMediaProgressBodyDurationSecondsMax),
+  "resumePositionSeconds": zod.number().int().min(saveSectionMediaProgressBodyResumePositionSecondsMin).max(saveSectionMediaProgressBodyResumePositionSecondsMax).optional()
 })
 
 export const saveSectionMediaProgressResponseContextKeyMin = 2;
@@ -2135,6 +2241,9 @@ export const saveSectionMediaProgressResponseWatchedSecondsMax = 86400;
 export const saveSectionMediaProgressResponseDurationSecondsMin = 0;
 export const saveSectionMediaProgressResponseDurationSecondsMax = 86400;
 
+export const saveSectionMediaProgressResponseResumePositionSecondsMin = 0;
+export const saveSectionMediaProgressResponseResumePositionSecondsMax = 86400;
+
 
 
 export const SaveSectionMediaProgressResponse = zod.object({
@@ -2142,6 +2251,7 @@ export const SaveSectionMediaProgressResponse = zod.object({
   "mediaAssetId": zod.string().uuid(),
   "watchedSeconds": zod.number().int().min(saveSectionMediaProgressResponseWatchedSecondsMin).max(saveSectionMediaProgressResponseWatchedSecondsMax),
   "durationSeconds": zod.number().int().min(saveSectionMediaProgressResponseDurationSecondsMin).max(saveSectionMediaProgressResponseDurationSecondsMax),
+  "resumePositionSeconds": zod.number().int().min(saveSectionMediaProgressResponseResumePositionSecondsMin).max(saveSectionMediaProgressResponseResumePositionSecondsMax),
   "updatedAt": zod.coerce.date()
 })
 
@@ -4705,7 +4815,7 @@ export const requestAdminAcademyCourseFileUploadBodyTitleMax = 160;
 
 export const requestAdminAcademyCourseFileUploadBodyOriginalNameMax = 180;
 
-export const requestAdminAcademyCourseFileUploadBodySizeMax = 104857600;
+export const requestAdminAcademyCourseFileUploadBodySizeMax = 9007199254740991;
 
 
 
@@ -5217,7 +5327,7 @@ export const requestAcademyCourseSubmissionUploadBodyDescriptionMax = 2000;
 
 export const requestAcademyCourseSubmissionUploadBodyOriginalNameMax = 180;
 
-export const requestAcademyCourseSubmissionUploadBodySizeMax = 104857600;
+export const requestAcademyCourseSubmissionUploadBodySizeMax = 9007199254740991;
 
 
 

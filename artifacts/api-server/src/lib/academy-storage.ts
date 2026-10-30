@@ -1,11 +1,6 @@
 import { Storage } from "@google-cloud/storage";
 import { randomUUID } from "node:crypto";
-import {
-  isAcademyVideoMime,
-  MAX_ACADEMY_FILE_BYTES,
-  MAX_ACADEMY_VIDEO_BYTES,
-  type AcademyUploadMime,
-} from "./academy-content";
+import { MAX_ACADEMY_FILE_BYTES, type AcademyUploadMime } from "./academy-content";
 import { assetFile } from "./ad-storage";
 
 const sidecar = "http://127.0.0.1:1106";
@@ -37,7 +32,7 @@ export async function createAcademyUpload(): Promise<{ objectPath: string; uploa
       bucket_name: bucketName,
       object_name: parts.join("/"),
       method: "PUT",
-      expires_at: new Date(Date.now() + 900_000).toISOString(),
+      expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     }),
     signal: AbortSignal.timeout(30_000),
   });
@@ -50,9 +45,10 @@ export async function validateAcademyUpload(
   path: string,
   mime: AcademyUploadMime,
   expectedSize: number,
+  maxBytes: number | null = MAX_ACADEMY_FILE_BYTES,
 ): Promise<string | null> {
-  const maxSize = isAcademyVideoMime(mime) ? MAX_ACADEMY_VIDEO_BYTES : MAX_ACADEMY_FILE_BYTES;
-  if (expectedSize < 1 || expectedSize > maxSize) return null;
+  if (!Number.isSafeInteger(expectedSize) || expectedSize < 1 ||
+    (maxBytes !== null && expectedSize > maxBytes)) return null;
   const file = assetFile(path);
   const [metadata] = await file.getMetadata();
   if (

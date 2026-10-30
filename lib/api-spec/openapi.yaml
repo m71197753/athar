@@ -477,6 +477,22 @@ paths:
         "403": { description: Administrator access required }
         "404": { description: Language item not found }
         "409": { description: Item already has learning history and cannot be moved }
+  /admin/section-media/{id}/preview:
+    get:
+      operationId: getAdminSectionMediaPreview
+      tags: [admin]
+      summary: Privately preview a verified section attachment before publishing
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Private attachment bytes; supports native media range requests
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "403": { description: Administrator required }
+        "404": { description: Attachment not found }
   /admin/section-media/uploads:
     post:
       operationId: requestSectionMediaUpload
@@ -2777,6 +2793,15 @@ components:
         title: { type: string, minLength: 1, maxLength: 100 }
         body: { type: string, maxLength: 2000 }
         url: { type: string, maxLength: 2048 }
+        unitId: { type: string, format: uuid }
+    SectionCourseUnit:
+      type: object
+      additionalProperties: false
+      required: [id, title, description]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, maxLength: 600 }
     SectionCourse:
       type: object
       additionalProperties: false
@@ -2785,6 +2810,10 @@ components:
         id: { type: string, format: uuid }
         title: { type: string, minLength: 2, maxLength: 120 }
         description: { type: string, maxLength: 600 }
+        units:
+          type: array
+          maxItems: 20
+          items: { $ref: "#/components/schemas/SectionCourseUnit" }
         skills:
           type: array
           maxItems: 20
@@ -3075,12 +3104,13 @@ components:
         updatedAt: { type: string, format: date-time }
     SectionMediaProgress:
       type: object
-      required: [contextKey, mediaAssetId, watchedSeconds, durationSeconds, updatedAt]
+      required: [contextKey, mediaAssetId, watchedSeconds, durationSeconds, resumePositionSeconds, updatedAt]
       properties:
         contextKey: { type: string, minLength: 2, maxLength: 120 }
         mediaAssetId: { type: string, format: uuid }
         watchedSeconds: { type: integer, minimum: 0, maximum: 86400 }
         durationSeconds: { type: integer, minimum: 0, maximum: 86400 }
+        resumePositionSeconds: { type: integer, minimum: 0, maximum: 86400 }
         updatedAt: { type: string, format: date-time }
     SectionMediaProgressInput:
       type: object
@@ -3091,6 +3121,7 @@ components:
         mediaAssetId: { type: string, format: uuid }
         watchedSeconds: { type: integer, minimum: 0, maximum: 86400 }
         durationSeconds: { type: integer, minimum: 0, maximum: 86400 }
+        resumePositionSeconds: { type: integer, minimum: 0, maximum: 86400 }
     LearningItemInput:
       type: object
       required: [kind, title]
@@ -3833,7 +3864,7 @@ components:
         title: { type: string, minLength: 1, maxLength: 160 }
         originalName: { type: string, minLength: 1, maxLength: 180 }
         mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
-        size: { type: integer, minimum: 1, maximum: 104857600 }
+        size: { type: integer, minimum: 1, maximum: 9007199254740991 }
     AcademyUploadUrl:
       type: object
       required: [id, uploadUrl]
@@ -4271,7 +4302,7 @@ components:
         description: { type: string, maxLength: 2000 }
         originalName: { type: string, minLength: 1, maxLength: 180 }
         mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, video/mp4, video/webm] }
-        size: { type: integer, minimum: 1, maximum: 104857600 }
+        size: { type: integer, minimum: 1, maximum: 9007199254740991 }
     AcademyCourseUploadUrlResponse:
       type: object
       required: [id, uploadUrl]

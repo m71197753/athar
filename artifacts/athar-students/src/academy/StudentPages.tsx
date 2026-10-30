@@ -21,6 +21,7 @@ import {
 import type { AcademyAssistantResponse, AcademySearchSource, AcademyStudentFile, AcademyStudentFileInputMime } from '@workspace/api-client-react';
 import './academy.css';
 import { CommunityCoursesPanel } from './CommunityCoursesPanel';
+import { AcademyVideoPlayer } from './AcademyVideoPlayer';
 import { RequiredMark } from '../components/RequiredMark';
 import { AcademyFileQuizBuilder, AcademyFileStudyGuide } from './AcademyFileStudyTools';
 
@@ -148,7 +149,7 @@ export function AcademyLessonPage() {
   return <main className="academy">
     <Head kicker={lesson.subjectTitle} title={lesson.title} detail={`${lesson.summary} · ${lesson.estimatedMinutes.toLocaleString('ar')} دقيقة`}/>
     <article className="ac-panel ac-prose">{lesson.body}</article>
-    <section className="ac-panel"><h2 style={{ fontSize: 16 }}>مواد الدرس</h2>{lesson.files.length ? <ul className="ac-list">{lesson.files.map(file => <li className="ac-row" key={file.id}><span className="ac-row-icon"><FileText size={18}/></span><div className="ac-row-copy"><b>{file.title}</b><small>{file.originalName} · {formatSize(file.size)}</small></div>{file.mime.startsWith('video/') ? <video className="ac-lesson-video" controls preload="metadata" src={file.downloadUrl} aria-label={`مشاهدة ${file.title}`}/> : <a className="ac-button" href={file.downloadUrl} target="_blank" rel="noreferrer"><Download size={15}/> فتح الملف</a>}</li>)}</ul> : <p style={{ color: 'var(--ac-muted)', fontSize: 12 }}>لا توجد ملفات أو فيديوهات مرفقة بهذا الدرس.</p>}</section>
+    <section className="ac-panel"><h2 style={{ fontSize: 16 }}>مواد الدرس</h2>{lesson.files.length ? <ul className="ac-list">{lesson.files.map(file => <li className="ac-row" key={file.id}><span className="ac-row-icon"><FileText size={18}/></span><div className="ac-row-copy"><b>{file.title}</b><small>{file.originalName} · {formatSize(file.size)}</small>{!file.mime.startsWith('video/') && file.size > 10 * 1024 * 1024 && <small>مرفق كبير للقراءة والتنزيل، غير مفهرس للمساعد الذكي.</small>}</div>{file.mime.startsWith('video/') ? <AcademyVideoPlayer scope={`academy-lesson-${lesson.id}`} id={file.id} url={file.downloadUrl} title={file.title}/> : <a className="ac-button" href={file.downloadUrl} target="_blank" rel="noreferrer"><Download size={15}/> فتح الملف</a>}</li>)}</ul> : <p style={{ color: 'var(--ac-muted)', fontSize: 12 }}>لا توجد ملفات أو فيديوهات مرفقة بهذا الدرس.</p>}</section>
     <div className="ac-actions"><button type="button" className="ac-button ac-button-primary" disabled={lesson.completed || complete.isPending} onClick={() => { setMessage(''); complete.mutate({ lessonId: lesson.id }, { onSuccess: () => { setMessage('تم توثيق إكمال الدرس.'); qc.invalidateQueries({ queryKey: getGetAcademyLessonQueryKey(lesson.id) }); qc.invalidateQueries({ queryKey: getGetAcademySubjectQueryKey(lesson.subjectId) }); qc.invalidateQueries({ queryKey: getListAcademySubjectsQueryKey() }); }, onError: e => setMessage(errMessage(e)) }); }}>{lesson.completed ? <><CheckCircle2 size={16}/> أُكمل هذا الدرس</> : complete.isPending ? 'جارٍ الحفظ…' : 'أكملت قراءة الدرس'}</button><Link className="ac-button" href={`/academy/subjects/${encodeURIComponent(lesson.subjectId)}`}>العودة للمادة</Link>{message && <span role="status">{message}</span>}</div>
   </main>;
 }

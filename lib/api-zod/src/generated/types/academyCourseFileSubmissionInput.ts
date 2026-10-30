@@ -23,7 +23,7 @@ export interface AcademyCourseFileSubmissionInput {
   mime: AcademyCourseFileSubmissionInputMime;
   /**
      * @minimum 1
-     * @maximum 104857600
+     * @maximum 9007199254740991
      */
   size: number;
 }

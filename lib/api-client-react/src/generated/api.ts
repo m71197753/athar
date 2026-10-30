@@ -3227,6 +3227,107 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateAdminLanguageContentMutationOptions(options), queryClient);
     }
 
+export const getGetAdminSectionMediaPreviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/section-media/${id}/preview`
+}
+
+/**
+ * @summary Privately preview a verified section attachment before publishing
+ */
+export const getAdminSectionMediaPreview = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetAdminSectionMediaPreviewUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminSectionMediaPreviewQueryKey = (id: string,) => {
+    return [
+    `/api/admin/section-media/${id}/preview`
+    ] as const;
+    }
+
+
+export const getGetAdminSectionMediaPreviewQueryOptions = <TData = Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError = ErrorType<void>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminSectionMediaPreviewQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>> = ({ signal }) => getAdminSectionMediaPreview(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminSectionMediaPreviewQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>>
+export type GetAdminSectionMediaPreviewQueryError = ErrorType<void>
+
+
+export function useGetAdminSectionMediaPreview<TData = Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError = ErrorType<void>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminSectionMediaPreview>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminSectionMediaPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminSectionMediaPreview<TData = Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminSectionMediaPreview>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminSectionMediaPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminSectionMediaPreview<TData = Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Privately preview a verified section attachment before publishing
+ */
+
+export function useGetAdminSectionMediaPreview<TData = Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSectionMediaPreview>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminSectionMediaPreviewQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getRequestSectionMediaUploadUrl = () => {
 
 

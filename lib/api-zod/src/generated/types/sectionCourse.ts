@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SectionBlock } from './sectionBlock';
+import type { SectionCourseUnit } from './sectionCourseUnit';
 
 export interface SectionCourse {
   id: string;
@@ -16,6 +17,8 @@ export interface SectionCourse {
   title: string;
   /** @maxLength 600 */
   description: string;
+  /** @maxItems 20 */
+  units?: SectionCourseUnit[];
   /**
      * @maxItems 20
      * @items.minLength 1

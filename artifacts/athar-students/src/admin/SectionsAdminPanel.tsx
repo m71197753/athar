@@ -1,6 +1,6 @@
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, BookOpen, ExternalLink, FileText, Layers3, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Eye, ExternalLink, FileText, Layers3, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { Link } from "wouter";
 import {
   getGetPlatformContentQueryKey, getListAdminSectionsQueryKey,
@@ -8,6 +8,9 @@ import {
 } from "@workspace/api-client-react";
 import type { PlatformSection, SectionBlock, SectionCourse, SectionInput } from "@workspace/api-client-react";
 import { SectionContentBlockEditor } from "./SectionContentBlockEditor";
+import { CourseUnitsEditor } from "./CourseUnitsEditor";
+import { SectionDraftPreview } from "./SectionDraftPreview";
+import "./section-builder.css";
 import { RequiredMark } from "../components/RequiredMark";
 import { SectionAppearanceFields } from "../components/SectionAppearanceFields";
 import { getSectionAccent, getSectionIcon } from "../lib/section-appearance";
@@ -22,11 +25,23 @@ const sectionForm = (section: PlatformSection): SectionInput => ({
   kind: section.kind, title: section.title, description: section.description,
   iconKey: section.iconKey ?? "book", accentKey: section.accentKey ?? "teal", cardStyle: section.cardStyle ?? "soft",
   blocks: section.blocks.map(block => ({ ...block })),
-  courses: (section.courses ?? []).map(course => ({ ...course, skills: course.skills ?? [], materials: course.materials.map(block => ({ ...block })) })),
+  courses: (section.courses ?? []).map(course => ({ ...course, units: (course.units ?? []).map(unit => ({ ...unit })), skills: course.skills ?? [], materials: course.materials.map(block => ({ ...block })) })),
   published: section.published, sortOrder: section.sortOrder,
 });
 const emptyBlock = (): SectionBlock => ({ type: "text", title: "", body: "", url: "" });
-const newCourse = (): SectionCourse => ({ id: crypto.randomUUID(), title: "", description: "", skills: [], materials: [emptyBlock()] });
+const newCourse = (): SectionCourse => ({ id: crypto.randomUUID(), title: "", description: "", units: [], skills: [], materials: [emptyBlock()] });
+const textBlock = (title: string, body: string, unitId?: string): SectionBlock => ({ type: "text", title, body, url: "", ...(unitId ? { unitId } : {}) });
+const templates: { key: string; label: string; build: () => SectionInput }[] = [
+  { key: "course", label: "دورة بوحدتين", build: () => {
+    const u1 = crypto.randomUUID(), u2 = crypto.randomUUID();
+    return { ...blankSection(), kind: "module", iconKey: "graduation", title: "دورة جديدة", blocks: [textBlock("عن هذه الدورة", "اكتب هنا لمن هذه الدورة وما الذي سيتعلمه الطالب.")],
+      courses: [{ id: crypto.randomUUID(), title: "الدورة الأولى", description: "", skills: [], units: [{ id: u1, title: "الوحدة الأولى: المدخل", description: "" }, { id: u2, title: "الوحدة الثانية: التطبيق", description: "" }],
+        materials: [textBlock("الدرس الأول", "اكتب محتوى الدرس.", u1), textBlock("الدرس الثاني", "اكتب محتوى الدرس.", u2)] }] };
+  } },
+  { key: "reading", label: "صفحة قراءة", build: () => ({ ...blankSection(), iconKey: "file", accentKey: "amber", title: "صفحة جديدة", blocks: [textBlock("مقدمة", "اكتب المقدمة هنا."), textBlock("الخلاصة", "اكتب الخلاصة هنا.")] }) },
+  { key: "resources", label: "مكتبة موارد", build: () => ({ ...blankSection(), iconKey: "layers", accentKey: "blue", title: "مكتبة موارد", blocks: [textBlock("كيف تستخدم هذه المكتبة", "رتّب الروابط والملفات أدناه."), { type: "link", title: "رابط مفيد", body: "", url: "https://" }, { type: "media", title: "ملف مرفق", body: "", url: "" }] }) },
+];
+const snapshot = (form: SectionInput) => JSON.stringify(form);
 const validUrl = (value: string) => {
   try { const url = new URL(value); return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password; }
   catch { return false; }
@@ -49,7 +64,22 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
   const create = useCreateAdminSection();
   const update = useUpdateAdminSection();
   const remove = useDeleteAdminSection();
-  const [editing, setEditing] = useState<{ id?: string; form: SectionInput } | null>(null);
+  const [editing, setEditing] = useState<{ id?: string; form: SectionInput; initial: string } | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const dirty = Boolean(editing && snapshot(editing.form) !== editing.initial);
+  useEffect(() => {
+    if (!dirty) return;
+    const warnBeforeExit = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warnBeforeExit);
+    return () => window.removeEventListener("beforeunload", warnBeforeExit);
+  }, [dirty]);
+  const confirmDiscard = () => !dirty || window.confirm("لديك تغييرات غير محفوظة في هذا القسم. هل تريد تجاهلها؟");
+  const openEditor = (next: { id?: string; form: SectionInput } | null) => {
+    if (!confirmDiscard()) return false;
+    setFormError(""); setPreviewing(false);
+    setEditing(next && { ...next, initial: snapshot(next.form) });
+    return true;
+  };
   const [formError, setFormError] = useState("");
   const [rowError, setRowError] = useState("");
   const [toDelete, setToDelete] = useState<PlatformSection | null>(null);
@@ -100,34 +130,6 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
     [courses[index], courses[next]] = [courses[next], courses[index]];
     setField("courses", courses);
   };
-  const setCourseMaterial = (courseIndex: number, materialIndex: number, patch: Partial<SectionBlock>) => {
-    const courses = (editing?.form.courses ?? []).map((course, i) => i === courseIndex
-      ? { ...course, materials: course.materials.map((block, j) => j === materialIndex ? { ...block, ...patch } : block) }
-      : course);
-    setField("courses", courses);
-  };
-  const replaceCourseMaterialWithBatch = (courseIndex: number, materialIndex: number, blocks: SectionBlock[]) => {
-    setFormError("");
-    setEditing(current => current && ({
-      ...current,
-      form: {
-        ...current.form,
-        courses: (current.form.courses ?? []).map((course, index) => index === courseIndex
-          ? { ...course, materials: [...course.materials.slice(0, materialIndex), ...blocks, ...course.materials.slice(materialIndex + 1)] }
-          : course),
-      },
-    }));
-  };
-  const moveCourseMaterial = (courseIndex: number, materialIndex: number, direction: -1 | 1) => {
-    const courses = [...(editing?.form.courses ?? [])];
-    const course = courses[courseIndex];
-    const next = materialIndex + direction;
-    if (!course || next < 0 || next >= course.materials.length) return;
-    const materials = [...course.materials];
-    [materials[materialIndex], materials[next]] = [materials[next], materials[materialIndex]];
-    courses[courseIndex] = { ...course, materials };
-    setField("courses", courses);
-  };
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!editing) return;
@@ -135,12 +137,13 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       ...editing.form,
       title: editing.form.title.trim(),
       description: editing.form.description.trim(),
-      blocks: editing.form.blocks.map(block => ({
+      blocks: editing.form.blocks.map(({ unitId: _unit, ...block }) => { void _unit; return {
         ...block, title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),
-      })),
+      }; }),
       courses: (editing.form.courses ?? []).map(course => ({
         ...course, title: course.title.trim(), description: course.description.trim(),
         skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
+        units: (course.units ?? []).map(unit => ({ ...unit, title: unit.title.trim(), description: unit.description.trim() })),
         materials: course.materials.map(block => ({ ...block, title: block.title.trim(), body: block.body.trim(), url: block.url.trim() })),
       })),
     };
@@ -159,17 +162,22 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
         (block.type === "media" && (!validMediaUrl(block.url) || !block.mediaType))))) {
       return setFormError("أكمل عنوان كل دورة وأضف من مادة واحدة إلى 20 مادة صالحة لكل دورة.");
     }
+    if ((form.courses ?? []).some(course => (course.units ?? []).length > 20 || (course.units ?? []).some(unit => unit.title.length < 2 || unit.title.length > 120 || unit.description.length > 600))) {
+      return setFormError("اكتب عنوانًا واضحًا (حرفان على الأقل) لكل وحدة، و20 وحدة كحد أقصى لكل دورة.");
+    }
+    if ((form.courses ?? []).some(course => course.materials.some(block => block.unitId && !(course.units ?? []).some(unit => unit.id === block.unitId)))) {
+      return setFormError("بعض الدروس مرتبطة بوحدة غير موجودة. انقلها إلى وحدة أو اجعلها بدون وحدة.");
+    }
     setFormError("");
     const done = {
-      onSuccess: () => { refresh(); setEditing(null); },
+      onSuccess: () => { refresh(); setEditing(null); setPreviewing(false); },
       onError: (error: unknown) => setFormError(errorText(error)),
     };
     if (editing.id) update.mutate({ id: editing.id, data: form }, done);
     else create.mutate({ data: form }, done);
   };
   const startEdit = (section: PlatformSection) => {
-    setFormError("");
-    setEditing({ id: section.id, form: sectionForm(section) });
+    if (!openEditor({ id: section.id, form: sectionForm(section) })) return;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const togglePublish = (section: PlatformSection) => {
@@ -192,12 +200,19 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       <div><h2 id="adm-sections-title">إدارة الأقسام ومحتواها</h2><p className="adm-note">أنشئ صفحات ووحدات، أو أضف محتوى للأقسام الأساسية، ثم انشر التغييرات للطلاب.</p></div>
       <div className="adm-user-actions">
         <button type="button" className="button button-outline button-compact" disabled={Boolean(editing)} onClick={onOpenModuleSettings}><Settings2 size={15}/> الأقسام الأساسية</button>
-        <button type="button" className="button button-primary button-compact" onClick={() => { setFormError(""); setEditing({ form: blankSection() }); }}><Plus size={15}/> قسم جديد</button>
+        <button type="button" className="button button-primary button-compact" onClick={() => openEditor({ form: blankSection() })}><Plus size={15}/> قسم جديد</button>
       </div>
     </div>
     {rowError && <p className="adm-form-error" role="alert">{rowError}</p>}
-    {editing && <form className="adm-editor adm-section-editor" onSubmit={submit} aria-label={editing.id ? "تعديل قسم" : "إنشاء قسم"}>
-      <div className="adm-section-editor-title"><h3>{editing.id ? "تعديل القسم" : "إضافة قسم"}</h3><button type="button" className="icon-button" aria-label="إغلاق نموذج القسم" onClick={() => setEditing(null)}><X size={17}/></button></div>
+    {editing && previewing && <SectionDraftPreview form={editing.form} onClose={() => setPreviewing(false)}/>}
+    {editing && <form hidden={previewing} className="adm-editor adm-section-editor" onSubmit={submit} aria-label={editing.id ? "تعديل قسم" : "إنشاء قسم"}>
+      <div className="adm-section-editor-title"><h3>{editing.id ? "تعديل القسم" : "إضافة قسم"} {dirty && <span className="sb-dirty" data-testid="status-unsaved">· تغييرات غير محفوظة</span>}</h3><div className="adm-user-actions">
+        <button type="button" className="button button-outline button-compact" onClick={() => { setPreviewing(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} data-testid="button-preview-draft"><Eye size={15}/> معاينة قبل النشر</button>
+        <button type="button" className="icon-button" aria-label="إغلاق نموذج القسم" onClick={() => openEditor(null)}><X size={17}/></button></div></div>
+      {!editing.id && <div className="sb-templates" role="group" aria-label="قوالب البداية"><b>ابدأ من قالب:</b>{templates.map(t => <button type="button" key={t.key} data-testid={`button-template-${t.key}`} onClick={() => {
+        if (dirty && !window.confirm("سيستبدل القالب ما كتبته في هذه المسودة. هل تريد المتابعة؟")) return;
+        setFormError(""); setEditing(current => current && { ...current, form: t.build() });
+      }}>{t.label}</button>)}</div>}
       <fieldset className="adm-kind">
         <legend>نوع القسم</legend>
         <label className={editing.form.kind === "content_page" ? "on" : ""}><input type="radio" name="section-kind" checked={editing.form.kind === "content_page"} onChange={() => setField("kind", "content_page")}/><FileText size={15}/> صفحة محتوى</label>
@@ -247,26 +262,11 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
           <label className="adm-field"><span>وصف الدورة</span><textarea rows={2} maxLength={600} value={course.description} data-testid={`input-course-description-${course.id}`} onChange={e => setCourse(courseIndex, { description: e.target.value })}/></label>
         </div>
         <label className="adm-field"><span>المهارات التي تثبتها الدورة</span><input maxLength={1400} value={(course.skills ?? []).join("، ")} placeholder="مثال: تحليل البيانات، إعداد التقارير" data-testid={`input-course-skills-${course.id}`} onChange={e => setCourse(courseIndex, { skills: e.target.value.split(/[،,]/).map(skill => skill.trim()).filter(Boolean).slice(0, 20) })}/><small className="adm-note">تُضاف هذه المهارات إلى سيرة الطالب بعد إكمال الدورة فقط.</small></label>
-         <div className="adm-section-block-heading"><div><h5>مواد الدورة</h5><p>أضف روابط وملفات وفيديوهات معًا، ورتّبها كما تظهر للطالب.</p></div><button type="button" className="button button-outline button-compact" data-testid={`button-course-add-material-${course.id}`} disabled={course.materials.length >= 20} onClick={() => setCourse(courseIndex, { materials: [...course.materials, emptyBlock()] })}><Plus size={14}/> إضافة مادة</button></div>
-        <div className="adm-section-block-list">{course.materials.map((block, materialIndex) => <article className="adm-section-block adm-course-material" key={`${course.id}-${materialIndex}`}>
-          <div className="adm-section-block-top"><b>مادة {materialIndex + 1}</b><div className="adm-section-block-tools">
-            <button type="button" className="icon-button" aria-label={`تحريك المادة ${materialIndex + 1} لأعلى`} data-testid={`button-course-material-up-${course.id}-${materialIndex}`} disabled={materialIndex === 0} onClick={() => moveCourseMaterial(courseIndex, materialIndex, -1)}><ArrowUp size={15}/></button>
-            <button type="button" className="icon-button" aria-label={`تحريك المادة ${materialIndex + 1} لأسفل`} data-testid={`button-course-material-down-${course.id}-${materialIndex}`} disabled={materialIndex === course.materials.length - 1} onClick={() => moveCourseMaterial(courseIndex, materialIndex, 1)}><ArrowDown size={15}/></button>
-            {course.materials.length > 1 && <button type="button" className="icon-button danger-icon" aria-label={`حذف المادة ${materialIndex + 1}`} data-testid={`button-course-material-remove-${course.id}-${materialIndex}`} onClick={() => setCourse(courseIndex, { materials: course.materials.filter((_, i) => i !== materialIndex) })}><Trash2 size={15}/></button>}
-          </div></div>
-          <SectionContentBlockEditor
-            block={block}
-            name={`course-${course.id}-material-kind-${materialIndex}`}
-            testIdPrefix={`course-${course.id}-material-${materialIndex}`}
-            maxBatchFileCount={21 - course.materials.length}
-            onChange={patch => setCourseMaterial(courseIndex, materialIndex, patch)}
-            onUploadMany={blocks => replaceCourseMaterialWithBatch(courseIndex, materialIndex, blocks)}
-          />
-        </article>)}</div>
+        <CourseUnitsEditor course={course} onChange={patch => setCourse(courseIndex, patch)}/>
       </article>)}
-      <label className="adm-switch"><input type="checkbox" checked={editing.form.published} onChange={e => setField("published", e.target.checked)}/><span>{editing.form.published ? "منشور ويظهر للطلاب" : "مسودة — لا يظهر للطلاب"}</span></label>
+      <label className="adm-switch"><input type="checkbox" checked={editing.form.published} onChange={e => setField("published", e.target.checked)}/><span>نشر القسم وإظهاره للطلاب{!editing.form.published && <small> — غير مفعل؛ سيُحفظ كمسودة</small>}</span></label>
       {formError && <p className="adm-form-error" role="alert">{formError}</p>}
-      <div className="adm-dialog-actions"><button type="button" className="button button-outline" disabled={busy} onClick={() => setEditing(null)}>إلغاء</button><button type="submit" className="button button-primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "حفظ القسم"}</button></div>
+      <div className="adm-dialog-actions"><button type="button" className="button button-outline" disabled={busy} onClick={() => openEditor(null)}>إلغاء</button><button type="button" className="button button-outline" onClick={() => setPreviewing(true)}><Eye size={15}/> معاينة</button><button type="submit" className="button button-primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "حفظ القسم"}</button></div>
     </form>}
     {query.isLoading ? <div className="adm-skeleton" role="status"><span/><span/><span/></div>
       : query.isError || !query.data ? <div className="adm-state adm-error" role="alert"><p>{errorText(query.error)}</p><button type="button" className="button button-outline button-compact" onClick={() => query.refetch()}>إعادة المحاولة</button></div>

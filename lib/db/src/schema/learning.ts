@@ -59,6 +59,7 @@ export const sectionMediaProgressTable = pgTable(
     mediaAssetId: uuid("media_asset_id").notNull(),
     watchedSeconds: integer("watched_seconds").notNull().default(0),
     durationSeconds: integer("duration_seconds").notNull().default(0),
+    resumePositionSeconds: integer("resume_position_seconds").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow()

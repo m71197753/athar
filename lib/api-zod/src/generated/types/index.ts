@@ -285,6 +285,7 @@ export * from './sectionBlockMediaType';
 export * from './sectionBlockType';
 export * from './sectionCardStyle';
 export * from './sectionCourse';
+export * from './sectionCourseUnit';
 export * from './sectionIconKey';
 export * from './sectionInput';
 export * from './sectionInputKind';

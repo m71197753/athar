@@ -44,7 +44,6 @@ import {
   extractAcademyText,
   isAcademyVideoMime,
   MAX_ACADEMY_FILE_BYTES,
-  MAX_ACADEMY_VIDEO_BYTES,
   normalizeAcademyText,
   supportedAcademyCourseUpload,
   type AcademyCourseUploadMime,
@@ -259,9 +258,8 @@ router.post("/admin/academy/lessons/:lessonId/upload-url", async (req, res): Pro
   if (!params.success) return void res.status(400).json({ error: params.error.message });
   if (!parsed.success) return void res.status(400).json({ error: parsed.error.message });
   const { title, originalName, mime, size } = parsed.data;
-  const maxSize = isAcademyVideoMime(mime) ? MAX_ACADEMY_VIDEO_BYTES : MAX_ACADEMY_FILE_BYTES;
-  if (size > maxSize || !supportedAcademyCourseUpload(originalName, mime)) {
-    return void res.status(400).json({ error: "Use PDF, DOCX, TXT, MP4, or WebM within the upload size limit" });
+  if (!Number.isSafeInteger(size) || !supportedAcademyCourseUpload(originalName, mime)) {
+    return void res.status(400).json({ error: "Use a valid PDF, DOCX, TXT, MP4, or WebM file" });
   }
   const [lesson] = await db.select().from(academyLessonsTable)
     .where(eq(academyLessonsTable.id, params.data.lessonId)).limit(1);
@@ -296,11 +294,13 @@ router.post("/admin/academy/course-files/:fileId/confirm", async (req, res): Pro
     return void res.status(400).json({ error: "Unsupported file type" });
   }
   const confirmedPath = await validateAcademyUpload(
-    record.file.objectPath, record.file.mime as AcademyCourseUploadMime, record.file.size,
+    record.file.objectPath, record.file.mime as AcademyCourseUploadMime, record.file.size, null,
   );
   if (!confirmedPath) return void res.status(400).json({ error: "The uploaded file did not pass validation" });
   try {
-    const chunks = isAcademyVideoMime(record.file.mime)
+    // Large attachments remain playable/downloadable without loading them into
+    // server memory for AI indexing. The UI explains this processing boundary.
+    const chunks = isAcademyVideoMime(record.file.mime) || record.file.size > MAX_ACADEMY_FILE_BYTES
       ? []
       : chunkAcademyText(await extractAcademyText(
           await readAcademyAsset(confirmedPath),

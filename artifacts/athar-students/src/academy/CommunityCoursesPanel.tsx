@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react";
+import { uploadFile } from "../lib/upload-file";
+import { AcademyVideoPlayer } from "./AcademyVideoPlayer";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, CheckCircle2, Download, FileText, Link2, LoaderCircle, Send, Upload } from "lucide-react";
 import { RequiredMark } from "../components/RequiredMark";
@@ -44,6 +46,8 @@ export function CommunityCoursesPanel() {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [uploadPercent, setUploadPercent] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const refreshSubmissions = () => qc.invalidateQueries({ queryKey: getListMyAcademyCourseSubmissionsQueryKey() });
   const submit = async (event: FormEvent) => {
@@ -62,8 +66,7 @@ export function CommunityCoursesPanel() {
       } else {
         if (!file) throw new Error("file");
         const mime = mimeFromName(file.name);
-        const maxSize = mime?.startsWith("video/") ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
-        if (!mime || file.size < 1 || file.size > maxSize) throw new Error("file");
+        if (!mime || file.size < 1 || !Number.isSafeInteger(file.size)) throw new Error("file");
         const upload = await uploadRequest.mutateAsync({ data: {
           title: draft.title.trim(),
           description: draft.description.trim(),
@@ -71,8 +74,9 @@ export function CommunityCoursesPanel() {
           mime,
           size: file.size,
         } });
-        const response = await fetch(upload.uploadUrl, { method: "PUT", headers: { "Content-Type": mime }, body: file });
-        if (!response.ok) throw new Error("upload");
+        setUploading(true);
+        await uploadFile(upload.uploadUrl, file, mime, setUploadPercent);
+        setUploading(false);
         await confirmUpload.mutateAsync({ submissionId: upload.id });
       }
       setDraft({ title: "", description: "", sourceUrl: "" });
@@ -83,13 +87,15 @@ export function CommunityCoursesPanel() {
       await refreshSubmissions();
     } catch {
       setError(mode === "file"
-        ? "تعذّر رفع الملف. استخدم PDF أو DOCX أو TXT أو فيديو MP4/WebM ضمن حد الرفع."
+        ? "تعذّر رفع الملف. استخدم PDF أو DOCX أو TXT أو فيديو MP4/WebM غير فارغ، وتحقق من استقرار الاتصال."
         : "تحقق من الرابط والعنوان ثم حاول مرة أخرى.");
       await refreshSubmissions();
+    } finally {
+      setUploading(false);
     }
   };
 
-  const busy = uploadRequest.isPending || confirmUpload.isPending || submitLink.isPending;
+  const busy = uploading || uploadRequest.isPending || confirmUpload.isPending || submitLink.isPending;
   const titleReady = draft.title.trim().length >= 3;
   const submitHint = !titleReady
     ? "اكتب عنوانًا من ٣ أحرف على الأقل؛ الوصف اختياري."
@@ -103,6 +109,7 @@ export function CommunityCoursesPanel() {
     <div className="ac-meta"><BookOpen size={17}/><span className="ac-kicker">مشاركة المعرفة</span></div>
     <h2 id="community-courses-title" style={{ margin: "4px 0 7px", fontSize: 17 }}>محتوى تعليمي من الأعضاء</h2>
     <p className="ac-community-intro">ارفع ملفًا أو فيديو أو أرسل رابطًا لمحتوى تعليمي. لا يظهر للطلاب قبل مراجعته واعتماده.</p>
+    {uploading && <div role="status"><p>جارٍ رفع الملف: {uploadPercent.toLocaleString("ar")}٪</p><progress value={uploadPercent} max={100} aria-label="نسبة رفع المحتوى التعليمي" style={{ width: "100%" }}/></div>}
 
     <form className="ac-community-form" onSubmit={submit}>
       <div className="ac-admin-tabs" role="group" aria-label="نوع المحتوى">
@@ -136,7 +143,7 @@ export function CommunityCoursesPanel() {
           : catalog.isError ? <button className="ac-button" type="button" onClick={() => catalog.refetch()}>تعذّر تحميل المحتوى · إعادة المحاولة</button>
             : catalog.data?.items.length ? <ul className="ac-community-list">{catalog.data.items.slice(0, 6).map(item => <li key={item.id}>
               <span>{item.title}{item.description && <small>{item.description}</small>}</span>
-              {item.downloadUrl && item.mime?.startsWith("video/") ? <video className="ac-community-video" controls preload="metadata" src={item.downloadUrl} aria-label={`مشاهدة ${item.title}`}/>
+              {item.downloadUrl && item.mime?.startsWith("video/") ? <AcademyVideoPlayer scope={`community-course-${item.id}`} id={item.id} url={item.downloadUrl} title={item.title}/>
                 : item.downloadUrl ? <a className="ac-button" href={item.downloadUrl}><Download size={14}/> تنزيل</a>
                 : item.sourceUrl ? <a className="ac-button" href={item.sourceUrl} target="_blank" rel="noopener noreferrer">فتح الرابط <Link2 size={14}/></a>
                   : <span className="ac-community-status status-approved">معتمد</span>}
