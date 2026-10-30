@@ -809,17 +809,29 @@ export interface StudentResumeContent {
   languages: string[];
 }
 
+export type StudentResumeOrigin = typeof StudentResumeOrigin[keyof typeof StudentResumeOrigin];
+
+
+export const StudentResumeOrigin = {
+  guided: 'guided',
+  manual: 'manual',
+} as const;
+
 export type StudentResumeTemplate = typeof StudentResumeTemplate[keyof typeof StudentResumeTemplate];
 
 
 export const StudentResumeTemplate = {
   ats: 'ats',
   professional: 'professional',
+  classic: 'classic',
+  modern: 'modern',
+  sidebar: 'sidebar',
 } as const;
 
 export interface StudentResume {
   id: string;
   title: string;
+  origin: StudentResumeOrigin;
   template: StudentResumeTemplate;
   content: StudentResumeContent;
   createdAt: string;
@@ -834,6 +846,9 @@ export type StudentResumeInputTemplate = typeof StudentResumeInputTemplate[keyof
 export const StudentResumeInputTemplate = {
   ats: 'ats',
   professional: 'professional',
+  classic: 'classic',
+  modern: 'modern',
+  sidebar: 'sidebar',
 } as const;
 
 export interface StudentResumeInput {
@@ -842,6 +857,7 @@ export interface StudentResumeInput {
      * @maxLength 120
      */
   title: string;
+  origin: StudentResumeOrigin;
   template: StudentResumeInputTemplate;
   content: StudentResumeContent;
 }
@@ -852,6 +868,9 @@ export type StudentResumeUpdateTemplate = typeof StudentResumeUpdateTemplate[key
 export const StudentResumeUpdateTemplate = {
   ats: 'ats',
   professional: 'professional',
+  classic: 'classic',
+  modern: 'modern',
+  sidebar: 'sidebar',
 } as const;
 
 export interface StudentResumeUpdate {
@@ -860,6 +879,7 @@ export interface StudentResumeUpdate {
      * @maxLength 120
      */
   title: string;
+  origin: StudentResumeOrigin;
   template: StudentResumeUpdateTemplate;
   content: StudentResumeContent;
 }

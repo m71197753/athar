@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { StudentResumeContent } from './studentResumeContent';
+import type { StudentResumeOrigin } from './studentResumeOrigin';
 import type { StudentResumeUpdateTemplate } from './studentResumeUpdateTemplate';
 
 export interface StudentResumeUpdate {
@@ -14,6 +15,7 @@ export interface StudentResumeUpdate {
      * @maxLength 120
      */
   title: string;
+  origin: StudentResumeOrigin;
   template: StudentResumeUpdateTemplate;
   content: StudentResumeContent;
 }

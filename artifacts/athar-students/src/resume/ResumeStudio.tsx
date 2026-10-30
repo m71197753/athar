@@ -53,7 +53,10 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   const updateResume = useUpdateStudentResume();
   const deleteResume = useDeleteStudentResume();
   const rewriteText = useRewriteResumeText();
-  const resumes = resumesQuery.data ?? [];
+  const resumes = useMemo(
+    () => (resumesQuery.data ?? []).filter(resume => resume.origin === "guided"),
+    [resumesQuery.data],
+  );
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -90,7 +93,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   }, [rewriteSuggestion, suggestionIsCurrent]);
 
   useEffect(() => {
-    if (!resumesQuery.data?.length) {
+    if (!resumes.length) {
       if (!resumesQuery.isLoading && !activeId && !initializedDraft.current) {
         initializedDraft.current = "starter";
         setContent(createStudentResumeContent(profile, achievements, courses));
@@ -100,18 +103,18 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
       return;
     }
     if (!activeId) {
-      setActiveId(resumesQuery.data[0].id);
+      setActiveId(resumes[0].id);
       return;
     }
-    const selected = resumesQuery.data.find(item => item.id === activeId);
+    const selected = resumes.find(item => item.id === activeId);
     if (selected && initializedDraft.current !== selected.id) {
       initializedDraft.current = selected.id;
       setTitle(selected.title);
-      setTemplate(selected.template);
+      setTemplate(selected.template === "professional" ? "professional" : "ats");
       setContent(selected.content);
       lastSaved.current = JSON.stringify({ title: selected.title, template: selected.template, content: selected.content });
     }
-  }, [resumesQuery.data, resumesQuery.isLoading, activeId, profile, achievements, courses]);
+  }, [resumes, resumesQuery.isLoading, activeId, profile, achievements, courses]);
 
   const saveCurrentDraft = useCallback(() => {
     if (!activeId || !title.trim()) return;
@@ -121,7 +124,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
     const failureKey = JSON.stringify([saveId, snapshotKey]);
     failedSaveKey.current = "";
     updateMutationRef.current(
-      { id: saveId, data: snapshot },
+      { id: saveId, data: { ...snapshot, origin: "guided" } },
       {
         onSuccess: () => {
           if (activeIdRef.current === saveId) lastSaved.current = snapshotKey;
@@ -151,14 +154,14 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
     const starter = createStudentResumeContent(profile, achievements, courses);
     const draftTitle = "سيرتي المهنية";
     createResume.mutate(
-      { data: { title: draftTitle, template: "ats", content: starter } },
+      { data: { title: draftTitle, origin: "guided", template: "ats", content: starter } },
       {
         onSuccess: draft => {
           initializedDraft.current = draft.id;
           lastSaved.current = JSON.stringify({ title: draft.title, template: draft.template, content: draft.content });
           setActiveId(draft.id);
           setTitle(draft.title);
-          setTemplate(draft.template);
+          setTemplate(draft.template === "professional" ? "professional" : "ats");
           setContent(draft.content);
           queryClient.setQueryData<StudentResume[]>(getListStudentResumesQueryKey(), current => [
             draft,

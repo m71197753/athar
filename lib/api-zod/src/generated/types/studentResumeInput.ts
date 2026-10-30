@@ -7,6 +7,7 @@
  */
 import type { StudentResumeContent } from './studentResumeContent';
 import type { StudentResumeInputTemplate } from './studentResumeInputTemplate';
+import type { StudentResumeOrigin } from './studentResumeOrigin';
 
 export interface StudentResumeInput {
   /**
@@ -14,6 +15,7 @@ export interface StudentResumeInput {
      * @maxLength 120
      */
   title: string;
+  origin: StudentResumeOrigin;
   template: StudentResumeInputTemplate;
   content: StudentResumeContent;
 }

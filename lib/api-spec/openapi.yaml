@@ -3078,13 +3078,17 @@ components:
           type: array
           maxItems: 20
           items: { type: string, maxLength: 100 }
+    StudentResumeOrigin:
+      type: string
+      enum: [guided, manual]
     StudentResume:
       type: object
-      required: [id, title, template, content, createdAt, updatedAt]
+      required: [id, title, origin, template, content, createdAt, updatedAt]
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
-        template: { type: string, enum: [ats, professional] }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
         content: { $ref: "#/components/schemas/StudentResumeContent" }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -3093,17 +3097,19 @@ components:
       items: { $ref: "#/components/schemas/StudentResume" }
     StudentResumeInput:
       type: object
-      required: [title, template, content]
+      required: [title, origin, template, content]
       properties:
         title: { type: string, minLength: 1, maxLength: 120 }
-        template: { type: string, enum: [ats, professional] }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
         content: { $ref: "#/components/schemas/StudentResumeContent" }
     StudentResumeUpdate:
       type: object
-      required: [title, template, content]
+      required: [title, origin, template, content]
       properties:
         title: { type: string, minLength: 1, maxLength: 120 }
-        template: { type: string, enum: [ats, professional] }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
         content: { $ref: "#/components/schemas/StudentResumeContent" }
     ResumeWritingInput:
       type: object

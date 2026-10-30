@@ -12,4 +12,7 @@ export type StudentResumeTemplate = typeof StudentResumeTemplate[keyof typeof St
 export const StudentResumeTemplate = {
   ats: 'ats',
   professional: 'professional',
+  classic: 'classic',
+  modern: 'modern',
+  sidebar: 'sidebar',
 } as const;

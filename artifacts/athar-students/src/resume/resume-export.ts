@@ -1,5 +1,5 @@
 import type { ResumeData } from "./resume-ats";
-import type { StudentResumeContent } from "@workspace/api-client-react";
+import type { StudentResumeContent, StudentResumeTemplate } from "@workspace/api-client-react";
 import type { Paragraph as ParagraphType } from "docx";
 
 const ink = "203239";
@@ -108,11 +108,11 @@ export async function downloadResumeDocx(data: ResumeData, template: "ats" | "pr
 
 export async function downloadStudentResumeDocx(
   content: StudentResumeContent,
-  template: "ats" | "professional",
+  template: StudentResumeTemplate,
   documentTitle: string,
 ) {
   const { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } = await import("docx");
-  const professional = template === "professional";
+  const professional = ["professional", "modern", "sidebar"].includes(template);
   const color = professional ? teal : ink;
   const paragraph = (text: string, options?: { bold?: boolean; color?: string; size?: number }) => new Paragraph({
     children: [new TextRun({

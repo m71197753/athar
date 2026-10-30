@@ -306,6 +306,7 @@ export * from './studentResumeContent';
 export * from './studentResumeInput';
 export * from './studentResumeInputTemplate';
 export * from './studentResumeList';
+export * from './studentResumeOrigin';
 export * from './studentResumeTemplate';
 export * from './studentResumeUpdate';
 export * from './studentResumeUpdateTemplate';

@@ -12,4 +12,7 @@ export type StudentResumeInputTemplate = typeof StudentResumeInputTemplate[keyof
 export const StudentResumeInputTemplate = {
   ats: 'ats',
   professional: 'professional',
+  classic: 'classic',
+  modern: 'modern',
+  sidebar: 'sidebar',
 } as const;

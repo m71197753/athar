@@ -13,12 +13,13 @@ import { db, studentResumesTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
-const MAX_RESUMES_PER_STUDENT = 20;
+const MAX_RESUMES_PER_ORIGIN = 20;
 
 function toStudentResume(row: typeof studentResumesTable.$inferSelect) {
   return {
     id: row.id,
     title: row.title,
+    origin: row.origin,
     template: row.template,
     content: row.content,
     createdAt: row.createdAt.toISOString(),
@@ -34,7 +35,7 @@ router.get("/student/resumes", requireAuth, async (_req, res): Promise<void> => 
     .from(studentResumesTable)
     .where(eq(studentResumesTable.userId, userId))
     .orderBy(desc(studentResumesTable.updatedAt), desc(studentResumesTable.createdAt))
-    .limit(MAX_RESUMES_PER_STUDENT);
+    .limit(MAX_RESUMES_PER_ORIGIN * 2);
 
   res.json(ListStudentResumesResponse.parse(rows.map(toStudentResume)));
 });
@@ -51,8 +52,8 @@ router.post("/student/resumes", requireAuth, async (req, res): Promise<void> => 
   const [existing] = await db
     .select({ total: count() })
     .from(studentResumesTable)
-    .where(eq(studentResumesTable.userId, userId));
-  if ((existing?.total ?? 0) >= MAX_RESUMES_PER_STUDENT) {
+    .where(and(eq(studentResumesTable.userId, userId), eq(studentResumesTable.origin, parsed.data.origin)));
+  if ((existing?.total ?? 0) >= MAX_RESUMES_PER_ORIGIN) {
     res.status(429).json({ error: "وصلت للحد الأقصى لعدد السير المحفوظة." });
     return;
   }
@@ -62,6 +63,7 @@ router.post("/student/resumes", requireAuth, async (req, res): Promise<void> => 
     .values({
       userId,
       title: parsed.data.title.trim(),
+      origin: parsed.data.origin,
       template: parsed.data.template,
       content: parsed.data.content,
     })
@@ -89,6 +91,7 @@ router.put("/student/resumes/:id", requireAuth, async (req, res): Promise<void> 
     .update(studentResumesTable)
     .set({
       title: parsed.data.title.trim(),
+      origin: parsed.data.origin,
       template: parsed.data.template,
       content: parsed.data.content,
       updatedAt: new Date(),

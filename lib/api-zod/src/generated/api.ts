@@ -2588,7 +2588,8 @@ export const listStudentResumesResponseContentLanguagesMax = 20;
 export const ListStudentResumesResponseItem = zod.object({
   "id": zod.string().uuid(),
   "title": zod.string(),
-  "template": zod.enum(['ats', 'professional']),
+  "origin": zod.enum(['guided', 'manual']),
+  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
   "content": zod.object({
   "fullName": zod.string().max(listStudentResumesResponseContentFullNameMax),
   "email": zod.string().max(listStudentResumesResponseContentEmailMax),
@@ -2733,7 +2734,8 @@ export const createStudentResumeBodyContentLanguagesMax = 20;
 
 export const CreateStudentResumeBody = zod.object({
   "title": zod.string().min(1).max(createStudentResumeBodyTitleMax),
-  "template": zod.enum(['ats', 'professional']),
+  "origin": zod.enum(['guided', 'manual']),
+  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
   "content": zod.object({
   "fullName": zod.string().max(createStudentResumeBodyContentFullNameMax),
   "email": zod.string().max(createStudentResumeBodyContentEmailMax),
@@ -2870,7 +2872,8 @@ export const createStudentResumeResponseContentLanguagesMax = 20;
 export const CreateStudentResumeResponse = zod.object({
   "id": zod.string().uuid(),
   "title": zod.string(),
-  "template": zod.enum(['ats', 'professional']),
+  "origin": zod.enum(['guided', 'manual']),
+  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
   "content": zod.object({
   "fullName": zod.string().max(createStudentResumeResponseContentFullNameMax),
   "email": zod.string().max(createStudentResumeResponseContentEmailMax),
@@ -3018,7 +3021,8 @@ export const updateStudentResumeBodyContentLanguagesMax = 20;
 
 export const UpdateStudentResumeBody = zod.object({
   "title": zod.string().min(1).max(updateStudentResumeBodyTitleMax),
-  "template": zod.enum(['ats', 'professional']),
+  "origin": zod.enum(['guided', 'manual']),
+  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
   "content": zod.object({
   "fullName": zod.string().max(updateStudentResumeBodyContentFullNameMax),
   "email": zod.string().max(updateStudentResumeBodyContentEmailMax),
@@ -3155,7 +3159,8 @@ export const updateStudentResumeResponseContentLanguagesMax = 20;
 export const UpdateStudentResumeResponse = zod.object({
   "id": zod.string().uuid(),
   "title": zod.string(),
-  "template": zod.enum(['ats', 'professional']),
+  "origin": zod.enum(['guided', 'manual']),
+  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
   "content": zod.object({
   "fullName": zod.string().max(updateStudentResumeResponseContentFullNameMax),
   "email": zod.string().max(updateStudentResumeResponseContentEmailMax),

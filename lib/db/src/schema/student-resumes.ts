@@ -11,6 +11,8 @@ export type ResumeSectionEntryRecord = {
   link: string;
 };
 
+export type StudentResumeOrigin = "guided" | "manual";
+
 export type StudentResumeContentRecord = {
   fullName: string;
   email: string;
@@ -35,6 +37,7 @@ export const studentResumesTable = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     userId: text("user_id").notNull(),
     title: text("title").notNull(),
+    origin: text("origin").$type<StudentResumeOrigin>().notNull().default("guided"),
     template: text("template").notNull().default("ats"),
     content: jsonb("content").$type<StudentResumeContentRecord>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
