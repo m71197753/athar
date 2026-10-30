@@ -932,6 +932,51 @@ export interface StudentResumeUpdate {
   content: StudentResumeContent;
 }
 
+export type StudentOfficeFileKind = typeof StudentOfficeFileKind[keyof typeof StudentOfficeFileKind];
+
+
+export const StudentOfficeFileKind = {
+  document: 'document',
+  spreadsheet: 'spreadsheet',
+} as const;
+
+export interface StudentOfficeFile {
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  kind: StudentOfficeFileKind;
+  /** @maxLength 120000 */
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type StudentOfficeFileList = StudentOfficeFile[];
+
+export interface StudentOfficeFileInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  kind: StudentOfficeFileKind;
+  /** @maxLength 120000 */
+  content: string;
+}
+
+export interface StudentOfficeFileUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  /** @maxLength 120000 */
+  content: string;
+}
+
 export type ResumeWritingInputMode = typeof ResumeWritingInputMode[keyof typeof ResumeWritingInputMode];
 
 

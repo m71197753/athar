@@ -17,6 +17,7 @@ import {
 import { Link } from "wouter";
 import { analyzeStudentResumeAts, buildStudentResumeText, createStudentResumeContent, scoreStudentResume } from "./resume-document";
 import { downloadStudentResumeDocx } from "./resume-export";
+import { NamedColorPicker } from "../components/NamedColorPicker";
 import {
   colorContrastRatio,
   DEFAULT_RESUME_APPEARANCE,
@@ -519,13 +520,15 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
                         ["textColor", "لون النص"],
                         ["headingColor", "لون العناوين"],
                         ["accentColor", "لون التمييز"],
-                      ] as const).map(([key, label]) => <label className="rs-appearance-color-field" key={key}>
+                      ] as const).map(([key, label]) => <div className="rs-appearance-color-field" key={key}>
                         <span>{label}</span>
-                        <span className="rs-color-input-wrap">
-                          <input type="color" value={appearance[key]} aria-label={label} onChange={event => updateAppearance({ [key]: event.target.value })} data-testid={`input-guided-resume-${key}`} />
-                          <code>{appearance[key]}</code>
-                        </span>
-                      </label>)}
+                        <NamedColorPicker
+                          label={label}
+                          value={appearance[key]}
+                          onChange={value => updateAppearance({ [key]: value })}
+                          testId={`input-guided-resume-${key}`}
+                        />
+                      </div>)}
                     </div>
                     <div className="rs-appearance-presets" role="group" aria-label="ألوان جاهزة">
                       <span>ألوان جاهزة</span>

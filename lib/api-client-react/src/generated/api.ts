@@ -180,6 +180,10 @@ import type {
   SectionMediaUploadInput,
   SectionMediaUploadRequest,
   SectionMediaUploadResult,
+  StudentOfficeFile,
+  StudentOfficeFileInput,
+  StudentOfficeFileList,
+  StudentOfficeFileUpdate,
   StudentProfile,
   StudentProfileInput,
   StudentResume,
@@ -5468,6 +5472,358 @@ export const useDeleteStudentResume = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDeleteStudentResumeMutationOptions(options), queryClient);
+    }
+
+export const getListStudentOfficeFilesUrl = () => {
+
+
+
+
+  return `/api/student/office-files`
+}
+
+/**
+ * @summary List the current student's private office files
+ */
+export const listStudentOfficeFiles = async ( options?: Parameters<typeof customFetch>[1]): Promise<StudentOfficeFileList> => {
+
+  return customFetch<StudentOfficeFileList>(getListStudentOfficeFilesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStudentOfficeFilesQueryKey = () => {
+    return [
+    `/api/student/office-files`
+    ] as const;
+    }
+
+
+export const getListStudentOfficeFilesQueryOptions = <TData = Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStudentOfficeFilesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStudentOfficeFiles>>> = ({ signal }) => listStudentOfficeFiles({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStudentOfficeFilesQueryResult = NonNullable<Awaited<ReturnType<typeof listStudentOfficeFiles>>>
+export type ListStudentOfficeFilesQueryError = ErrorType<void>
+
+
+export function useListStudentOfficeFiles<TData = Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentOfficeFiles>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentOfficeFiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentOfficeFiles<TData = Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentOfficeFiles>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentOfficeFiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentOfficeFiles<TData = Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the current student's private office files
+ */
+
+export function useListStudentOfficeFiles<TData = Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentOfficeFiles>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStudentOfficeFilesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStudentOfficeFileUrl = () => {
+
+
+
+
+  return `/api/student/office-files`
+}
+
+/**
+ * @summary Create a private document or spreadsheet
+ */
+export const createStudentOfficeFile = async (studentOfficeFileInput: StudentOfficeFileInput, options?: Parameters<typeof customFetch>[1]): Promise<StudentOfficeFile> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StudentOfficeFile>(getCreateStudentOfficeFileUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(studentOfficeFileInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStudentOfficeFileMutationKey = () => ['createStudentOfficeFile'] as const;
+
+export const getCreateStudentOfficeFileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStudentOfficeFile>>, TError,CreateStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStudentOfficeFile>>, TError,CreateStudentOfficeFileMutationVariables, TContext> => {
+
+const mutationKey = getCreateStudentOfficeFileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStudentOfficeFile>>, CreateStudentOfficeFileMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStudentOfficeFile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStudentOfficeFileMutationResult = NonNullable<Awaited<ReturnType<typeof createStudentOfficeFile>>>
+    export type CreateStudentOfficeFileMutationBody = BodyType<StudentOfficeFileInput>
+    export type CreateStudentOfficeFileMutationError = ErrorType<void>
+    export type CreateStudentOfficeFileMutationVariables = {data: BodyType<StudentOfficeFileInput>}
+
+    /**
+ * @summary Create a private document or spreadsheet
+ */
+export const useCreateStudentOfficeFile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStudentOfficeFile>>, TError,CreateStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStudentOfficeFile>>,
+        TError,
+        CreateStudentOfficeFileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStudentOfficeFileMutationOptions(options), queryClient);
+    }
+
+export const getUpdateStudentOfficeFileUrl = (id: string,) => {
+
+
+
+
+  return `/api/student/office-files/${id}`
+}
+
+/**
+ * @summary Update an owned private office file
+ */
+export const updateStudentOfficeFile = async (id: string,
+    studentOfficeFileUpdate: StudentOfficeFileUpdate, options?: Parameters<typeof customFetch>[1]): Promise<StudentOfficeFile> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StudentOfficeFile>(getUpdateStudentOfficeFileUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(studentOfficeFileUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateStudentOfficeFileMutationKey = () => ['updateStudentOfficeFile'] as const;
+
+export const getUpdateStudentOfficeFileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentOfficeFile>>, TError,UpdateStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStudentOfficeFile>>, TError,UpdateStudentOfficeFileMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStudentOfficeFileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudentOfficeFile>>, UpdateStudentOfficeFileMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStudentOfficeFile(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStudentOfficeFileMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudentOfficeFile>>>
+    export type UpdateStudentOfficeFileMutationBody = BodyType<StudentOfficeFileUpdate>
+    export type UpdateStudentOfficeFileMutationError = ErrorType<void>
+    export type UpdateStudentOfficeFileMutationVariables = {id: string;data: BodyType<StudentOfficeFileUpdate>}
+
+    /**
+ * @summary Update an owned private office file
+ */
+export const useUpdateStudentOfficeFile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentOfficeFile>>, TError,UpdateStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStudentOfficeFile>>,
+        TError,
+        UpdateStudentOfficeFileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStudentOfficeFileMutationOptions(options), queryClient);
+    }
+
+export const getDeleteStudentOfficeFileUrl = (id: string,) => {
+
+
+
+
+  return `/api/student/office-files/${id}`
+}
+
+/**
+ * @summary Delete an owned private office file
+ */
+export const deleteStudentOfficeFile = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteStudentOfficeFileUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteStudentOfficeFileMutationKey = () => ['deleteStudentOfficeFile'] as const;
+
+export const getDeleteStudentOfficeFileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStudentOfficeFile>>, TError,DeleteStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStudentOfficeFile>>, TError,DeleteStudentOfficeFileMutationVariables, TContext> => {
+
+const mutationKey = getDeleteStudentOfficeFileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStudentOfficeFile>>, DeleteStudentOfficeFileMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteStudentOfficeFile(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStudentOfficeFileMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStudentOfficeFile>>>
+
+    export type DeleteStudentOfficeFileMutationError = ErrorType<void>
+    export type DeleteStudentOfficeFileMutationVariables = {id: string}
+
+    /**
+ * @summary Delete an owned private office file
+ */
+export const useDeleteStudentOfficeFile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStudentOfficeFile>>, TError,DeleteStudentOfficeFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStudentOfficeFile>>,
+        TError,
+        DeleteStudentOfficeFileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteStudentOfficeFileMutationOptions(options), queryClient);
     }
 
 export const getGetPublicResumeUrl = (token: string,) => {

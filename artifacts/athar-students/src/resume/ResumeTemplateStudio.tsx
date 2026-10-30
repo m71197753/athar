@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { downloadStudentResumeDocx } from "./resume-export";
 import { scoreStudentResume } from "./resume-document";
+import { NamedColorPicker } from "../components/NamedColorPicker";
 import {
   colorContrastRatio,
   DEFAULT_RESUME_APPEARANCE,
@@ -641,15 +642,15 @@ export default function ResumeTemplateStudio() {
                     ["textColor", "لون النص"],
                     ["headingColor", "لون العناوين"],
                     ["accentColor", "لون التمييز"],
-                  ] as const).map(([key, label]) => <label className="ats-color-field" key={key}>
+                  ] as const).map(([key, label]) => <div className="ats-color-field" key={key}>
                     <span>{label}</span>
-                    <span className="ats-color-input-wrap">
-                      <input type="color" value={content.appearance?.[key] ?? DEFAULT_RESUME_APPEARANCE[key]}
-                        aria-label={label} onChange={event => updateAppearance({ [key]: event.target.value })}
-                        data-testid={`input-resume-${key}`}/>
-                      <code>{content.appearance?.[key] ?? DEFAULT_RESUME_APPEARANCE[key]}</code>
-                    </span>
-                  </label>)}
+                    <NamedColorPicker
+                      label={label}
+                      value={content.appearance?.[key] ?? DEFAULT_RESUME_APPEARANCE[key]}
+                      onChange={value => updateAppearance({ [key]: value })}
+                      testId={`input-resume-${key}`}
+                    />
+                  </div>)}
                 </div>
               </div>
               <div className="ats-appearance-presets" role="group" aria-label="ألوان جاهزة">

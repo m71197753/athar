@@ -3342,6 +3342,101 @@ export const DeleteStudentResumeResponse = zod.void()
 
 
 /**
+ * @summary List the current student's private office files
+ */
+export const listStudentOfficeFilesResponseTitleMax = 120;
+
+export const listStudentOfficeFilesResponseContentMax = 120000;
+
+
+
+export const ListStudentOfficeFilesResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(1).max(listStudentOfficeFilesResponseTitleMax),
+  "kind": zod.enum(['document', 'spreadsheet']),
+  "content": zod.string().max(listStudentOfficeFilesResponseContentMax),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListStudentOfficeFilesResponse = zod.array(ListStudentOfficeFilesResponseItem)
+
+
+/**
+ * @summary Create a private document or spreadsheet
+ */
+export const createStudentOfficeFileBodyTitleMax = 120;
+
+export const createStudentOfficeFileBodyContentMax = 120000;
+
+
+
+export const CreateStudentOfficeFileBody = zod.object({
+  "title": zod.string().min(1).max(createStudentOfficeFileBodyTitleMax),
+  "kind": zod.enum(['document', 'spreadsheet']),
+  "content": zod.string().max(createStudentOfficeFileBodyContentMax)
+})
+
+export const createStudentOfficeFileResponseTitleMax = 120;
+
+export const createStudentOfficeFileResponseContentMax = 120000;
+
+
+
+export const CreateStudentOfficeFileResponse = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(1).max(createStudentOfficeFileResponseTitleMax),
+  "kind": zod.enum(['document', 'spreadsheet']),
+  "content": zod.string().max(createStudentOfficeFileResponseContentMax),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an owned private office file
+ */
+export const UpdateStudentOfficeFileParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const updateStudentOfficeFileBodyTitleMax = 120;
+
+export const updateStudentOfficeFileBodyContentMax = 120000;
+
+
+
+export const UpdateStudentOfficeFileBody = zod.object({
+  "title": zod.string().min(1).max(updateStudentOfficeFileBodyTitleMax),
+  "content": zod.string().max(updateStudentOfficeFileBodyContentMax)
+})
+
+export const updateStudentOfficeFileResponseTitleMax = 120;
+
+export const updateStudentOfficeFileResponseContentMax = 120000;
+
+
+
+export const UpdateStudentOfficeFileResponse = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(1).max(updateStudentOfficeFileResponseTitleMax),
+  "kind": zod.enum(['document', 'spreadsheet']),
+  "content": zod.string().max(updateStudentOfficeFileResponseContentMax),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an owned private office file
+ */
+export const DeleteStudentOfficeFileParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteStudentOfficeFileResponse = zod.void()
+
+
+/**
  * @summary Get only the fields approved for a public professional profile
  */
 export const getPublicResumePathTokenMin = 32;

@@ -26,6 +26,7 @@ const ModuleSectionContent = lazy(() => import('./sections/ModuleSectionContent'
 const GraduatesPage = lazy(() => import('./graduates/GraduatesPage').then(module => ({ default: module.GraduatesPage })));
 const ResumeStudio = lazy(() => import('./resume/ResumeStudio'));
 const ResumeTemplateStudio = lazy(() => import('./resume/ResumeTemplateStudio'));
+const OfficeToolsPage = lazy(() => import('./office/OfficeToolsPage'));
 const DemoDataPage = lazy(() => import('./demo/DemoDataPage').then(module => ({ default: module.DemoDataPage })));
 import {
   ArrowDownLeft, ArrowLeft, ArrowRight, Award, BookOpen, BriefcaseBusiness,
@@ -266,6 +267,7 @@ function Shell({ children: content }: { children: ReactNode }) {
     { href: '/dashboard', label: 'الرئيسية', icon: Target },
     { href: '/profile', label: 'ملفي الشخصي', icon: GraduationCap },
     { href: '/resume-templates', label: 'قوالب السيرة', icon: FileText },
+    ...(access.data?.role !== 'admin' ? [{ href: '/office', label: 'المستندات والجداول', icon: NotebookPen }] : []),
     ...(access.data?.role === 'admin' || access.data?.enabledModules.includes('graduates') ? [{ href: '/graduates', label: 'مساحة الخريجين', icon: BriefcaseBusiness }] : []),
     ...(platform.data?.sections ?? []).map(section => ({
       href: `/sections/${section.slug}`, label: section.title,
@@ -287,6 +289,7 @@ function Shell({ children: content }: { children: ReactNode }) {
     '/graduates': 'مساحة الخريجين',
     '/languages': 'تعلّم اللغات', '/roadmap': 'خطتي المهنية', '/resume': 'سيرتي المهنية',
     '/resume-templates': 'قوالب السيرة',
+    '/office': 'المستندات والجداول',
     '/assistant': 'المساعد',
   };
   const currentPath = stripBase(loc.split('?')[0]);
@@ -1515,6 +1518,7 @@ function AuthRouter() {
       <Route path="/roadmap"><Protected><RoadmapPage/></Protected></Route>
       <Route path="/resume"><Protected><ResumePage/></Protected></Route>
       <Route path="/resume-templates"><Protected><ResumeTemplatesPage/></Protected></Route>
+      <Route path="/office"><Protected><OfficeToolsPage/></Protected></Route>
       <Route path="/assistant"><Protected><AssistantPage/></Protected></Route>
       <Route path="/profile"><Protected><ProfilePage/></Protected></Route>
       <Route path="/admin"><Protected admin><AdminPage/></Protected></Route>

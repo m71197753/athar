@@ -876,6 +876,92 @@ paths:
           description: Authentication required
         "404":
           description: Resume draft not found
+  /student/office-files:
+    get:
+      operationId: listStudentOfficeFiles
+      tags: [student]
+      summary: List the current student's private office files
+      responses:
+        "200":
+          description: Private documents and spreadsheets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFileList"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createStudentOfficeFile
+      tags: [student]
+      summary: Create a private document or spreadsheet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentOfficeFileInput"
+      responses:
+        "201":
+          description: Created private office file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFile"
+        "400":
+          description: Invalid office file
+        "401":
+          description: Authentication required
+        "429":
+          description: The student's office file limit has been reached
+  /student/office-files/{id}:
+    put:
+      operationId: updateStudentOfficeFile
+      tags: [student]
+      summary: Update an owned private office file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentOfficeFileUpdate"
+      responses:
+        "200":
+          description: Updated private office file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFile"
+        "400":
+          description: Invalid office file
+        "401":
+          description: Authentication required
+        "404":
+          description: Office file not found
+    delete:
+      operationId: deleteStudentOfficeFile
+      tags: [student]
+      summary: Delete an owned private office file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Office file deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Office file not found
   /public/resume/{token}:
     get:
       operationId: getPublicResume
@@ -3414,6 +3500,35 @@ components:
         origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
         template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
         content: { $ref: "#/components/schemas/StudentResumeContent" }
+    StudentOfficeFileKind:
+      type: string
+      enum: [document, spreadsheet]
+    StudentOfficeFile:
+      type: object
+      required: [id, title, kind, content, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        kind: { $ref: "#/components/schemas/StudentOfficeFileKind" }
+        content: { type: string, maxLength: 120000 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StudentOfficeFileList:
+      type: array
+      items: { $ref: "#/components/schemas/StudentOfficeFile" }
+    StudentOfficeFileInput:
+      type: object
+      required: [title, kind, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        kind: { $ref: "#/components/schemas/StudentOfficeFileKind" }
+        content: { type: string, maxLength: 120000 }
+    StudentOfficeFileUpdate:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        content: { type: string, maxLength: 120000 }
     ResumeWritingInput:
       type: object
       required: [mode, sourceText]

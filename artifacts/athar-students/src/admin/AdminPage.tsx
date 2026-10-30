@@ -17,6 +17,7 @@ import {
 } from '@workspace/api-client-react';
 import type { AdminNotification, AdminOverviewDetailsKind, AdminUser, AppearanceSettings, ContentEntry, ContentInput, ModuleSetting, PlatformSection, SectionBlock, SectionInput } from '@workspace/api-client-react';
 import { ThemeToggle } from '../components/theme-toggle';
+import { NamedColorPicker } from '../components/NamedColorPicker';
 import { RequiredMark } from '../components/RequiredMark';
 import { SectionAppearanceFields } from '../components/SectionAppearanceFields';
 import './admin.css';
@@ -474,7 +475,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           ['cardTextColor', 'لون النص داخل المربعات'],
           ['cardBorderColor', 'لون حدود المربعات'],
         ] as const).map(([key, label]) => <label className="adm-color-field" key={key}>
-          <span>{label}</span><span className="adm-color-value"><input type="color" value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]} onChange={e => updateAppearance(key, e.target.value.toUpperCase())} aria-label={label}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]}</code></span>
+          <span>{label}</span><span className="adm-color-value"><NamedColorPicker label={label} value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'} onChange={value => updateAppearance(key, value.toUpperCase())} testId={`admin-appearance-${key}`}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'}</code></span>
         </label>)}
       </div>
       <div className="adm-editor adm-copy-editor">

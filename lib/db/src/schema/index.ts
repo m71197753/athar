@@ -24,6 +24,7 @@ export * from "./career";
 export * from "./learning";
 export * from "./resume-shares";
 export * from "./student-resumes";
+export * from "./student-office-files";
 export * from "./platform";
 export * from "./platform-sections";
 export * from "./platform-media";
