@@ -607,7 +607,12 @@ router.get(
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Content-Type", attachment.mime);
     res.setHeader("X-Content-Type-Options", "nosniff");
-    const disposition = isAcademyImageMime(attachment.mime) ? "inline" : "attachment";
+    const disposition =
+      isAcademyImageMime(attachment.mime) ||
+      attachment.mime === "application/pdf" ||
+      attachment.mime === "text/plain"
+        ? "inline"
+        : "attachment";
     res.setHeader(
       "Content-Disposition",
       `${disposition}; filename*=UTF-8''${encodeURIComponent(safeAttachmentName(attachment.originalName))}`,

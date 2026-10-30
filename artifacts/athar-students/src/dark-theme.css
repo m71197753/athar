@@ -588,3 +588,8 @@
 .dark .evidence-upload-progress { color: #d5d9ea; }
 .dark .saved-evidence-image { background: #262b3d; }
 .dark .saved-evidence-copy>a { color: #b2adff; }
+.dark .saved-evidence-preview-button { border-color: #45415f; background: #26243d; color: #c5c2ff; }
+.dark .attachment-preview-dialog { border-color: #383d57; background: #1c2031; }
+.dark .attachment-preview-header h2 { color: #eef0fb; }
+.dark .attachment-preview-content { background: #131724; }
+.dark .attachment-preview-content iframe { background: #fff; }

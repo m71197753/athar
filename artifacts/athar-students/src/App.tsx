@@ -408,7 +408,17 @@ function AchievementAttachmentsDialog({ achievement, onClose }: { achievement: A
   const [uploadProgress, setUploadProgress] = useState<{ name: string; percent: number } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [previewAttachment, setPreviewAttachment] = useState<AchievementAttachment | null>(null);
   const refreshAttachments = () => cache.invalidateQueries({ queryKey: getListAchievementAttachmentsQueryKey(achievement.id) });
+
+  useEffect(() => {
+    if (!previewAttachment) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPreviewAttachment(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewAttachment]);
 
   const addTextOrLink = async (event: FormEvent) => {
     event.preventDefault();
@@ -529,9 +539,10 @@ function AchievementAttachmentsDialog({ achievement, onClose }: { achievement: A
                   {attachment.kind === 'text' && <p>{attachment.content}</p>}
                   {attachment.kind === 'link' && attachment.url && <a href={attachment.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={14}/>{attachment.url}</a>}
                   {attachment.kind === 'file' && attachment.status === 'uploading' && <small>الرفع لم يكتمل بعد.</small>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('image/') && attachment.downloadUrl && <img className="saved-evidence-image" src={attachment.downloadUrl} alt={attachment.title} loading="lazy"/>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('image/') && attachment.downloadUrl && <button className="saved-evidence-preview-trigger" type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`معاينة ${attachment.title}`}><img className="saved-evidence-image" src={attachment.downloadUrl} alt={attachment.title} loading="lazy"/></button>}
                   {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('video/') && attachment.downloadUrl && <video className="saved-evidence-video" src={attachment.downloadUrl} controls preload="metadata"/>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.downloadUrl && <a className="saved-evidence-download" href={attachment.downloadUrl}><Download size={14}/>{attachment.originalName || 'فتح الملف'}</a>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && (attachment.mime === 'application/pdf' || attachment.mime === 'text/plain') && attachment.downloadUrl && <button className="saved-evidence-preview-button" type="button" onClick={() => setPreviewAttachment(attachment)}><FileText size={14}/> معاينة داخل أثر</button>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.downloadUrl && <a className="saved-evidence-download" href={attachment.downloadUrl} download={attachment.originalName || 'attachment'}><Download size={14}/>تحميل {attachment.originalName || 'الملف'}</a>}
                 </div>
                 <button className="icon-button danger-icon" type="button" aria-label={`حذف ${attachment.title}`} disabled={deleteAttachment.isPending || uploading} onClick={() => removeAttachment(attachment)}><Trash2 size={15}/></button>
               </article>)
@@ -541,6 +552,16 @@ function AchievementAttachmentsDialog({ achievement, onClose }: { achievement: A
       </div>
       <footer className="dialog-footer"><button className="button button-primary" type="button" disabled={uploading} onClick={onClose}>تم</button></footer>
     </section>
+    {previewAttachment?.downloadUrl && <div className="dialog-scrim attachment-preview-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setPreviewAttachment(null); }}>
+      <section className="attachment-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="attachment-preview-title" dir="rtl">
+        <header className="attachment-preview-header"><div><span className="page-kicker">معاينة داخل أثر</span><h2 id="attachment-preview-title">{previewAttachment.title}</h2></div><button className="button button-outline" type="button" onClick={() => setPreviewAttachment(null)}><ArrowLeft size={16}/> رجوع للمرفقات</button></header>
+        <div className="attachment-preview-content">
+          {previewAttachment.mime?.startsWith('image/') && <img src={previewAttachment.downloadUrl} alt={previewAttachment.title}/>}
+          {(previewAttachment.mime === 'application/pdf' || previewAttachment.mime === 'text/plain') && <iframe src={previewAttachment.downloadUrl} title={previewAttachment.title}/>}
+        </div>
+        <footer className="attachment-preview-footer"><a className="button button-outline" href={previewAttachment.downloadUrl} download={previewAttachment.originalName || 'attachment'}><Download size={15}/> تنزيل الملف</a><button className="button button-primary" type="button" onClick={() => setPreviewAttachment(null)}><ArrowLeft size={16}/> رجوع</button></footer>
+      </section>
+    </div>}
   </div>;
 }
 
