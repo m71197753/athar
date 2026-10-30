@@ -826,6 +826,34 @@ export interface StudentResumeAppearance {
   accentColor: string;
 }
 
+export interface StudentResumeInlineStyleRange {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  field: string;
+  /**
+     * @minimum 0
+     * @maximum 20000
+     */
+  start: number;
+  /**
+     * @minimum 1
+     * @maximum 20000
+     */
+  end: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  color?: string;
+  /**
+     * @minimum 8
+     * @maximum 32
+     */
+  fontSize?: number;
+}
+
 export interface StudentResumeContent {
   /** @maxLength 120 */
   fullName: string;
@@ -867,6 +895,8 @@ export interface StudentResumeContent {
      */
   languages: string[];
   appearance?: StudentResumeAppearance;
+  /** @maxItems 600 */
+  inlineStyles?: StudentResumeInlineStyleRange[];
 }
 
 export type StudentResumeOrigin = typeof StudentResumeOrigin[keyof typeof StudentResumeOrigin];

@@ -1,6 +1,7 @@
 import type { ResumeData } from "./resume-ats";
 import type { StudentResumeContent, StudentResumeTemplate } from "@workspace/api-client-react";
 import { DEFAULT_RESUME_APPEARANCE } from "./resume-appearance";
+import { getResumeTextSegments } from "./resume-inline-formatting";
 import type { Paragraph as ParagraphType } from "docx";
 
 const ink = "203239";
@@ -118,22 +119,32 @@ export async function downloadStudentResumeDocx(
   const bodyColor = appearance.textColor.replace("#", "").toUpperCase();
   const accentColor = appearance.accentColor.replace("#", "").toUpperCase();
   const pageColor = appearance.pageColor.replace("#", "").toUpperCase();
+  const inlineStyles = content.inlineStyles ?? [];
   const rightToLeft = template !== "ats" || /[\u0600-\u06ff]/.test(JSON.stringify(content));
   const alignment = rightToLeft ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const headingLabel = (arabic: string, english: string) => template === "ats" ? `${english} | ${arabic}` : arabic;
-  const paragraph = (text: string, options?: { bold?: boolean; color?: string; size?: number }) => new Paragraph({
-    children: [new TextRun({
-      text,
+  type ParagraphOptions = { bold?: boolean; color?: string; size?: number };
+  type TextPart = { text: string; field?: string };
+  const runsFor = (text: string, field = "", options?: ParagraphOptions) =>
+    getResumeTextSegments(text, field, inlineStyles).map(segment => new TextRun({
+      text: segment.text,
       font: appearance.fontFamily,
-      size: options?.size ?? (appearance.fontSize ?? 11) * 2,
-      bold: options?.bold,
-      color: options?.color ?? bodyColor,
+      size: segment.style.fontSize ? segment.style.fontSize * 2 : options?.size ?? (appearance.fontSize ?? 11) * 2,
+      bold: segment.style.bold ?? options?.bold,
+      italics: segment.style.italic,
+      underline: segment.style.underline ? { type: "single" } : undefined,
+      color: (segment.style.color ?? options?.color ?? bodyColor).replace("#", "").toUpperCase(),
       rightToLeft,
-    })],
+    }));
+  const makeParagraph = (children: TextPart[], options?: ParagraphOptions) => new Paragraph({
+    children: children.flatMap(part => runsFor(part.text, part.field, options)),
     alignment,
     bidirectional: rightToLeft,
     spacing: { after: 95 },
   });
+  const paragraph = (text: string, options?: ParagraphOptions, field?: string) =>
+    makeParagraph([{ text, field }], options);
+  const paragraphParts = (parts: TextPart[]) => makeParagraph(parts);
   const heading = (text: string) => new Paragraph({
     text,
     heading: HeadingLevel.HEADING_2,
@@ -143,59 +154,76 @@ export async function downloadStudentResumeDocx(
     spacing: { before: 230, after: 100 },
   });
   const children: ParagraphType[] = [
-    paragraph(content.fullName.trim() || "السيرة الذاتية", { bold: true, color: headingColor, size: 36 }),
+    paragraph(content.fullName.trim() || "السيرة الذاتية", { bold: true, color: headingColor, size: 36 }, "fullName"),
   ];
   const contact = [
-    content.headline,
-    content.email,
-    content.phone,
-    content.location,
-    content.linkedin,
-    content.website,
-  ].map(value => value.trim()).filter(Boolean);
-  if (contact.length) children.push(paragraph(contact.join(" · "), { color: bodyColor }));
+    { field: "headline", text: content.headline },
+    { field: "email", text: content.email },
+    { field: "phone", text: content.phone },
+    { field: "location", text: content.location },
+    { field: "linkedin", text: content.linkedin },
+    { field: "website", text: content.website },
+  ].filter(part => part.text.trim());
+  if (contact.length) children.push(paragraphParts(contact.flatMap((part, index) =>
+    index > 0 ? [{ text: " · " }, part] : [part],
+  )));
   if (content.summary.trim()) {
     children.push(heading(headingLabel("الملخص المهني", "PROFESSIONAL SUMMARY")));
-    children.push(paragraph(content.summary.trim()));
+    children.push(paragraph(content.summary, undefined, "summary"));
   }
 
-  const addEntries = (title: string, entries: StudentResumeContent["education"]) => {
-    const populated = entries.filter(entry =>
+  const addEntries = (
+    title: string,
+    section: "education" | "experience" | "projects" | "courses",
+    entries: StudentResumeContent["education"],
+  ) => {
+    const populated = entries.map((entry, sourceIndex) => ({ entry, sourceIndex })).filter(({ entry }) =>
       [entry.title, entry.organization, entry.description, entry.link].some(value => value.trim()),
     );
     if (!populated.length) return;
     children.push(heading(title));
-    for (const entry of populated) {
-      if (entry.title.trim()) children.push(paragraph(entry.title.trim(), { bold: true }));
-      const meta = [entry.organization, entry.location, entry.period].map(value => value.trim()).filter(Boolean);
-        if (meta.length) children.push(paragraph(meta.join(" · "), { color: bodyColor }));
-      for (const line of entry.description.split(/\r?\n/).map(value => value.trim()).filter(Boolean)) {
-        children.push(paragraph(line));
-      }
-      if (entry.link.trim()) children.push(paragraph(entry.link.trim(), { color: accentColor }));
+    for (const { entry, sourceIndex } of populated) {
+      const field = `${section}.${sourceIndex}`;
+      if (entry.title.trim()) children.push(paragraph(entry.title, { bold: true }, `${field}.title`));
+      const meta = [
+        { text: entry.organization, field: `${field}.organization` },
+        { text: entry.location, field: `${field}.location` },
+        { text: entry.period, field: `${field}.period` },
+      ].filter(part => part.text.trim());
+      if (meta.length) children.push(paragraphParts(meta.flatMap((part, index) =>
+        index > 0 ? [{ text: " · " }, part] : [part],
+      )));
+      if (entry.description.trim()) children.push(paragraph(entry.description, undefined, `${field}.description`));
+      if (entry.link.trim()) children.push(paragraph(entry.link, { color: accentColor }, `${field}.link`));
     }
   };
 
   if (template === "ats") {
-    addEntries(headingLabel("الخبرات", "WORK EXPERIENCE"), content.experience);
-    addEntries(headingLabel("التعليم", "EDUCATION"), content.education);
+    addEntries(headingLabel("الخبرات", "WORK EXPERIENCE"), "experience", content.experience);
+    addEntries(headingLabel("التعليم", "EDUCATION"), "education", content.education);
   } else {
-    addEntries("التعليم", content.education);
-    addEntries("الخبرات", content.experience);
+    addEntries("التعليم", "education", content.education);
+    addEntries("الخبرات", "experience", content.experience);
   }
-  addEntries(headingLabel("المشروعات", "PROJECTS"), content.projects);
-  addEntries(headingLabel("الدورات", "COURSES"), content.courses);
+  addEntries(headingLabel("المشروعات", "PROJECTS"), "projects", content.projects);
+  addEntries(headingLabel("الدورات", "COURSES"), "courses", content.courses);
   if (content.skills.some(value => value.trim())) {
     children.push(heading(headingLabel("المهارات", "SKILLS")));
-    children.push(paragraph(content.skills.map(value => value.trim()).filter(Boolean).join(" · ")));
+    children.push(paragraphParts(content.skills.flatMap((value, index) =>
+      value.trim() ? [...(index > 0 ? [{ text: " · " }] : []), { text: value, field: `skills.${index}` }] : [],
+    )));
   }
   if (content.certifications.some(value => value.trim())) {
     children.push(heading(headingLabel("الشهادات", "CERTIFICATIONS")));
-    content.certifications.map(value => value.trim()).filter(Boolean).forEach(value => children.push(paragraph(value)));
+    content.certifications.forEach((value, index) => {
+      if (value.trim()) children.push(paragraph(value, undefined, `certifications.${index}`));
+    });
   }
   if (content.languages.some(value => value.trim())) {
     children.push(heading(headingLabel("اللغات", "LANGUAGES")));
-    children.push(paragraph(content.languages.map(value => value.trim()).filter(Boolean).join(" · ")));
+    children.push(paragraphParts(content.languages.flatMap((value, index) =>
+      value.trim() ? [...(index > 0 ? [{ text: " · " }] : []), { text: value, field: `languages.${index}` }] : [],
+    )));
   }
 
   const doc = new Document({

@@ -2647,6 +2647,19 @@ export const listStudentResumesResponseContentAppearancePageColorRegExp = new Re
 export const listStudentResumesResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const listStudentResumesResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const listStudentResumesResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const listStudentResumesResponseContentInlineStylesItemFieldMax = 240;
+
+export const listStudentResumesResponseContentInlineStylesItemStartMin = 0;
+export const listStudentResumesResponseContentInlineStylesItemStartMax = 20000;
+
+export const listStudentResumesResponseContentInlineStylesItemEndMax = 20000;
+
+export const listStudentResumesResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const listStudentResumesResponseContentInlineStylesItemFontSizeMin = 8;
+export const listStudentResumesResponseContentInlineStylesItemFontSizeMax = 32;
+
+export const listStudentResumesResponseContentInlineStylesMax = 600;
+
 
 
 export const ListStudentResumesResponseItem = zod.object({
@@ -2705,7 +2718,17 @@ export const ListStudentResumesResponseItem = zod.object({
   "textColor": zod.string().regex(listStudentResumesResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(listStudentResumesResponseContentAppearanceHeadingColorRegExp),
   "accentColor": zod.string().regex(listStudentResumesResponseContentAppearanceAccentColorRegExp)
-}).optional()
+}).optional(),
+  "inlineStyles": zod.array(zod.object({
+  "field": zod.string().min(1).max(listStudentResumesResponseContentInlineStylesItemFieldMax),
+  "start": zod.number().int().min(listStudentResumesResponseContentInlineStylesItemStartMin).max(listStudentResumesResponseContentInlineStylesItemStartMax),
+  "end": zod.number().int().min(1).max(listStudentResumesResponseContentInlineStylesItemEndMax),
+  "bold": zod.boolean().optional(),
+  "italic": zod.boolean().optional(),
+  "underline": zod.boolean().optional(),
+  "color": zod.string().regex(listStudentResumesResponseContentInlineStylesItemColorRegExp).optional(),
+  "fontSize": zod.number().int().min(listStudentResumesResponseContentInlineStylesItemFontSizeMin).max(listStudentResumesResponseContentInlineStylesItemFontSizeMax).optional()
+})).max(listStudentResumesResponseContentInlineStylesMax).optional()
 }),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -2809,6 +2832,19 @@ export const createStudentResumeBodyContentAppearancePageColorRegExp = new RegEx
 export const createStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeBodyContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const createStudentResumeBodyContentInlineStylesItemFieldMax = 240;
+
+export const createStudentResumeBodyContentInlineStylesItemStartMin = 0;
+export const createStudentResumeBodyContentInlineStylesItemStartMax = 20000;
+
+export const createStudentResumeBodyContentInlineStylesItemEndMax = 20000;
+
+export const createStudentResumeBodyContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const createStudentResumeBodyContentInlineStylesItemFontSizeMin = 8;
+export const createStudentResumeBodyContentInlineStylesItemFontSizeMax = 32;
+
+export const createStudentResumeBodyContentInlineStylesMax = 600;
+
 
 
 export const CreateStudentResumeBody = zod.object({
@@ -2866,7 +2902,17 @@ export const CreateStudentResumeBody = zod.object({
   "textColor": zod.string().regex(createStudentResumeBodyContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(createStudentResumeBodyContentAppearanceHeadingColorRegExp),
   "accentColor": zod.string().regex(createStudentResumeBodyContentAppearanceAccentColorRegExp)
-}).optional()
+}).optional(),
+  "inlineStyles": zod.array(zod.object({
+  "field": zod.string().min(1).max(createStudentResumeBodyContentInlineStylesItemFieldMax),
+  "start": zod.number().int().min(createStudentResumeBodyContentInlineStylesItemStartMin).max(createStudentResumeBodyContentInlineStylesItemStartMax),
+  "end": zod.number().int().min(1).max(createStudentResumeBodyContentInlineStylesItemEndMax),
+  "bold": zod.boolean().optional(),
+  "italic": zod.boolean().optional(),
+  "underline": zod.boolean().optional(),
+  "color": zod.string().regex(createStudentResumeBodyContentInlineStylesItemColorRegExp).optional(),
+  "fontSize": zod.number().int().min(createStudentResumeBodyContentInlineStylesItemFontSizeMin).max(createStudentResumeBodyContentInlineStylesItemFontSizeMax).optional()
+})).max(createStudentResumeBodyContentInlineStylesMax).optional()
 })
 })
 
@@ -2961,6 +3007,19 @@ export const createStudentResumeResponseContentAppearancePageColorRegExp = new R
 export const createStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const createStudentResumeResponseContentInlineStylesItemFieldMax = 240;
+
+export const createStudentResumeResponseContentInlineStylesItemStartMin = 0;
+export const createStudentResumeResponseContentInlineStylesItemStartMax = 20000;
+
+export const createStudentResumeResponseContentInlineStylesItemEndMax = 20000;
+
+export const createStudentResumeResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const createStudentResumeResponseContentInlineStylesItemFontSizeMin = 8;
+export const createStudentResumeResponseContentInlineStylesItemFontSizeMax = 32;
+
+export const createStudentResumeResponseContentInlineStylesMax = 600;
+
 
 
 export const CreateStudentResumeResponse = zod.object({
@@ -3019,7 +3078,17 @@ export const CreateStudentResumeResponse = zod.object({
   "textColor": zod.string().regex(createStudentResumeResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(createStudentResumeResponseContentAppearanceHeadingColorRegExp),
   "accentColor": zod.string().regex(createStudentResumeResponseContentAppearanceAccentColorRegExp)
-}).optional()
+}).optional(),
+  "inlineStyles": zod.array(zod.object({
+  "field": zod.string().min(1).max(createStudentResumeResponseContentInlineStylesItemFieldMax),
+  "start": zod.number().int().min(createStudentResumeResponseContentInlineStylesItemStartMin).max(createStudentResumeResponseContentInlineStylesItemStartMax),
+  "end": zod.number().int().min(1).max(createStudentResumeResponseContentInlineStylesItemEndMax),
+  "bold": zod.boolean().optional(),
+  "italic": zod.boolean().optional(),
+  "underline": zod.boolean().optional(),
+  "color": zod.string().regex(createStudentResumeResponseContentInlineStylesItemColorRegExp).optional(),
+  "fontSize": zod.number().int().min(createStudentResumeResponseContentInlineStylesItemFontSizeMin).max(createStudentResumeResponseContentInlineStylesItemFontSizeMax).optional()
+})).max(createStudentResumeResponseContentInlineStylesMax).optional()
 }),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -3126,6 +3195,19 @@ export const updateStudentResumeBodyContentAppearancePageColorRegExp = new RegEx
 export const updateStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeBodyContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const updateStudentResumeBodyContentInlineStylesItemFieldMax = 240;
+
+export const updateStudentResumeBodyContentInlineStylesItemStartMin = 0;
+export const updateStudentResumeBodyContentInlineStylesItemStartMax = 20000;
+
+export const updateStudentResumeBodyContentInlineStylesItemEndMax = 20000;
+
+export const updateStudentResumeBodyContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const updateStudentResumeBodyContentInlineStylesItemFontSizeMin = 8;
+export const updateStudentResumeBodyContentInlineStylesItemFontSizeMax = 32;
+
+export const updateStudentResumeBodyContentInlineStylesMax = 600;
+
 
 
 export const UpdateStudentResumeBody = zod.object({
@@ -3183,7 +3265,17 @@ export const UpdateStudentResumeBody = zod.object({
   "textColor": zod.string().regex(updateStudentResumeBodyContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(updateStudentResumeBodyContentAppearanceHeadingColorRegExp),
   "accentColor": zod.string().regex(updateStudentResumeBodyContentAppearanceAccentColorRegExp)
-}).optional()
+}).optional(),
+  "inlineStyles": zod.array(zod.object({
+  "field": zod.string().min(1).max(updateStudentResumeBodyContentInlineStylesItemFieldMax),
+  "start": zod.number().int().min(updateStudentResumeBodyContentInlineStylesItemStartMin).max(updateStudentResumeBodyContentInlineStylesItemStartMax),
+  "end": zod.number().int().min(1).max(updateStudentResumeBodyContentInlineStylesItemEndMax),
+  "bold": zod.boolean().optional(),
+  "italic": zod.boolean().optional(),
+  "underline": zod.boolean().optional(),
+  "color": zod.string().regex(updateStudentResumeBodyContentInlineStylesItemColorRegExp).optional(),
+  "fontSize": zod.number().int().min(updateStudentResumeBodyContentInlineStylesItemFontSizeMin).max(updateStudentResumeBodyContentInlineStylesItemFontSizeMax).optional()
+})).max(updateStudentResumeBodyContentInlineStylesMax).optional()
 })
 })
 
@@ -3278,6 +3370,19 @@ export const updateStudentResumeResponseContentAppearancePageColorRegExp = new R
 export const updateStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const updateStudentResumeResponseContentInlineStylesItemFieldMax = 240;
+
+export const updateStudentResumeResponseContentInlineStylesItemStartMin = 0;
+export const updateStudentResumeResponseContentInlineStylesItemStartMax = 20000;
+
+export const updateStudentResumeResponseContentInlineStylesItemEndMax = 20000;
+
+export const updateStudentResumeResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const updateStudentResumeResponseContentInlineStylesItemFontSizeMin = 8;
+export const updateStudentResumeResponseContentInlineStylesItemFontSizeMax = 32;
+
+export const updateStudentResumeResponseContentInlineStylesMax = 600;
+
 
 
 export const UpdateStudentResumeResponse = zod.object({
@@ -3336,7 +3441,17 @@ export const UpdateStudentResumeResponse = zod.object({
   "textColor": zod.string().regex(updateStudentResumeResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(updateStudentResumeResponseContentAppearanceHeadingColorRegExp),
   "accentColor": zod.string().regex(updateStudentResumeResponseContentAppearanceAccentColorRegExp)
-}).optional()
+}).optional(),
+  "inlineStyles": zod.array(zod.object({
+  "field": zod.string().min(1).max(updateStudentResumeResponseContentInlineStylesItemFieldMax),
+  "start": zod.number().int().min(updateStudentResumeResponseContentInlineStylesItemStartMin).max(updateStudentResumeResponseContentInlineStylesItemStartMax),
+  "end": zod.number().int().min(1).max(updateStudentResumeResponseContentInlineStylesItemEndMax),
+  "bold": zod.boolean().optional(),
+  "italic": zod.boolean().optional(),
+  "underline": zod.boolean().optional(),
+  "color": zod.string().regex(updateStudentResumeResponseContentInlineStylesItemColorRegExp).optional(),
+  "fontSize": zod.number().int().min(updateStudentResumeResponseContentInlineStylesItemFontSizeMin).max(updateStudentResumeResponseContentInlineStylesItemFontSizeMax).optional()
+})).max(updateStudentResumeResponseContentInlineStylesMax).optional()
 }),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()

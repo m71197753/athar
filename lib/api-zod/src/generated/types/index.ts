@@ -330,6 +330,7 @@ export * from './studentResume';
 export * from './studentResumeAppearance';
 export * from './studentResumeAppearanceFontFamily';
 export * from './studentResumeContent';
+export * from './studentResumeInlineStyleRange';
 export * from './studentResumeInput';
 export * from './studentResumeInputTemplate';
 export * from './studentResumeList';

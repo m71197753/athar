@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type SyntheticEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { StudentResume, StudentResumeContent } from "@workspace/api-client-react";
 import {
@@ -9,7 +9,7 @@ import {
   useUpdateStudentResume,
 } from "@workspace/api-client-react";
 import {
-  AlertCircle, Check, FileText, Layers2, LoaderCircle, Plus, Printer, Save, Trash2, X,
+  AlertCircle, Bold, Check, FileText, Italic, Layers2, LoaderCircle, Plus, Printer, Save, Trash2, Underline, X,
   ArrowDownToLine,
 } from "lucide-react";
 import { downloadStudentResumeDocx } from "./resume-export";
@@ -25,6 +25,15 @@ import {
   type ResumeAppearance,
   type ResumeFontFamily,
 } from "./resume-appearance";
+import {
+  applyResumeInlineStyle,
+  getResumeInlineStyleForSelection,
+  getResumeTextSegments,
+  hasResumeInlineStyle,
+  removeResumeInlineStylesForArrayIndex,
+  updateResumeInlineStylesAfterTextChange,
+  type ResumeInlineStylePatch,
+} from "./resume-inline-formatting";
 import "./resume-template-studio.css";
 
 type ManualTemplate = "ats" | "classic" | "modern" | "sidebar";
@@ -32,6 +41,8 @@ type EntrySection = "education" | "experience" | "projects" | "courses";
 type ListSection = "skills" | "certifications" | "languages";
 type ResumeEntry = StudentResumeContent[EntrySection][number];
 type SaveState = "saved" | "pending" | "saving" | "error" | "unsaved";
+type PersonalTextField = "fullName" | "email" | "phone" | "location" | "linkedin" | "website" | "headline" | "summary";
+type InlineSelection = { field: string; start: number; end: number; left: number; top: number };
 
 const blankContent = (): StudentResumeContent => ({
   fullName: "",
@@ -111,6 +122,7 @@ export default function ResumeTemplateStudio() {
   const [exportError, setExportError] = useState("");
   const [createError, setCreateError] = useState("");
   const [newTitle, setNewTitle] = useState("مسودة جديدة");
+  const [inlineSelection, setInlineSelection] = useState<InlineSelection | null>(null);
   const initializedId = useRef<string | null>(null);
   const lastSaved = useRef("");
   const failedSaveKey = useRef("");
@@ -121,6 +133,87 @@ export default function ResumeTemplateStudio() {
 
   const activeDraft = manualResumes.find(resume => resume.id === activeId);
   const readiness = useMemo(() => scoreStudentResume(content), [content]);
+  const selectedInlineStyle = inlineSelection
+    ? getResumeInlineStyleForSelection(content.inlineStyles ?? [], inlineSelection.field, inlineSelection.start, inlineSelection.end)
+    : {};
+
+  useEffect(() => {
+    if (!inlineSelection) return;
+    const closeToolbar = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".ats-inline-format-toolbar, .named-color-popover, [data-resume-inline-field]")) return;
+      setInlineSelection(null);
+    };
+    document.addEventListener("pointerdown", closeToolbar);
+    return () => document.removeEventListener("pointerdown", closeToolbar);
+  }, [inlineSelection]);
+
+  const captureInlineSelection = (event: SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const input = event.currentTarget;
+    const field = input.dataset.resumeInlineField;
+    const start = input.selectionStart ?? 0;
+    const end = input.selectionEnd ?? 0;
+    if (!field || start === end) {
+      setInlineSelection(null);
+      return;
+    }
+    const rect = input.getBoundingClientRect();
+    const toolbarWidth = Math.min(360, window.innerWidth - 16);
+    setInlineSelection({
+      field,
+      start,
+      end,
+      left: Math.max(8, Math.min(window.innerWidth - toolbarWidth - 8, rect.left + (rect.width - toolbarWidth) / 2)),
+      top: Math.max(8, rect.top - 64),
+    });
+  };
+  const capturePreviewSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !selection.rangeCount) {
+      setInlineSelection(null);
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    const closestField = (node: Node) => {
+      const element = node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
+      return element?.closest<HTMLElement>("[data-resume-format-field]") ?? null;
+    };
+    const startField = closestField(range.startContainer);
+    const endField = closestField(range.endContainer);
+    const field = startField?.dataset.resumeFormatField;
+    if (!startField || startField !== endField || !field || !startField.contains(range.endContainer)) {
+      setInlineSelection(null);
+      return;
+    }
+    const textOffset = (node: Node, offset: number) => {
+      const before = document.createRange();
+      before.selectNodeContents(startField);
+      before.setEnd(node, offset);
+      return before.toString().length;
+    };
+    const start = textOffset(range.startContainer, range.startOffset);
+    const end = textOffset(range.endContainer, range.endOffset);
+    if (start === end) {
+      setInlineSelection(null);
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    const toolbarWidth = Math.min(360, window.innerWidth - 16);
+    setInlineSelection({
+      field,
+      start: Math.min(start, end),
+      end: Math.max(start, end),
+      left: Math.max(8, Math.min(window.innerWidth - toolbarWidth - 8, rect.left + (rect.width - toolbarWidth) / 2)),
+      top: Math.max(8, rect.top - 64),
+    });
+  };
+  const selectableFieldProps = (field: string) => ({
+    "data-resume-inline-field": field,
+    onSelect: captureInlineSelection,
+    onMouseUp: captureInlineSelection,
+    onKeyUp: captureInlineSelection,
+  });
 
   useEffect(() => {
     if (!activeId) return;
@@ -284,6 +377,47 @@ export default function ResumeTemplateStudio() {
   const updateContent = (updater: (previous: StudentResumeContent) => StudentResumeContent) => {
     setContent(previous => updater(previous));
   };
+  const updateTextField = (field: PersonalTextField, value: string) => updateContent(previous => ({
+    ...previous,
+    [field]: value,
+    inlineStyles: updateResumeInlineStylesAfterTextChange(previous.inlineStyles ?? [], field, previous[field], value),
+  }));
+  const applySelectionStyle = (patch: ResumeInlineStylePatch) => {
+    if (!inlineSelection) return;
+    updateContent(previous => ({
+      ...previous,
+      inlineStyles: applyResumeInlineStyle(
+        previous.inlineStyles ?? [],
+        inlineSelection.field,
+        inlineSelection.start,
+        inlineSelection.end,
+        patch,
+      ),
+    }));
+  };
+  const renderInlineText = (text: string, field: string) => {
+    const segments = getResumeTextSegments(text, field, content.inlineStyles ?? []);
+    return <span className="ats-formatted-text" data-resume-format-field={field}>
+      {segments.map((segment, index) => <span key={`${field}-${index}`} style={{
+        color: segment.style.color,
+        fontSize: segment.style.fontSize ? `${segment.style.fontSize}pt` : undefined,
+        fontWeight: segment.style.bold ? 700 : undefined,
+        fontStyle: segment.style.italic ? "italic" : undefined,
+        textDecoration: segment.style.underline ? "underline" : undefined,
+      }}>{segment.text}</span>)}
+    </span>;
+  };
+  const toggleInlineStyle = (key: "bold" | "italic" | "underline") => {
+    if (!inlineSelection) return;
+    const active = hasResumeInlineStyle(
+      content.inlineStyles ?? [],
+      inlineSelection.field,
+      inlineSelection.start,
+      inlineSelection.end,
+      key,
+    );
+    applySelectionStyle({ [key]: !active });
+  };
   const updateAppearance = (patch: Partial<ResumeAppearance>) => updateContent(previous => ({
     ...previous,
     appearance: {
@@ -292,12 +426,19 @@ export default function ResumeTemplateStudio() {
       ...patch,
     },
   }));
-  const updateEntry = (section: EntrySection, index: number, field: keyof ResumeEntry, value: string) => {
-    updateContent(previous => ({
+  const updateEntry = (section: EntrySection, index: number, field: keyof ResumeEntry, value: string) => updateContent(previous => {
+    const key = `${section}.${index}.${field}`;
+    return {
       ...previous,
       [section]: previous[section].map((entry, itemIndex) => itemIndex === index ? { ...entry, [field]: value } : entry),
-    }));
-  };
+      inlineStyles: updateResumeInlineStylesAfterTextChange(
+        previous.inlineStyles ?? [],
+        key,
+        previous[section][index]?.[field] ?? "",
+        value,
+      ),
+    };
+  });
   const addEntry = (section: EntrySection) => updateContent(previous =>
     previous[section].length >= entryLimits[section]
       ? previous
@@ -306,11 +447,16 @@ export default function ResumeTemplateStudio() {
   const removeEntry = (section: EntrySection, index: number) => updateContent(previous => ({
     ...previous,
     [section]: previous[section].filter((_, itemIndex) => itemIndex !== index),
+    inlineStyles: removeResumeInlineStylesForArrayIndex(previous.inlineStyles ?? [], section, index),
   }));
-  const updateList = (section: ListSection, index: number, value: string) => updateContent(previous => ({
-    ...previous,
-    [section]: previous[section].map((item, itemIndex) => itemIndex === index ? value : item),
-  }));
+  const updateList = (section: ListSection, index: number, value: string) => updateContent(previous => {
+    const key = `${section}.${index}`;
+    return {
+      ...previous,
+      [section]: previous[section].map((item, itemIndex) => itemIndex === index ? value : item),
+      inlineStyles: updateResumeInlineStylesAfterTextChange(previous.inlineStyles ?? [], key, previous[section][index] ?? "", value),
+    };
+  });
   const addList = (section: ListSection) => updateContent(previous =>
     previous[section].length >= listLimits[section]
       ? previous
@@ -319,6 +465,7 @@ export default function ResumeTemplateStudio() {
   const removeList = (section: ListSection, index: number) => updateContent(previous => ({
     ...previous,
     [section]: previous[section].filter((_, itemIndex) => itemIndex !== index),
+    inlineStyles: removeResumeInlineStylesForArrayIndex(previous.inlineStyles ?? [], section, index),
   }));
 
   const retrySave = () => {
@@ -361,18 +508,18 @@ export default function ResumeTemplateStudio() {
             ] as const).map(([field, label, maxLength]) => (
               <label className="ats-field" key={field}><span>{label}</span>
                 <input value={entry[field]} maxLength={maxLength} onChange={event => updateEntry(section, index, field, event.target.value)}
-                  data-testid={`input-${section}-${field}-${index}`} />
+                  {...selectableFieldProps(`${section}.${index}.${field}`)} data-testid={`input-${section}-${field}-${index}`} />
               </label>
             ))}
             <label className="ats-field ats-wide"><span>الوصف</span>
               <textarea value={entry.description} maxLength={2000} rows={3}
                 onChange={event => updateEntry(section, index, "description", event.target.value)}
-                data-testid={`input-${section}-description-${index}`} />
+                {...selectableFieldProps(`${section}.${index}.description`)} data-testid={`input-${section}-description-${index}`} />
             </label>
             <label className="ats-field ats-wide"><span>الرابط، إن وجد</span>
               <input value={entry.link} maxLength={400} dir="ltr"
                 onChange={event => updateEntry(section, index, "link", event.target.value)}
-                data-testid={`input-${section}-link-${index}`} />
+                {...selectableFieldProps(`${section}.${index}.link`)} data-testid={`input-${section}-link-${index}`} />
             </label>
           </div>
         </article>
@@ -396,7 +543,8 @@ export default function ResumeTemplateStudio() {
         {content[section].map((item, index) => (
           <div className="ats-string-row" key={`${section}-${index}`} data-testid={`row-editor-${section}-${index}`}>
             <input aria-label={`${sectionLabels[section]} ${index + 1}`} value={item} maxLength={listItemLimits[section]}
-              onChange={event => updateList(section, index, event.target.value)} data-testid={`input-${section}-${index}`} />
+              onChange={event => updateList(section, index, event.target.value)}
+              {...selectableFieldProps(`${section}.${index}`)} data-testid={`input-${section}-${index}`} />
             <button type="button" className="ats-icon-button" aria-label={`حذف ${sectionLabels[section]} ${index + 1}`}
               onClick={() => removeList(section, index)} data-testid={`button-remove-${section}-${index}`}><X size={14} /></button>
           </div>
@@ -408,31 +556,31 @@ export default function ResumeTemplateStudio() {
   const renderPreviewSection = (section: EntrySection | ListSection, index: number) => {
     const label = template === "ats" ? atsSectionLabels[section] : sectionLabels[section];
     if (section === "skills" || section === "certifications" || section === "languages") {
-      const items = content[section].map(value => value.trim()).filter(Boolean);
+      const items = content[section].map((value, sourceIndex) => ({ value, sourceIndex })).filter(item => item.value.trim());
       if (!items.length) return null;
       return (
         <section className="ats-paper-section" key={section} data-testid={`section-preview-${section}`}>
           <h3>{template !== "ats" && <span>{String(index + 1).padStart(2, "0")}</span>}{label}</h3>
           <ul className="ats-paper-chips" data-testid={`list-preview-${section}`}>
-            {items.map((item, itemIndex) => <li key={`${section}-${itemIndex}`} data-testid={`text-preview-${section}-${itemIndex}`}>{item}</li>)}
+            {items.map(({ value, sourceIndex }, itemIndex) => <li key={`${section}-${sourceIndex}`} data-testid={`text-preview-${section}-${itemIndex}`}>{renderInlineText(value, `${section}.${sourceIndex}`)}</li>)}
           </ul>
         </section>
       );
     }
-    const entries = content[section].filter(entry =>
+    const entries = content[section].map((entry, sourceIndex) => ({ entry, sourceIndex })).filter(({ entry }) =>
       [entry.title, entry.organization, entry.location, entry.period, entry.description, entry.link].some(Boolean),
     );
     if (!entries.length) return null;
     return (
       <section className="ats-paper-section" key={section} data-testid={`section-preview-${section}`}>
           <h3>{template !== "ats" && <span>{String(index + 1).padStart(2, "0")}</span>}{label}</h3>
-        <div className="ats-paper-entries">{entries.map((entry, entryIndex) => (
+        <div className="ats-paper-entries">{entries.map(({ entry, sourceIndex }, entryIndex) => (
           <article className="ats-paper-entry" key={`${section}-${entryIndex}`} data-testid={`card-preview-${section}-${entryIndex}`}>
-            <div className="ats-paper-entry-top"><h4>{entry.title}</h4><time>{entry.period}</time></div>
+            <div className="ats-paper-entry-top"><h4>{renderInlineText(entry.title, `${section}.${sourceIndex}.title`)}</h4><time>{renderInlineText(entry.period, `${section}.${sourceIndex}.period`)}</time></div>
             {[entry.organization, entry.location].filter(Boolean).length > 0 &&
-              <p className="ats-paper-meta">{[entry.organization, entry.location].filter(Boolean).join(" · ")}</p>}
-            {entry.description && <p className="ats-paper-desc">{entry.description}</p>}
-            {entry.link && <p className="ats-paper-meta" dir="ltr">{entry.link}</p>}
+              <p className="ats-paper-meta">{entry.organization && renderInlineText(entry.organization, `${section}.${sourceIndex}.organization`)}{entry.organization && entry.location && " · "}{entry.location && renderInlineText(entry.location, `${section}.${sourceIndex}.location`)}</p>}
+            {entry.description && <p className="ats-paper-desc">{renderInlineText(entry.description, `${section}.${sourceIndex}.description`)}</p>}
+            {entry.link && <p className="ats-paper-meta" dir="ltr">{renderInlineText(entry.link, `${section}.${sourceIndex}.link`)}</p>}
           </article>
         ))}</div>
       </section>
@@ -467,13 +615,20 @@ export default function ResumeTemplateStudio() {
         <header className="ats-paper-header">
           <div className="ats-paper-identity">
             {template !== "ats" && <span className="ats-doc-label">السيرة الذاتية</span>}
-            <h2 data-testid="text-resume-name">{content.fullName || "اسمك"}</h2>
-            {content.headline && <p className="ats-paper-headline" data-testid="text-resume-headline">{content.headline}</p>}
+            <h2 data-testid="text-resume-name">{renderInlineText(content.fullName || "اسمك", "fullName")}</h2>
+            {content.headline && <p className="ats-paper-headline" data-testid="text-resume-headline">{renderInlineText(content.headline, "headline")}</p>}
             {[content.email, content.phone, content.location, content.linkedin, content.website].some(Boolean) &&
               <div className="ats-paper-contact" data-testid="text-resume-contact">
-                {[content.email, content.phone, content.location, content.linkedin, content.website].filter(Boolean).map((value, index) =>
-                  <span key={`contact-${index}`} dir={index === 0 || index > 2 ? "ltr" : undefined}>{value}</span>,
-                )}
+                {([
+                  ["email", content.email],
+                  ["phone", content.phone],
+                  ["location", content.location],
+                  ["linkedin", content.linkedin],
+                  ["website", content.website],
+                ] as const).filter(([, value]) => value).map(([field, value], index) => <Fragment key={`contact-${field}`}>
+                  {index > 0 && " · "}
+                  <span dir={field === "email" || field === "linkedin" || field === "website" ? "ltr" : undefined}>{renderInlineText(value, field)}</span>
+                </Fragment>)}
               </div>}
           </div>
           {template !== "ats" && content.fullName && <div className="ats-paper-mark" aria-hidden="true">{content.fullName.trim().slice(0, 1)}</div>}
@@ -481,7 +636,7 @@ export default function ResumeTemplateStudio() {
         {template === "sidebar" ? (
           <>
             <div className="ats-sidebar-main">
-              {content.summary && <section className="ats-paper-section"><h3><span>01</span>الملخص المهني</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{content.summary}</p></section>}
+              {content.summary && <section className="ats-paper-section"><h3><span>01</span>الملخص المهني</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{renderInlineText(content.summary, "summary")}</p></section>}
               {sectionOrder.slice(0, 4).map((section, index) => renderPreviewSection(section, index + (content.summary ? 1 : 0)))}
             </div>
             <aside className="ats-sidebar-aside" aria-label="معلومات إضافية">
@@ -490,7 +645,7 @@ export default function ResumeTemplateStudio() {
           </>
         ) : (
           <>
-            {content.summary && <section className="ats-paper-section"><h3>{template !== "ats" && <span>01</span>}{summaryHeading}</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{content.summary}</p></section>}
+              {content.summary && <section className="ats-paper-section"><h3>{template !== "ats" && <span>01</span>}{summaryHeading}</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{renderInlineText(content.summary, "summary")}</p></section>}
             {sectionOrder.map((section, index) => renderPreviewSection(section, index + (content.summary ? 1 : 0)))}
           </>
         )}
@@ -638,7 +793,7 @@ export default function ResumeTemplateStudio() {
                 </label>
                 <div className="ats-appearance-colors">
                   {([
-                    ["pageColor", "لون خلفية الصفحة"],
+                    ["pageColor", "لون الورقة البيضاء"],
                     ["textColor", "لون النص"],
                     ["headingColor", "لون العناوين"],
                     ["accentColor", "لون التمييز"],
@@ -653,6 +808,7 @@ export default function ResumeTemplateStudio() {
                   </div>)}
                 </div>
               </div>
+              <p className="ats-page-color-hint">هذا اللون يغيّر مساحة الورقة البيضاء كاملةً في المعاينة وملف Word.</p>
               <div className="ats-appearance-presets" role="group" aria-label="ألوان جاهزة">
                 <span>ألوان جاهزة</span>
                 {RESUME_COLOR_PRESETS.map(preset => <button type="button" key={preset.label} onClick={() => updateAppearance(preset.appearance)} data-testid={`button-resume-preset-${preset.label}`}>
@@ -679,15 +835,15 @@ export default function ResumeTemplateStudio() {
                   ["website", "الموقع الإلكتروني", 400],
                 ] as const).map(([field, label, maxLength]) => (
                   <label className="ats-field" key={field}><span>{label}</span>
-                    <input value={content[field]} maxLength={maxLength} dir={["email", "phone", "linkedin", "website"].includes(field) ? "ltr" : undefined}
-                      onChange={event => updateContent(previous => ({ ...previous, [field]: event.target.value }))}
-                      data-testid={`input-manual-${field}`} />
+              <input value={content[field]} maxLength={maxLength} dir={["email", "phone", "linkedin", "website"].includes(field) ? "ltr" : undefined}
+                onChange={event => updateTextField(field, event.target.value)}
+                {...selectableFieldProps(field)} data-testid={`input-manual-${field}`} />
                   </label>
                 ))}
                 <label className="ats-field ats-wide"><span>الملخص المهني</span>
                   <textarea value={content.summary} maxLength={2000} rows={4}
-                    onChange={event => updateContent(previous => ({ ...previous, summary: event.target.value }))}
-                    data-testid="input-manual-summary" />
+                    onChange={event => updateTextField("summary", event.target.value)}
+                    {...selectableFieldProps("summary")} data-testid="input-manual-summary" />
                 </label>
               </div>
             </section>
@@ -705,7 +861,7 @@ export default function ResumeTemplateStudio() {
             {exportError && <p className="ats-export-error" role="alert" data-testid="status-manual-export-error">{exportError}</p>}
           </div>
 
-          <section className="ats-preview-column" aria-label="معاينة السيرة">
+          <section className="ats-preview-column" aria-label="معاينة السيرة" onPointerUp={capturePreviewSelection}>
             <div className="ats-preview-caption ats-studio-tools"><span className="ats-live-dot" />معاينة مباشرة
               <span data-testid="text-manual-updated">{activeDraft ? `آخر حفظ ${formatDate(activeDraft.updatedAt)}` : "مسودة جديدة"}</span>
             </div>
@@ -713,6 +869,28 @@ export default function ResumeTemplateStudio() {
           </section>
         </div>
       )}
+      {inlineSelection && <div className="ats-inline-format-toolbar" role="toolbar" aria-label="تنسيق النص المحدد"
+        style={{ left: inlineSelection.left, top: inlineSelection.top }} data-testid="toolbar-resume-inline-format"
+        onMouseDown={event => {
+          if ((event.target as HTMLElement).closest("button")) event.preventDefault();
+        }}>
+        <button type="button" className="ats-format-button ats-format-letter" aria-label="غامق" aria-pressed={selectedInlineStyle.bold === true}
+          onClick={() => toggleInlineStyle("bold")} data-testid="button-resume-format-bold"><Bold size={15}/></button>
+        <button type="button" className="ats-format-button" aria-label="مائل" aria-pressed={selectedInlineStyle.italic === true}
+          onClick={() => toggleInlineStyle("italic")} data-testid="button-resume-format-italic"><Italic size={15}/></button>
+        <button type="button" className="ats-format-button" aria-label="تحته خط" aria-pressed={selectedInlineStyle.underline === true}
+          onClick={() => toggleInlineStyle("underline")} data-testid="button-resume-format-underline"><Underline size={15}/></button>
+        <label className="ats-format-size"><span>الحجم</span>
+          <select aria-label="حجم النص المحدد" value={selectedInlineStyle.fontSize ?? ""}
+            onChange={event => event.target.value && applySelectionStyle({ fontSize: Number(event.target.value) })}
+            data-testid="select-resume-format-size">
+            <option value="">حجم</option>
+            {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32].map(size => <option key={size} value={size}>{size}</option>)}
+          </select>
+        </label>
+        <NamedColorPicker label="لون النص المحدد" value={selectedInlineStyle.color ?? "#303746"}
+          onChange={color => applySelectionStyle({ color })} testId="button-resume-format-color"/>
+      </div>}
     </main>
   );
 }

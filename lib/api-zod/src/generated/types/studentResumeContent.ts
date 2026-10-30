@@ -7,6 +7,7 @@
  */
 import type { ResumeSectionEntry } from './resumeSectionEntry';
 import type { StudentResumeAppearance } from './studentResumeAppearance';
+import type { StudentResumeInlineStyleRange } from './studentResumeInlineStyleRange';
 
 export interface StudentResumeContent {
   /** @maxLength 120 */
@@ -49,4 +50,6 @@ export interface StudentResumeContent {
      */
   languages: string[];
   appearance?: StudentResumeAppearance;
+  /** @maxItems 600 */
+  inlineStyles?: StudentResumeInlineStyleRange[];
 }

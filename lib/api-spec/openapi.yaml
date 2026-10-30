@@ -3428,6 +3428,19 @@ components:
         textColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
         headingColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
         accentColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+    StudentResumeInlineStyleRange:
+      type: object
+      additionalProperties: false
+      required: [field, start, end]
+      properties:
+        field: { type: string, minLength: 1, maxLength: 240 }
+        start: { type: integer, minimum: 0, maximum: 20000 }
+        end: { type: integer, minimum: 1, maximum: 20000 }
+        bold: { type: boolean }
+        italic: { type: boolean }
+        underline: { type: boolean }
+        color: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        fontSize: { type: integer, minimum: 8, maximum: 32 }
     StudentResumeContent:
       type: object
       required: [fullName, email, phone, location, linkedin, website, headline, summary, education, experience, projects, courses, skills, certifications, languages]
@@ -3469,6 +3482,10 @@ components:
           maxItems: 20
           items: { type: string, maxLength: 100 }
         appearance: { $ref: "#/components/schemas/StudentResumeAppearance" }
+        inlineStyles:
+          type: array
+          maxItems: 600
+          items: { $ref: "#/components/schemas/StudentResumeInlineStyleRange" }
     StudentResumeOrigin:
       type: string
       enum: [guided, manual]
