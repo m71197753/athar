@@ -13,7 +13,6 @@ export const blankAd = (): AdInput => ({ title: '', format: 'image_link', status
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
-const MB = 1024 * 1024;
 const toLocal = (iso: string | null) => { if (!iso) return ''; const d = new Date(iso); if (isNaN(+d)) return ''; const p = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
 const fromLocal = (v: string) => { if (!v) return null; const d = new Date(v); return isNaN(+d) ? null : d.toISOString(); };
 
@@ -85,8 +84,7 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
     if (!file) return;
     const allowed = isVideo ? VIDEO_TYPES : IMAGE_TYPES;
     if (!allowed.includes(file.type)) return setUpload({ state: 'err', text: isVideo ? 'الفيديو يجب أن يكون MP4 أو WebM.' : 'الصورة يجب أن تكون JPG أو PNG أو WebP أو GIF.' });
-    const limit = isVideo ? 80 * MB : 10 * MB;
-    if (file.size < 1 || file.size > limit) return setUpload({ state: 'err', text: `الحد الأقصى ${isVideo ? '80' : '10'} ميغابايت.` });
+    if (!Number.isSafeInteger(file.size) || file.size < 1) return setUpload({ state: 'err', text: 'اختر ملفًا غير فارغ بحجم صالح.' });
     setUpload({ state: 'busy', text: 'جارٍ الرفع…' });
     try {
       const slot = await requestUpload.mutateAsync({ data: { mime: file.type as AdAssetInputMime, size: file.size } });
@@ -139,7 +137,7 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
               <Upload size={14}/> {upload.state === 'busy' ? 'جارٍ الرفع…' : 'رفع ملف'}
               <input type="file" className="ads-sr" accept={(isVideo ? VIDEO_TYPES : IMAGE_TYPES).join(',')} disabled={upload.state === 'busy'} onChange={e => { void onFile(e.target.files?.[0]); e.target.value = ''; }}/>
             </label>
-            <small className="ads-hint">{isVideo ? 'MP4 أو WebM حتى 80 ميغابايت. يُعرض الفيديو صامتاً دون تشغيل تلقائي.' : 'JPG/PNG/WebP/GIF حتى 10 ميغابايت.'}</small>
+            <small className="ads-hint">{isVideo ? 'MP4 أو WebM. يظل الحجم خاضعًا للتخزين والاتصال.' : 'JPG/PNG/WebP/GIF. يظل الحجم خاضعًا للتخزين والاتصال.'}</small>
             {upload.text && <small role="status" className={upload.state === 'err' ? 'ads-err' : upload.state === 'ok' ? 'ads-ok' : 'ads-hint'}>{upload.text}</small>}
           </div>}
           {needsCode(ad.format) && <label className="ads-field"><span>الكود (HTML / CSS / JS)</span>

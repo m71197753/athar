@@ -6,8 +6,11 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   canvasColor: "#F8FAFC",
   surfaceColor: "#FFFFFF",
   fontFamily: "IBM Plex Sans Arabic",
+  fontScale: 100,
   textColor: "#334155",
   headingColor: "#172033",
+  cardTextColor: "#334155",
+  cardBorderColor: "#E2E8F0",
   welcomeTitle: "ابدأ من هنا واختر مساحتك",
   welcomeDescription: "تعلّم، وثّق ما أنجزته، وخطّط لخطوتك المهنية القادمة من المكان نفسه.",
 };
@@ -90,10 +93,15 @@ export function getAppearancePrimary(settings: AppearanceSettings, dark = false)
 export function applyPlatformAppearance(settings: AppearanceSettings) {
   const root = document.documentElement.style;
   const font = settings.fontFamily ?? "IBM Plex Sans Arabic";
+  root.setProperty("--platform-font-scale", String((settings.fontScale ?? 100) / 100));
   root.setProperty("--platform-font-body", PLATFORM_FONTS[font]);
   root.setProperty("--platform-font-heading", font === "IBM Plex Sans Arabic" ? PLATFORM_FONTS.Cairo : PLATFORM_FONTS[font]);
   root.setProperty("--platform-text-light", settings.textColor ?? "#334155");
   root.setProperty("--platform-heading-light", settings.headingColor ?? "#172033");
+  root.setProperty("--platform-card-text-light", settings.cardTextColor ?? settings.textColor ?? "#334155");
+  root.setProperty("--platform-card-border-light", settings.cardBorderColor ?? "#E2E8F0");
+  root.setProperty("--platform-card-text-dark", getAppearanceTextColor(mix(settings.surfaceColor, "#111827", .82)));
+  root.setProperty("--platform-card-border-dark", mix(settings.cardBorderColor ?? "#E2E8F0", "#FFFFFF", .3));
   const primaryDark = getAppearancePrimary(settings, true);
   const accentDark = mix(settings.accentColor, "#FFFFFF", 0.4);
   const deepLight = mix(settings.primaryColor, "#000000", 0.16);

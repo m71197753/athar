@@ -247,10 +247,7 @@ export const AdAssetInputMime = {
 
 export interface AdAssetInput {
   mime: AdAssetInputMime;
-  /**
-     * @minimum 1
-     * @maximum 83886080
-     */
+  /** @minimum 1 */
   size: number;
 }
 
@@ -395,10 +392,19 @@ export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   surfaceColor: string;
   fontFamily?: AppearanceSettingsFontFamily;
+  /**
+     * @minimum 90
+     * @maximum 130
+     */
+  fontScale?: number;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   textColor?: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   headingColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  cardTextColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  cardBorderColor?: string;
   /**
      * @minLength 2
      * @maxLength 80
@@ -794,6 +800,11 @@ export const StudentResumeAppearanceFontFamily = {
 
 export interface StudentResumeAppearance {
   fontFamily: StudentResumeAppearanceFontFamily;
+  /**
+     * @minimum 10
+     * @maximum 18
+     */
+  fontSize?: number;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   pageColor: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
@@ -2650,6 +2661,18 @@ export const AcademyStudentFileMime = {
   'image/jpeg': 'image/jpeg',
   'image/png': 'image/png',
   'image/webp': 'image/webp',
+  'application/vndopenxmlformats-officedocumentpresentationmlpresentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vndopenxmlformats-officedocumentspreadsheetmlsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/msword': 'application/msword',
+  'application/vndms-powerpoint': 'application/vnd.ms-powerpoint',
+  'application/vndms-excel': 'application/vnd.ms-excel',
+  'text/csv': 'text/csv',
+  'video/mp4': 'video/mp4',
+  'video/webm': 'video/webm',
+  'audio/mpeg': 'audio/mpeg',
+  'audio/mp4': 'audio/mp4',
+  'audio/wav': 'audio/wav',
+  'audio/ogg': 'audio/ogg',
 } as const;
 
 export interface AcademyStudentFile {
@@ -2659,6 +2682,8 @@ export interface AcademyStudentFile {
   /** @minimum 1 */
   size: number;
   createdAt: string;
+  studyAvailable?: boolean;
+  studyMessage?: string;
 }
 
 export type AcademyStudentFileInputMime = typeof AcademyStudentFileInputMime[keyof typeof AcademyStudentFileInputMime];
@@ -2671,6 +2696,18 @@ export const AcademyStudentFileInputMime = {
   'image/jpeg': 'image/jpeg',
   'image/png': 'image/png',
   'image/webp': 'image/webp',
+  'application/vndopenxmlformats-officedocumentpresentationmlpresentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vndopenxmlformats-officedocumentspreadsheetmlsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/msword': 'application/msword',
+  'application/vndms-powerpoint': 'application/vnd.ms-powerpoint',
+  'application/vndms-excel': 'application/vnd.ms-excel',
+  'text/csv': 'text/csv',
+  'video/mp4': 'video/mp4',
+  'video/webm': 'video/webm',
+  'audio/mpeg': 'audio/mpeg',
+  'audio/mp4': 'audio/mp4',
+  'audio/wav': 'audio/wav',
+  'audio/ogg': 'audio/ogg',
 } as const;
 
 export interface AcademyStudentFileInput {
@@ -2680,10 +2717,7 @@ export interface AcademyStudentFileInput {
      */
   originalName: string;
   mime: AcademyStudentFileInputMime;
-  /**
-     * @minimum 1
-     * @maximum 10485760
-     */
+  /** @minimum 1 */
   size: number;
 }
 

@@ -305,6 +305,9 @@
 .ats-customized .ats-paper-entry { border-inline-start-color: color-mix(in srgb, var(--resume-accent-color) 45%, var(--resume-page-color)); }
 .ats-customized .ats-paper-chips li { border-color: color-mix(in srgb, var(--resume-accent-color) 28%, var(--resume-page-color)); color: var(--resume-text-color); background: color-mix(in srgb, var(--resume-accent-color) 8%, var(--resume-page-color)); }
 .ats-customized.ats-modern { border-top-color: var(--resume-accent-color); }
+.ats-customized :is(.ats-paper-summary, .ats-paper-desc, .ats-paper-meta, .ats-paper-entry time, .ats-paper-chips li, .ats-paper-contact) { font-size: var(--resume-font-size, 11pt); }
+.ats-customized .ats-paper-section h3 { font-size: calc(var(--resume-font-size, 11pt) + 2pt); }
+.ats-customized .ats-paper-entry h4 { font-size: var(--resume-font-size, 11pt); }
 .ats-customized.ats-modern .ats-doc-label { color: var(--resume-accent-color); }
 .ats-customized.ats-sidebar .ats-paper-header { background: var(--resume-accent-color); }
 .ats-customized.ats-sidebar .ats-paper-header h2,.ats-customized.ats-sidebar .ats-paper-headline,

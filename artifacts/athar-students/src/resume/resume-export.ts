@@ -125,7 +125,7 @@ export async function downloadStudentResumeDocx(
     children: [new TextRun({
       text,
       font: appearance.fontFamily,
-      size: options?.size ?? 21,
+      size: options?.size ?? (appearance.fontSize ?? 11) * 2,
       bold: options?.bold,
       color: options?.color ?? bodyColor,
       rightToLeft,
@@ -139,7 +139,7 @@ export async function downloadStudentResumeDocx(
     heading: HeadingLevel.HEADING_2,
     alignment,
     bidirectional: rightToLeft,
-    run: { color: headingColor, bold: true, font: appearance.fontFamily },
+    run: { color: headingColor, bold: true, font: appearance.fontFamily, size: ((appearance.fontSize ?? 11) + 2) * 2 },
     spacing: { before: 230, after: 100 },
   });
   const children: ParagraphType[] = [

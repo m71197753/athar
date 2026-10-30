@@ -452,12 +452,14 @@ export default function ResumeTemplateStudio() {
       "--resume-heading-color": string;
       "--resume-accent-color": string;
       "--resume-font-family": string;
+      "--resume-font-size": string;
     } = {
       "--resume-page-color": appearance.pageColor,
       "--resume-text-color": appearance.textColor,
       "--resume-heading-color": appearance.headingColor,
       "--resume-accent-color": appearance.accentColor,
       "--resume-font-family": RESUME_FONT_STACKS[appearance.fontFamily],
+      "--resume-font-size": `${appearance.fontSize ?? 11}pt`,
     };
     return (
       <article className={`ats-paper ats-${template} ats-customized`} dir={template === "ats" ? "auto" : "rtl"} style={paperStyle} data-testid="section-resume-preview">
@@ -629,6 +631,9 @@ export default function ResumeTemplateStudio() {
                     data-testid="select-resume-font">
                     {(Object.keys(RESUME_FONT_LABELS) as ResumeFontFamily[]).map(font => <option value={font} key={font}>{RESUME_FONT_LABELS[font]}</option>)}
                   </select>
+                </label>
+                <label className="ats-field"><span>حجم خط السيرة — {content.appearance?.fontSize ?? 11} نقطة</span>
+                  <input type="range" min={10} max={18} step={1} value={content.appearance?.fontSize ?? 11} onChange={event => updateAppearance({ fontSize: Number(event.target.value) })} data-testid="input-resume-font-size"/>
                 </label>
                 <div className="ats-appearance-colors">
                   {([

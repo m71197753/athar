@@ -5,7 +5,7 @@
 }
 body {
   font-family: var(--app-font-sans);
-  font-size: 15px;
+  font-size: calc(15px * var(--platform-font-scale, 1));
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -23,28 +23,46 @@ body {
 #root :is(.page-title h1, .hero h1, .welcome-copy h2) {
   font-weight: 800;
 }
+#root :is(p, label, li, td, th, dt, dd):not(:where(.ats-paper *, .resume-paper *)) {
+  font-size: calc(14px * var(--platform-font-scale, 1));
+}
+#root :is(.app-frame, .adm-frame) h1 { font-size: calc(30px * var(--platform-font-scale, 1)); }
 #root :is(.page-title p, .student-submissions-heading p, .adm-note, .adm-appearance-heading p) {
-  font-size: 13px;
+  font-size: calc(13px * var(--platform-font-scale, 1));
   line-height: 1.9;
 }
 #root :is(.side-link, .adm-nav button) {
-  font-size: 13px;
+  font-size: calc(13px * var(--platform-font-scale, 1));
   font-weight: 600;
   line-height: 1.6;
 }
 #root :is(.field, .adm-field) :is(input, textarea, select) {
-  font-size: 14px;
+  font-size: calc(14px * var(--platform-font-scale, 1));
   line-height: 1.8;
 }
 #root :is(.field, .adm-field) > span { line-height: 1.8; }
-#root .button { font-weight: 600; letter-spacing: 0; }
-#root .student-module-submissions :is(label, textarea, strong) { font-size: 13px; line-height: 1.8; }
-#root .student-module-submissions :is(small, .student-submissions-size-note, .student-submissions-privacy, .student-submissions-empty) { font-size: 12px; line-height: 1.8; }
+#root :is(.button, .ac-button) { font-size: calc(13px * var(--platform-font-scale, 1)); font-weight: 600; letter-spacing: 0; }
+#root .student-module-submissions :is(label, textarea, strong) { font-size: calc(13px * var(--platform-font-scale, 1)); line-height: 1.8; }
+#root .student-module-submissions :is(small, .student-submissions-size-note, .student-submissions-privacy, .student-submissions-empty) { font-size: calc(12px * var(--platform-font-scale, 1)); line-height: 1.8; }
+#root :is(h2, h3, h4):not(:where(.ats-paper *, .resume-paper *)) { font-size: calc(20px * var(--platform-font-scale, 1)); }
+#root :is(h3, h4):not(:where(.ats-paper *, .resume-paper *)) { font-size: calc(17px * var(--platform-font-scale, 1)); }
+#root :is(.page-title h1, .ac-head h1) { font-size: calc(30px * var(--platform-font-scale, 1)); }
+#root :is(.ac-meta, .ac-row-copy small, .ac-privacy, .adm-note) { font-size: calc(12px * var(--platform-font-scale, 1)); }
 .adm-appearance .adm-field { margin-bottom: 14px; }
 .adm-appearance-preview-card { font-family: var(--app-font-sans); }
+/* Card surfaces are independently themed from the page canvas. */
+#root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .resume-tip, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) {
+  border-color: var(--athar-card-line);
+}
+#root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) :is(p, span, strong, b, li, label) {
+  color: var(--athar-card-ink);
+}
+#root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) :is(h1, h2, h3, h4) {
+  color: var(--athar-card-ink);
+}
 @media (max-width: 640px) {
-  #root :is(.field, .adm-field) :is(input, textarea, select) { font-size: 16px; }
-  #root .page-title h1 { font-size: clamp(25px, 7vw, 31px); }
+  #root :is(.field, .adm-field) :is(input, textarea, select) { font-size: calc(16px * var(--platform-font-scale, 1)); }
+  #root .page-title h1 { font-size: calc(27px * var(--platform-font-scale, 1)); }
 }
 @media print {
   body { -webkit-font-smoothing: auto; }

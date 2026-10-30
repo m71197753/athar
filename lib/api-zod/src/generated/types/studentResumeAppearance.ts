@@ -9,6 +9,11 @@ import type { StudentResumeAppearanceFontFamily } from './studentResumeAppearanc
 
 export interface StudentResumeAppearance {
   fontFamily: StudentResumeAppearanceFontFamily;
+  /**
+     * @minimum 10
+     * @maximum 18
+     */
+  fontSize?: number;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   pageColor: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */

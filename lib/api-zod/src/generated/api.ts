@@ -456,13 +456,12 @@ export const UpdateAdEnquiryResponse = zod.object({
 })
 
 
-export const requestAdAssetUploadBodySizeMax = 83886080;
 
 
 
 export const RequestAdAssetUploadBody = zod.object({
   "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']),
-  "size": zod.number().int().min(1).max(requestAdAssetUploadBodySizeMax)
+  "size": zod.number().int().min(1)
 })
 
 export const RequestAdAssetUploadResponse = zod.object({
@@ -612,8 +611,13 @@ export const getPlatformContentResponseAppearancePrimaryColorRegExp = new RegExp
 export const getPlatformContentResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getPlatformContentResponseAppearanceFontScaleMin = 90;
+export const getPlatformContentResponseAppearanceFontScaleMax = 130;
+
 export const getPlatformContentResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getPlatformContentResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getPlatformContentResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceWelcomeTitleMin = 2;
 export const getPlatformContentResponseAppearanceWelcomeTitleMax = 80;
 
@@ -701,8 +705,11 @@ export const GetPlatformContentResponse = zod.object({
   "canvasColor": zod.string().regex(getPlatformContentResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(getPlatformContentResponseAppearanceSurfaceColorRegExp),
   "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
+  "fontScale": zod.number().int().min(getPlatformContentResponseAppearanceFontScaleMin).max(getPlatformContentResponseAppearanceFontScaleMax).optional(),
   "textColor": zod.string().regex(getPlatformContentResponseAppearanceTextColorRegExp).optional(),
   "headingColor": zod.string().regex(getPlatformContentResponseAppearanceHeadingColorRegExp).optional(),
+  "cardTextColor": zod.string().regex(getPlatformContentResponseAppearanceCardTextColorRegExp).optional(),
+  "cardBorderColor": zod.string().regex(getPlatformContentResponseAppearanceCardBorderColorRegExp).optional(),
   "welcomeTitle": zod.string().min(getPlatformContentResponseAppearanceWelcomeTitleMin).max(getPlatformContentResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getPlatformContentResponseAppearanceWelcomeDescriptionMin).max(getPlatformContentResponseAppearanceWelcomeDescriptionMax)
 }),
@@ -970,8 +977,13 @@ export const getAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp('
 export const getAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getAdminSettingsResponseAppearanceFontScaleMin = 90;
+export const getAdminSettingsResponseAppearanceFontScaleMax = 130;
+
 export const getAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const getAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1005,8 +1017,11 @@ export const GetAdminSettingsResponse = zod.object({
   "canvasColor": zod.string().regex(getAdminSettingsResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(getAdminSettingsResponseAppearanceSurfaceColorRegExp),
   "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
+  "fontScale": zod.number().int().min(getAdminSettingsResponseAppearanceFontScaleMin).max(getAdminSettingsResponseAppearanceFontScaleMax).optional(),
   "textColor": zod.string().regex(getAdminSettingsResponseAppearanceTextColorRegExp).optional(),
   "headingColor": zod.string().regex(getAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
+  "cardTextColor": zod.string().regex(getAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
+  "cardBorderColor": zod.string().regex(getAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
   "welcomeTitle": zod.string().min(getAdminSettingsResponseAppearanceWelcomeTitleMin).max(getAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(getAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })
@@ -1036,8 +1051,13 @@ export const saveAdminSettingsBodyAppearancePrimaryColorRegExp = new RegExp('^#[
 export const saveAdminSettingsBodyAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsBodyAppearanceFontScaleMin = 90;
+export const saveAdminSettingsBodyAppearanceFontScaleMax = 130;
+
 export const saveAdminSettingsBodyAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsBodyAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsBodyAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMax = 80;
 
@@ -1071,8 +1091,11 @@ export const SaveAdminSettingsBody = zod.object({
   "canvasColor": zod.string().regex(saveAdminSettingsBodyAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(saveAdminSettingsBodyAppearanceSurfaceColorRegExp),
   "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
+  "fontScale": zod.number().int().min(saveAdminSettingsBodyAppearanceFontScaleMin).max(saveAdminSettingsBodyAppearanceFontScaleMax).optional(),
   "textColor": zod.string().regex(saveAdminSettingsBodyAppearanceTextColorRegExp).optional(),
   "headingColor": zod.string().regex(saveAdminSettingsBodyAppearanceHeadingColorRegExp).optional(),
+  "cardTextColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardTextColorRegExp).optional(),
+  "cardBorderColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardBorderColorRegExp).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeTitleMin).max(saveAdminSettingsBodyAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeDescriptionMin).max(saveAdminSettingsBodyAppearanceWelcomeDescriptionMax)
 })
@@ -1101,8 +1124,13 @@ export const saveAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp(
 export const saveAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsResponseAppearanceFontScaleMin = 90;
+export const saveAdminSettingsResponseAppearanceFontScaleMax = 130;
+
 export const saveAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1136,8 +1164,11 @@ export const SaveAdminSettingsResponse = zod.object({
   "canvasColor": zod.string().regex(saveAdminSettingsResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(saveAdminSettingsResponseAppearanceSurfaceColorRegExp),
   "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
+  "fontScale": zod.number().int().min(saveAdminSettingsResponseAppearanceFontScaleMin).max(saveAdminSettingsResponseAppearanceFontScaleMax).optional(),
   "textColor": zod.string().regex(saveAdminSettingsResponseAppearanceTextColorRegExp).optional(),
   "headingColor": zod.string().regex(saveAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
+  "cardTextColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
+  "cardBorderColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeTitleMin).max(saveAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(saveAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })
@@ -2603,6 +2634,9 @@ export const listStudentResumesResponseContentLanguagesItemMax = 100;
 
 export const listStudentResumesResponseContentLanguagesMax = 20;
 
+export const listStudentResumesResponseContentAppearanceFontSizeMin = 10;
+export const listStudentResumesResponseContentAppearanceFontSizeMax = 18;
+
 export const listStudentResumesResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const listStudentResumesResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const listStudentResumesResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -2660,6 +2694,7 @@ export const ListStudentResumesResponseItem = zod.object({
   "languages": zod.array(zod.string().max(listStudentResumesResponseContentLanguagesItemMax)).max(listStudentResumesResponseContentLanguagesMax),
   "appearance": zod.object({
   "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontSize": zod.number().int().min(listStudentResumesResponseContentAppearanceFontSizeMin).max(listStudentResumesResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(listStudentResumesResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(listStudentResumesResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(listStudentResumesResponseContentAppearanceHeadingColorRegExp),
@@ -2761,6 +2796,9 @@ export const createStudentResumeBodyContentLanguagesItemMax = 100;
 
 export const createStudentResumeBodyContentLanguagesMax = 20;
 
+export const createStudentResumeBodyContentAppearanceFontSizeMin = 10;
+export const createStudentResumeBodyContentAppearanceFontSizeMax = 18;
+
 export const createStudentResumeBodyContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -2817,6 +2855,7 @@ export const CreateStudentResumeBody = zod.object({
   "languages": zod.array(zod.string().max(createStudentResumeBodyContentLanguagesItemMax)).max(createStudentResumeBodyContentLanguagesMax),
   "appearance": zod.object({
   "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontSize": zod.number().int().min(createStudentResumeBodyContentAppearanceFontSizeMin).max(createStudentResumeBodyContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(createStudentResumeBodyContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(createStudentResumeBodyContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(createStudentResumeBodyContentAppearanceHeadingColorRegExp),
@@ -2909,6 +2948,9 @@ export const createStudentResumeResponseContentLanguagesItemMax = 100;
 
 export const createStudentResumeResponseContentLanguagesMax = 20;
 
+export const createStudentResumeResponseContentAppearanceFontSizeMin = 10;
+export const createStudentResumeResponseContentAppearanceFontSizeMax = 18;
+
 export const createStudentResumeResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const createStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -2966,6 +3008,7 @@ export const CreateStudentResumeResponse = zod.object({
   "languages": zod.array(zod.string().max(createStudentResumeResponseContentLanguagesItemMax)).max(createStudentResumeResponseContentLanguagesMax),
   "appearance": zod.object({
   "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontSize": zod.number().int().min(createStudentResumeResponseContentAppearanceFontSizeMin).max(createStudentResumeResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(createStudentResumeResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(createStudentResumeResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(createStudentResumeResponseContentAppearanceHeadingColorRegExp),
@@ -3070,6 +3113,9 @@ export const updateStudentResumeBodyContentLanguagesItemMax = 100;
 
 export const updateStudentResumeBodyContentLanguagesMax = 20;
 
+export const updateStudentResumeBodyContentAppearanceFontSizeMin = 10;
+export const updateStudentResumeBodyContentAppearanceFontSizeMax = 18;
+
 export const updateStudentResumeBodyContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -3126,6 +3172,7 @@ export const UpdateStudentResumeBody = zod.object({
   "languages": zod.array(zod.string().max(updateStudentResumeBodyContentLanguagesItemMax)).max(updateStudentResumeBodyContentLanguagesMax),
   "appearance": zod.object({
   "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontSize": zod.number().int().min(updateStudentResumeBodyContentAppearanceFontSizeMin).max(updateStudentResumeBodyContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(updateStudentResumeBodyContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(updateStudentResumeBodyContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(updateStudentResumeBodyContentAppearanceHeadingColorRegExp),
@@ -3218,6 +3265,9 @@ export const updateStudentResumeResponseContentLanguagesItemMax = 100;
 
 export const updateStudentResumeResponseContentLanguagesMax = 20;
 
+export const updateStudentResumeResponseContentAppearanceFontSizeMin = 10;
+export const updateStudentResumeResponseContentAppearanceFontSizeMax = 18;
+
 export const updateStudentResumeResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const updateStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -3275,6 +3325,7 @@ export const UpdateStudentResumeResponse = zod.object({
   "languages": zod.array(zod.string().max(updateStudentResumeResponseContentLanguagesItemMax)).max(updateStudentResumeResponseContentLanguagesMax),
   "appearance": zod.object({
   "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontSize": zod.number().int().min(updateStudentResumeResponseContentAppearanceFontSizeMin).max(updateStudentResumeResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(updateStudentResumeResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(updateStudentResumeResponseContentAppearanceTextColorRegExp),
   "headingColor": zod.string().regex(updateStudentResumeResponseContentAppearanceHeadingColorRegExp),
@@ -5192,9 +5243,11 @@ export const ConvertAcademyGrowthToAchievementResponse = zod.object({
 export const ListAcademyFilesResponseItem = zod.object({
   "id": zod.string().uuid(),
   "originalName": zod.string(),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
   "size": zod.number().int().min(1),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "studyAvailable": zod.boolean().optional(),
+  "studyMessage": zod.string().optional()
 })
 export const ListAcademyFilesResponse = zod.array(ListAcademyFilesResponseItem)
 
@@ -5204,14 +5257,13 @@ export const ListAcademyFilesResponse = zod.array(ListAcademyFilesResponseItem)
  */
 export const requestAcademyFileUploadBodyOriginalNameMax = 180;
 
-export const requestAcademyFileUploadBodySizeMax = 10485760;
 
 
 
 export const RequestAcademyFileUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestAcademyFileUploadBodyOriginalNameMax),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
-  "size": zod.number().int().min(1).max(requestAcademyFileUploadBodySizeMax)
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
+  "size": zod.number().int().min(1)
 })
 
 export const RequestAcademyFileUploadResponse = zod.object({
@@ -5233,9 +5285,11 @@ export const ConfirmAcademyFileUploadParams = zod.object({
 export const ConfirmAcademyFileUploadResponse = zod.object({
   "id": zod.string().uuid(),
   "originalName": zod.string(),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
   "size": zod.number().int().min(1),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "studyAvailable": zod.boolean().optional(),
+  "studyMessage": zod.string().optional()
 })
 
 

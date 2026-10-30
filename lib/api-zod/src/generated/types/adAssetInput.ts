@@ -9,9 +9,6 @@ import type { AdAssetInputMime } from './adAssetInputMime';
 
 export interface AdAssetInput {
   mime: AdAssetInputMime;
-  /**
-     * @minimum 1
-     * @maximum 83886080
-     */
+  /** @minimum 1 */
   size: number;
 }

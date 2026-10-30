@@ -208,6 +208,12 @@ importers:
       express:
         specifier: ^5.3.0
         version: 5.3.0
+      fast-xml-parser:
+        specifier: ^5.11.2
+        version: 5.11.2
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       http-proxy-middleware:
         specifier: ^4.2.1
         version: 4.2.1

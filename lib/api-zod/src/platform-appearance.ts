@@ -6,8 +6,11 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   canvasColor: "#F8FAFC",
   surfaceColor: "#FFFFFF",
   fontFamily: "IBM Plex Sans Arabic",
+  fontScale: 100,
   textColor: "#334155",
   headingColor: "#172033",
+  cardTextColor: "#334155",
+  cardBorderColor: "#E2E8F0",
   welcomeTitle: "ابدأ من هنا واختر مساحتك",
   welcomeDescription: "تعلّم، وثّق ما أنجزته، وخطّط لخطوتك المهنية القادمة من المكان نفسه.",
 };

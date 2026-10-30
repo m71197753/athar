@@ -382,7 +382,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   };
   const choosePreset = (preset: AppearanceSettings) => {
     setMsg(null);
-    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor }));
+    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor, cardTextColor: preset.cardTextColor, cardBorderColor: preset.cardBorderColor }));
   };
   const persist = (modules: ModuleSetting[], appearance: AppearanceSettings) => {
     const invalidContent = modules.some(module => (module.blocks ?? []).length > 20 || (module.blocks ?? []).some(block =>
@@ -458,6 +458,10 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
         <option value="Tahoma">تاهوما — كلاسيكي واضح</option>
         <option value="Arial">أريال — بسيط ورسمي</option>
       </select></label>
+      <label className="adm-field"><span>حجم خط الواجهة — {appearanceDraft.fontScale ?? 100}%</span>
+        <input type="range" min={90} max={130} step={5} value={appearanceDraft.fontScale ?? 100} onChange={e => updateAppearance('fontScale', Number(e.target.value))} data-testid="input-platform-font-size"/>
+        <small>من ٩٠٪ إلى ١٣٠٪. يؤثر على النصوص والعناوين والأزرار، ولا يغير حجم مستند السيرة.</small>
+      </label>
       <div className="adm-appearance-presets" aria-label="لوحات ألوان جاهزة">{APPEARANCE_PRESETS.map(preset => <button key={preset.label} type="button" className="adm-preset" aria-pressed={appearanceDraft.primaryColor === preset.value.primaryColor && appearanceDraft.accentColor === preset.value.accentColor && appearanceDraft.canvasColor === preset.value.canvasColor} onClick={() => choosePreset(preset.value)}><span className="adm-preset-swatches"><i style={{ background: preset.value.primaryColor }}/><i style={{ background: preset.value.accentColor }}/><i style={{ background: preset.value.canvasColor }}/></span>{preset.label}</button>)}</div>
       <div className="adm-color-grid">
         {([
@@ -467,6 +471,8 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           ['surfaceColor', 'خلفية البطاقات'],
           ['textColor', 'لون النصوص'],
           ['headingColor', 'لون العناوين'],
+          ['cardTextColor', 'لون النص داخل المربعات'],
+          ['cardBorderColor', 'لون حدود المربعات'],
         ] as const).map(([key, label]) => <label className="adm-color-field" key={key}>
           <span>{label}</span><span className="adm-color-value"><input type="color" value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]} onChange={e => updateAppearance(key, e.target.value.toUpperCase())} aria-label={label}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key]}</code></span>
         </label>)}
@@ -475,11 +481,11 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
          <label className="adm-field"><span>عنوان الترحيب <RequiredMark/></span><input required minLength={2} maxLength={80} value={appearanceDraft.welcomeTitle} onChange={e => updateAppearance('welcomeTitle', e.target.value)} /></label>
          <label className="adm-field"><span>النص التعريفي <RequiredMark/></span><textarea required minLength={2} maxLength={220} rows={3} value={appearanceDraft.welcomeDescription} onChange={e => updateAppearance('welcomeDescription', e.target.value)} /></label>
       </div>
-      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3) && <p className="adm-form-error" role="status">تباين النص مع البطاقة منخفض. اختر نصًا أغمق على الخلفيات الفاتحة، أو نصًا أفتح على الخلفيات الداكنة.</p>}
-      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor, '--platform-font-body': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'], '--platform-font-heading': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'Cairo'] } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
-        <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.accentColor } as CSSProperties}>
+      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3 || appearanceContrast(appearanceDraft.cardTextColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5) && <p className="adm-form-error" role="status">تباين النص مع البطاقة منخفض. اختر نصًا أغمق على الخلفيات الفاتحة، أو نصًا أفتح على الخلفيات الداكنة.</p>}
+      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor, '--platform-font-body': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'], '--platform-font-heading': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'Cairo'], '--platform-font-scale': (appearanceDraft.fontScale ?? 100) / 100 } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
+        <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.cardBorderColor ?? '#E2E8F0' } as CSSProperties}>
           <span className="adm-preview-label" style={{ color: appearanceDraft.primaryColor }}>معاينة الواجهة</span>
-          <b style={{ color: appearanceDraft.headingColor ?? '#172033' }}>{appearanceDraft.welcomeTitle}</b><p style={{ color: appearanceDraft.textColor ?? '#334155' }}>{appearanceDraft.welcomeDescription}</p>
+          <b style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeTitle}</b><p style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeDescription}</p>
           <button type="button" style={{ background: appearanceDraft.primaryColor, color: getAppearanceTextColor(appearanceDraft.primaryColor) }}>ابدأ الآن</button>
         </div>
       </div>

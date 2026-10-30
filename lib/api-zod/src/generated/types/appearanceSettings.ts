@@ -17,10 +17,19 @@ export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   surfaceColor: string;
   fontFamily?: AppearanceSettingsFontFamily;
+  /**
+     * @minimum 90
+     * @maximum 130
+     */
+  fontScale?: number;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   textColor?: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   headingColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  cardTextColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  cardBorderColor?: string;
   /**
      * @minLength 2
      * @maxLength 80

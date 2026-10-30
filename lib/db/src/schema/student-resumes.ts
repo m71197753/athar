@@ -15,6 +15,7 @@ export type StudentResumeOrigin = "guided" | "manual";
 
 export type StudentResumeAppearanceRecord = {
   fontFamily: "Arial" | "Tahoma" | "Verdana" | "Georgia";
+  fontSize?: number;
   pageColor: string;
   textColor: string;
   headingColor: string;

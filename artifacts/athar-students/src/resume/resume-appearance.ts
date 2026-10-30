@@ -5,6 +5,7 @@ export type ResumeFontFamily = ResumeAppearance["fontFamily"];
 
 export const DEFAULT_RESUME_APPEARANCE: ResumeAppearance = {
   fontFamily: "Arial",
+  fontSize: 11,
   pageColor: "#FFFFFF",
   textColor: "#303746",
   headingColor: "#1F2937",

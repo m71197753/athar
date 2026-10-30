@@ -8,6 +8,8 @@
   --athar-ink-soft: var(--platform-text-light, #334155);
   --athar-muted: #64748B;
   --athar-line: #E2E8F0;
+  --athar-card-ink: var(--platform-card-text-light, #334155);
+  --athar-card-line: var(--platform-card-border-light, #E2E8F0);
   --athar-primary: var(--platform-primary-light, #4338CA);
   --athar-primary-deep: var(--platform-primary-deep-light, #4F46E5);
   --athar-primary-accent: var(--platform-accent-light, #6366F1);
@@ -49,6 +51,8 @@
   --athar-ink-soft: #D5DEEA;
   --athar-muted: #A1AEC1;
   --athar-line: #334155;
+  --athar-card-ink: var(--platform-card-text-dark, #F1F5F9);
+  --athar-card-line: var(--platform-card-border-dark, #334155);
   --athar-primary: var(--platform-primary-dark, #818CF8);
   --athar-primary-deep: var(--platform-primary-deep-dark, #6366F1);
   --athar-primary-accent: var(--platform-accent-dark, #A5B4FC);

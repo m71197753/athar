@@ -21,6 +21,12 @@ function load(path, dependencies, environment = {}) {
 }
 const generated = load('../../../lib/api-zod/src/generated/api.ts', { zod: zodRequire('zod') });
 const rules = load('../src/lib/ad-rules.ts', { '@workspace/api-zod': generated });
+test('large ad attachments have no application upload-size ceiling', () => {
+  for (const mime of ['image/png', 'video/mp4']) {
+    assert(generated.RequestAdAssetUploadBody.safeParse({ mime, size: 3 * 1024 ** 3 }).success);
+  }
+  assert(!generated.RequestAdAssetUploadBody.safeParse({ mime: 'video/mp4', size: 0 }).success);
+});
 const placement = { page: 'home', slot: 'top', width: 600, height: 240, offsetX: 0, offsetY: 0 };
 const ad = () => ({ title: 'Test creative', format: 'image_link', status: 'active', mediaUrl: 'https://example.com/photo.png',
   code: '', destination: 'https://example.com', cta: 'Learn more', placements: [{ ...placement }],

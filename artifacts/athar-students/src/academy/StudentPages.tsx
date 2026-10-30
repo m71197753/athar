@@ -262,6 +262,14 @@ function studentFileMime(name: string): AcademyStudentFileInputMime | null {
   if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
   if (ext === 'png') return 'image/png';
   if (ext === 'webp') return 'image/webp';
+  const additional: Record<string, AcademyStudentFileInputMime> = {
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    doc: 'application/msword', ppt: 'application/vnd.ms-powerpoint', xls: 'application/vnd.ms-excel',
+    csv: 'text/csv', mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg',
+    m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg',
+  };
+  if (ext && additional[ext]) return additional[ext];
   return null;
 }
 export function AcademyFilesPage() {
@@ -284,7 +292,7 @@ export function AcademyFilesPage() {
       for (const file of files) {
         const mime = studentFileMime(file.name);
         if (!mime) { failures.push(`${file.name} (نوع غير مدعوم)`); continue; }
-        if (file.size < 1 || file.size > 10 * 1024 * 1024) { failures.push(`${file.name} (أكبر من ١٠ م.ب. أو فارغ)`); continue; }
+        if (!Number.isSafeInteger(file.size) || file.size < 1) { failures.push(`${file.name} (الملف فارغ أو حجمه غير صالح)`); continue; }
         try {
           const signed = await request.mutateAsync({ data: { originalName: file.name.slice(0, 180), mime, size: file.size } });
           const put = await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'Content-Type': mime }, body: file });
@@ -303,18 +311,18 @@ export function AcademyFilesPage() {
     } finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
   }
   return <main className="academy"><Head title="مكتبتك وأدوات المذاكرة" detail="ارفع محاضراتك، لخّصها، اختبر فهمك، وتابع تقدّمك التدريبي." action={<button className="ac-button ac-button-primary" type="button" onClick={() => inputRef.current?.click()} disabled={busy}><Upload size={15}/>{busy ? 'جارٍ رفع الملفات…' : 'أضف ملفات'}</button>}/>
-    <input ref={inputRef} className="ac-sr" type="file" multiple accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp" onChange={e => void upload(Array.from(e.target.files ?? []))}/>
-    <div className="ac-privacy"><LockKeyhole size={17}/><span>ارفع PDF أو DOCX أو TXT أو صور JPG وPNG وWebP حتى ١٠ م.ب. لكل ملف. ملفاتك خاصة بحسابك. لا يُرسل المحتوى إلى OpenAI للتلخيص أو الاختبار إلا بعد موافقتك، وتبقى نتائج التدريب خاصة ولا تُضاف إلى السيرة.</span></div>
+    <input ref={inputRef} className="ac-sr" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mp3,.m4a,.wav,.ogg" onChange={e => void upload(Array.from(e.target.files ?? []))}/>
+    <div className="ac-privacy"><LockKeyhole size={17}/><span>ارفع PDF وWord وPowerPoint وExcel وCSV وTXT والصور، أو صوت MP3 وM4A وWAV وOGG وفيديو MP4 وWebM. لا نضع حد ١٠ م.ب للحفظ؛ حدود التخزين والاتصال الفعلية تظل سارية. التلخيص والاختبارات للملفات المقروءة والصور حتى ١٠ م.ب؛ الملفات القديمة والصوت والفيديو للتنزيل فقط حاليًا. ملفاتك خاصة، ولا يُرسل المحتوى إلى OpenAI إلا بموافقتك، ولا تُضاف نتائج التدريب إلى السيرة.</span></div>
     {message && <p role="status" className="ac-meta">{message}</p>}
     {q.isLoading ? <Loading/> : q.isError ? <State title="تعذّر تحميل ملفاتك" detail="أعد المحاولة بعد التحقق من الاتصال." retry={() => q.refetch()}/> : !q.data?.length ? <State title="مكتبتك فارغة" detail="أضف ملفاً تعليمياً للبحث في محتواه الخاص."/> :
       <ul className="ac-list" style={{ marginTop: 14 }}>{q.data.map((file: AcademyStudentFile) => <li className="ac-row ac-file-row" key={file.id}>
         <span className="ac-row-icon">{file.mime.startsWith('image/') ? <ImageIcon size={18}/> : <FileText size={18}/>}</span>
-        <div className="ac-row-copy"><b>{file.originalName}</b><small>{file.mime.split('/').pop()?.toUpperCase()} · {formatSize(file.size)} · {new Date(file.createdAt).toLocaleDateString('ar')}</small></div>
+         <div className="ac-row-copy"><b>{file.originalName}</b><small>{file.originalName.split('.').pop()?.toUpperCase()} · {formatSize(file.size)} · {new Date(file.createdAt).toLocaleDateString('ar')}</small><small>{file.studyMessage}</small></div>
         {file.mime.startsWith('image/') && <a className="ac-file-thumb" href={`/api/academy/files/${encodeURIComponent(file.id)}/preview`} target="_blank" rel="noreferrer" aria-label={`عرض ${file.originalName}`}><img src={`/api/academy/files/${encodeURIComponent(file.id)}/preview`} alt={file.originalName} loading="lazy"/></a>}
         <div className="ac-actions">
           <a className="ac-button" href={`/api/academy/files/${encodeURIComponent(file.id)}/download`}><Download size={14}/> تنزيل</a>
-          <button className="ac-button" type="button" onClick={() => setGuideFile(guideFile?.id === file.id ? null : file)}><FileText size={14}/>{guideFile?.id === file.id ? 'إغلاق الملخص' : 'ملخص ذكي'}</button>
-          <button className="ac-button" type="button" onClick={() => setQuizFile(quizFile?.id === file.id ? null : file)}><Sparkles size={14}/>{quizFile?.id === file.id ? 'إغلاق الاختبار' : 'اختبر مستواك'}</button>
+           <button className="ac-button" type="button" disabled={file.studyAvailable === false} title={file.studyMessage} onClick={() => setGuideFile(guideFile?.id === file.id ? null : file)}><FileText size={14}/>{guideFile?.id === file.id ? 'إغلاق الملخص' : 'ملخص ذكي'}</button>
+           <button className="ac-button" type="button" disabled={file.studyAvailable === false} title={file.studyMessage} onClick={() => setQuizFile(quizFile?.id === file.id ? null : file)}><Sparkles size={14}/>{quizFile?.id === file.id ? 'إغلاق الاختبار' : 'اختبر مستواك'}</button>
           <button className="ac-button ac-button-danger" type="button" aria-label={`حذف ${file.originalName}`} disabled={del.isPending} onClick={() => { if (window.confirm(`حذف الملف «${file.originalName}»؟ سيُحذف أيضًا الملخص وسجل الاختبارات الخاصان به.`)) del.mutate({ fileId: file.id }, { onSuccess: () => { setQuizFile(null); setGuideFile(null); qc.invalidateQueries({ queryKey: getListAcademyFilesQueryKey() }); }, onError: e => setMessage(errMessage(e)) }); }}><Trash2 size={14}/> حذف</button>
         </div>
         {guideFile?.id === file.id && <AcademyFileStudyGuide key={`guide-${file.id}`} file={file}/>}
