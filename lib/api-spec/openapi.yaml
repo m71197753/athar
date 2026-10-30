@@ -3334,7 +3334,7 @@ components:
       type: object
       required: [fontFamily, pageColor, textColor, headingColor, accentColor]
       properties:
-        fontFamily: { type: string, enum: [Arial, Tahoma, Verdana, Georgia] }
+        fontFamily: { type: string, enum: [Arial, Tahoma, Verdana, Georgia, Cairo, "IBM Plex Sans Arabic"] }
         fontSize: { type: integer, minimum: 10, maximum: 18 }
         pageColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
         textColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }

@@ -2687,7 +2687,7 @@ export const ListStudentResumesResponseItem = zod.object({
   "certifications": zod.array(zod.string().max(listStudentResumesResponseContentCertificationsItemMax)).max(listStudentResumesResponseContentCertificationsMax),
   "languages": zod.array(zod.string().max(listStudentResumesResponseContentLanguagesItemMax)).max(listStudentResumesResponseContentLanguagesMax),
   "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
   "fontSize": zod.number().int().min(listStudentResumesResponseContentAppearanceFontSizeMin).max(listStudentResumesResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(listStudentResumesResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(listStudentResumesResponseContentAppearanceTextColorRegExp),
@@ -2848,7 +2848,7 @@ export const CreateStudentResumeBody = zod.object({
   "certifications": zod.array(zod.string().max(createStudentResumeBodyContentCertificationsItemMax)).max(createStudentResumeBodyContentCertificationsMax),
   "languages": zod.array(zod.string().max(createStudentResumeBodyContentLanguagesItemMax)).max(createStudentResumeBodyContentLanguagesMax),
   "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
   "fontSize": zod.number().int().min(createStudentResumeBodyContentAppearanceFontSizeMin).max(createStudentResumeBodyContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(createStudentResumeBodyContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(createStudentResumeBodyContentAppearanceTextColorRegExp),
@@ -3001,7 +3001,7 @@ export const CreateStudentResumeResponse = zod.object({
   "certifications": zod.array(zod.string().max(createStudentResumeResponseContentCertificationsItemMax)).max(createStudentResumeResponseContentCertificationsMax),
   "languages": zod.array(zod.string().max(createStudentResumeResponseContentLanguagesItemMax)).max(createStudentResumeResponseContentLanguagesMax),
   "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
   "fontSize": zod.number().int().min(createStudentResumeResponseContentAppearanceFontSizeMin).max(createStudentResumeResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(createStudentResumeResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(createStudentResumeResponseContentAppearanceTextColorRegExp),
@@ -3165,7 +3165,7 @@ export const UpdateStudentResumeBody = zod.object({
   "certifications": zod.array(zod.string().max(updateStudentResumeBodyContentCertificationsItemMax)).max(updateStudentResumeBodyContentCertificationsMax),
   "languages": zod.array(zod.string().max(updateStudentResumeBodyContentLanguagesItemMax)).max(updateStudentResumeBodyContentLanguagesMax),
   "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
   "fontSize": zod.number().int().min(updateStudentResumeBodyContentAppearanceFontSizeMin).max(updateStudentResumeBodyContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(updateStudentResumeBodyContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(updateStudentResumeBodyContentAppearanceTextColorRegExp),
@@ -3318,7 +3318,7 @@ export const UpdateStudentResumeResponse = zod.object({
   "certifications": zod.array(zod.string().max(updateStudentResumeResponseContentCertificationsItemMax)).max(updateStudentResumeResponseContentCertificationsMax),
   "languages": zod.array(zod.string().max(updateStudentResumeResponseContentLanguagesItemMax)).max(updateStudentResumeResponseContentLanguagesMax),
   "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia']),
+  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
   "fontSize": zod.number().int().min(updateStudentResumeResponseContentAppearanceFontSizeMin).max(updateStudentResumeResponseContentAppearanceFontSizeMax).optional(),
   "pageColor": zod.string().regex(updateStudentResumeResponseContentAppearancePageColorRegExp),
   "textColor": zod.string().regex(updateStudentResumeResponseContentAppearanceTextColorRegExp),

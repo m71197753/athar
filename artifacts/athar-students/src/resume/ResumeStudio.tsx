@@ -17,6 +17,16 @@ import {
 import { Link } from "wouter";
 import { analyzeStudentResumeAts, buildStudentResumeText, createStudentResumeContent, scoreStudentResume } from "./resume-document";
 import { downloadStudentResumeDocx } from "./resume-export";
+import {
+  colorContrastRatio,
+  DEFAULT_RESUME_APPEARANCE,
+  RESUME_COLOR_PRESETS,
+  RESUME_FONT_LABELS,
+  RESUME_FONT_STACKS,
+  withResumeAppearance,
+  type ResumeAppearance,
+  type ResumeFontFamily,
+} from "./resume-appearance";
 import "./resume-studio.css";
 
 type ResumeTemplate = "ats" | "professional";
@@ -61,7 +71,8 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [template, setTemplate] = useState<ResumeTemplate>("ats");
-  const [content, setContent] = useState<StudentResumeContent>(() => createStudentResumeContent(profile, achievements, courses));
+  const [content, setContent] = useState<StudentResumeContent>(() =>
+    withResumeAppearance(createStudentResumeContent(profile, achievements, courses)));
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<ReturnType<typeof analyzeStudentResumeAts> | null>(null);
   const [analysisMessage, setAnalysisMessage] = useState("");
@@ -83,6 +94,22 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   const activeDraft = resumes.find(resume => resume.id === activeId);
   const readiness = useMemo(() => scoreStudentResume(content), [content]);
   const resumeText = useMemo(() => buildStudentResumeText(content), [content]);
+  const appearance = content.appearance ?? DEFAULT_RESUME_APPEARANCE;
+  const resumePaperStyle: CSSProperties & {
+    "--resume-page-color": string;
+    "--resume-text-color": string;
+    "--resume-heading-color": string;
+    "--resume-accent-color": string;
+    "--resume-font-family": string;
+    "--resume-font-size": string;
+  } = {
+    "--resume-page-color": appearance.pageColor,
+    "--resume-text-color": appearance.textColor,
+    "--resume-heading-color": appearance.headingColor,
+    "--resume-accent-color": appearance.accentColor,
+    "--resume-font-family": RESUME_FONT_STACKS[appearance.fontFamily],
+    "--resume-font-size": `${appearance.fontSize ?? 11}pt`,
+  };
   const hasDraft = Boolean(activeId);
   const suggestionIsCurrent = Boolean(rewriteSuggestion && rewriteSuggestion.draftId === activeId &&
     content.headline.trim() === rewriteSuggestion.targetRole &&
@@ -96,7 +123,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
     if (!resumes.length) {
       if (!resumesQuery.isLoading && !activeId && !initializedDraft.current) {
         initializedDraft.current = "starter";
-        setContent(createStudentResumeContent(profile, achievements, courses));
+        setContent(withResumeAppearance(createStudentResumeContent(profile, achievements, courses)));
         setTitle("سيرتي المهنية");
         setTemplate("ats");
       }
@@ -111,8 +138,9 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
       initializedDraft.current = selected.id;
       setTitle(selected.title);
       setTemplate(selected.template === "professional" ? "professional" : "ats");
-      setContent(selected.content);
-      lastSaved.current = JSON.stringify({ title: selected.title, template: selected.template, content: selected.content });
+      const normalizedContent = withResumeAppearance(selected.content);
+      setContent(normalizedContent);
+      lastSaved.current = JSON.stringify({ title: selected.title, template: selected.template, content: normalizedContent });
     }
   }, [resumes, resumesQuery.isLoading, activeId, profile, achievements, courses]);
 
@@ -149,9 +177,13 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   const updateContent = (updater: (previous: StudentResumeContent) => StudentResumeContent) => {
     setContent(previous => updater(previous));
   };
+  const updateAppearance = (patch: Partial<ResumeAppearance>) => updateContent(previous => ({
+    ...previous,
+    appearance: { ...DEFAULT_RESUME_APPEARANCE, ...previous.appearance, ...patch },
+  }));
 
   const createStarter = () => {
-    const starter = createStudentResumeContent(profile, achievements, courses);
+    const starter = withResumeAppearance(createStudentResumeContent(profile, achievements, courses));
     const draftTitle = "سيرتي المهنية";
     createResume.mutate(
       { data: { title: draftTitle, origin: "guided", template: "ats", content: starter } },
@@ -396,7 +428,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
               <>
                 <section className="rs-paper-wrap" aria-label="معاينة السيرة">
                   <div className="rs-paper-topline"><span className="rs-live-dot" /><span>معاينة مباشرة</span><span className="rs-paper-date" data-testid="text-resume-updated">{activeDraft ? `آخر حفظ ${formatDate(activeDraft.updatedAt)}` : "مسودة جديدة"}</span></div>
-                  <article className={`rs-resume-paper rs-template-${template}`} dir="rtl" data-testid="section-resume-preview">
+                  <article className={`rs-resume-paper rs-template-${template} rs-customized`} dir="rtl" style={resumePaperStyle} data-testid="section-resume-preview">
                     {template === "professional" && <div className="rs-paper-accent" aria-hidden="true" />}
                     <header className="rs-identity">
                       <div className="rs-identity-copy"><span className="rs-document-label">السيرة الذاتية</span>
@@ -465,6 +497,45 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
                     </div>}
                     <p className="rs-ats-disclaimer" data-testid="text-resume-ats-disclaimer">النتيجة تقديرية لمقارنة الكلمات وليست تقييماً نهائياً أو ضماناً للتوظيف.</p>
                     <p className="rs-private-job-note" data-testid="text-resume-job-privacy">يبقى وصف الوظيفة في المتصفح فقط؛ لا يُرسل ولا يُحفظ.</p>
+                  </section>
+                  <section className="rs-side-card rs-appearance-card" aria-labelledby="rs-appearance-title" data-testid="section-guided-resume-appearance">
+                    <div className="rs-editor-section-head">
+                      <div><span className="rs-card-kicker">تنسيق خاص بالمسودة</span><h2 id="rs-appearance-title">الخطوط والألوان</h2></div>
+                      <button type="button" className="rs-appearance-reset" onClick={() => updateAppearance(DEFAULT_RESUME_APPEARANCE)} data-testid="button-reset-guided-resume-appearance">استعادة الافتراضي</button>
+                    </div>
+                    <div className="rs-appearance-grid">
+                      <label className="rs-field"><span>نوع الخط</span>
+                        <select value={appearance.fontFamily} onChange={event => updateAppearance({ fontFamily: event.target.value as ResumeFontFamily })} data-testid="select-guided-resume-font">
+                          {(Object.keys(RESUME_FONT_LABELS) as ResumeFontFamily[]).map(font => <option value={font} key={font}>{RESUME_FONT_LABELS[font]}</option>)}
+                        </select>
+                      </label>
+                      <label className="rs-field"><span>حجم الخط — {appearance.fontSize ?? 11} نقطة</span>
+                        <input type="range" min={10} max={18} step={1} value={appearance.fontSize ?? 11} onChange={event => updateAppearance({ fontSize: Number(event.target.value) })} data-testid="input-guided-resume-font-size" />
+                      </label>
+                    </div>
+                    <div className="rs-appearance-colors">
+                      {([
+                        ["pageColor", "لون خلفية الصفحة"],
+                        ["textColor", "لون النص"],
+                        ["headingColor", "لون العناوين"],
+                        ["accentColor", "لون التمييز"],
+                      ] as const).map(([key, label]) => <label className="rs-appearance-color-field" key={key}>
+                        <span>{label}</span>
+                        <span className="rs-color-input-wrap">
+                          <input type="color" value={appearance[key]} aria-label={label} onChange={event => updateAppearance({ [key]: event.target.value })} data-testid={`input-guided-resume-${key}`} />
+                          <code>{appearance[key]}</code>
+                        </span>
+                      </label>)}
+                    </div>
+                    <div className="rs-appearance-presets" role="group" aria-label="ألوان جاهزة">
+                      <span>ألوان جاهزة</span>
+                      {RESUME_COLOR_PRESETS.map(preset => <button type="button" key={preset.label} onClick={() => updateAppearance(preset.appearance)} data-testid={`button-guided-resume-preset-${preset.label}`}>
+                        <i style={{ backgroundColor: preset.appearance.accentColor }} aria-hidden="true" />{preset.label}
+                      </button>)}
+                    </div>
+                    {colorContrastRatio(appearance.textColor, appearance.pageColor) < 4.5 || colorContrastRatio(appearance.headingColor, appearance.pageColor) < 3
+                      ? <p className="rs-appearance-warning" role="status">التباين منخفض وقد يصعب قراءة السيرة؛ اختر لونًا أوضح قبل التنزيل.</p>
+                      : <p className="rs-appearance-hint">تظهر اختياراتك في المعاينة وتُحفظ تلقائيًا مع هذه السيرة.</p>}
                   </section>
                   <section className="rs-side-card rs-draft-settings">
                     <div className="rs-editor-section-head"><div><span className="rs-card-kicker">إعداد المسودة</span><h2>اسم النسخة والقالب</h2></div>

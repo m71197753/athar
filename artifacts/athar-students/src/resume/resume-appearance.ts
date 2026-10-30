@@ -17,6 +17,8 @@ export const RESUME_FONT_STACKS: Record<ResumeFontFamily, string> = {
   Tahoma: 'Tahoma, Arial, sans-serif',
   Verdana: 'Verdana, Tahoma, sans-serif',
   Georgia: 'Georgia, "Times New Roman", serif',
+  Cairo: 'Cairo, "IBM Plex Sans Arabic", Arial, sans-serif',
+  "IBM Plex Sans Arabic": '"IBM Plex Sans Arabic", Cairo, Arial, sans-serif',
 };
 
 export const RESUME_FONT_LABELS: Record<ResumeFontFamily, string> = {
@@ -24,6 +26,8 @@ export const RESUME_FONT_LABELS: Record<ResumeFontFamily, string> = {
   Tahoma: "Tahoma",
   Verdana: "Verdana",
   Georgia: "Georgia",
+  Cairo: "Cairo",
+  "IBM Plex Sans Arabic": "IBM Plex Sans Arabic",
 };
 
 export const RESUME_COLOR_PRESETS: { label: string; appearance: ResumeAppearance }[] = [

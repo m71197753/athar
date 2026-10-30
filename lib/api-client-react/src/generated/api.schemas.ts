@@ -793,6 +793,8 @@ export const StudentResumeAppearanceFontFamily = {
   Tahoma: 'Tahoma',
   Verdana: 'Verdana',
   Georgia: 'Georgia',
+  Cairo: 'Cairo',
+  IBM_Plex_Sans_Arabic: 'IBM Plex Sans Arabic',
 } as const;
 
 export interface StudentResumeAppearance {
