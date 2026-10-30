@@ -1202,6 +1202,102 @@ export interface AchievementAttachmentUpload {
   uploadUrl: string;
 }
 
+export type ModuleSubmissionStatus = typeof ModuleSubmissionStatus[keyof typeof ModuleSubmissionStatus];
+
+
+export const ModuleSubmissionStatus = {
+  uploading: 'uploading',
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface ModuleSubmission {
+  id: string;
+  moduleKey: ModuleKey;
+  title: string;
+  /** @nullable */
+  note: string | null;
+  originalName: string;
+  mime: string;
+  size: number;
+  status: ModuleSubmissionStatus;
+  /** @nullable */
+  reviewNote: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  downloadUrl: string | null;
+  createdAt: string;
+}
+
+export type AdminModuleSubmission = ModuleSubmission & ({
+  ownerId: string;
+  /** @nullable */
+  reviewedBy: string | null;
+});
+
+export interface ModuleSubmissionList {
+  items: ModuleSubmission[];
+}
+
+export interface AdminModuleSubmissionList {
+  items: AdminModuleSubmission[];
+  /** @minimum 0 */
+  total: number;
+  /** @minimum 1 */
+  page: number;
+  /** @minimum 1 */
+  pageSize: number;
+}
+
+export interface ModuleSubmissionUploadInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  note?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  originalName: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  mime: string;
+  /** @minimum 1 */
+  size: number;
+}
+
+export interface ModuleSubmissionUpload {
+  id: string;
+  uploadUrl: string;
+}
+
+export type ModuleSubmissionReviewInputStatus = typeof ModuleSubmissionReviewInputStatus[keyof typeof ModuleSubmissionReviewInputStatus];
+
+
+export const ModuleSubmissionReviewInputStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface ModuleSubmissionReviewInput {
+  status: ModuleSubmissionReviewInputStatus;
+  /**
+     * @maxLength 1000
+     * @nullable
+     */
+  reviewNote?: string | null;
+}
+
 export interface AchievementDraftInput {
   /**
      * @minLength 1
@@ -3794,6 +3890,23 @@ export const ListAchievementsCategory = {
   course: 'course',
   research: 'research',
   other: 'other',
+} as const;
+
+export type ListAdminModuleSubmissionsParams = {
+status?: ListAdminModuleSubmissionsStatus;
+/**
+ * @minimum 1
+ */
+page?: number;
+};
+
+export type ListAdminModuleSubmissionsStatus = typeof ListAdminModuleSubmissionsStatus[keyof typeof ListAdminModuleSubmissionsStatus];
+
+
+export const ListAdminModuleSubmissionsStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
 } as const;
 
 export type ListLanguageLearningContentParams = {

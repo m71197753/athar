@@ -18,6 +18,7 @@ import graduatesAdminRouter from "./graduates-admin";
 import languageLearningRouter from "./languages";
 import languageGamificationRouter from "./language-gamification-routes";
 import languageAdminRouter from "./language-admin";
+import moduleSubmissionsRouter from "./module-submissions";
 
 const router: IRouter = Router();
 
@@ -32,6 +33,7 @@ router.use(graduatesRouter);
 router.use(languageLearningRouter);
 router.use(languageGamificationRouter);
 router.use(languageAdminRouter);
+router.use(moduleSubmissionsRouter);
 router.use(adminRouter);
 router.use(studentRouter);
 router.use(aiRouter);

@@ -28,16 +28,18 @@ import { GraduatesAdminPanel } from './GraduatesAdminPanel';
 import { SectionContentBlockEditor } from './SectionContentBlockEditor';
 import { AdminNotificationsPanel } from './AdminNotificationsPanel';
 import LanguageAdminPanel from './LanguageAdminPanel';
+import { ModuleSubmissionsAdminPanel } from './ModuleSubmissionsAdminPanel';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const validSectionMediaUrl = (value: string) => /^\/api\/platform\/section-media\/[a-f0-9-]{36}$/i.test(value);
-type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
+type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'module-submissions' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: 'overview', label: 'نظرة عامة', icon: LayoutGrid },
   { id: 'notifications', label: 'الإشعارات', icon: Bell },
   { id: 'users', label: 'الحسابات', icon: Users },
   { id: 'content', label: 'المحتوى', icon: Megaphone },
   { id: 'sections', label: 'إدارة الأقسام', icon: Layers3 },
+  { id: 'module-submissions', label: 'ملفات الطلاب', icon: ShieldCheck },
   { id: 'academy', label: 'المذاكرة', icon: BookOpen },
   { id: 'languages', label: 'تعلم اللغات', icon: Languages },
   { id: 'graduates', label: 'الخريجون', icon: BriefcaseBusiness },
@@ -535,6 +537,7 @@ export default function AdminPage() {
       {tab === 'users' && <UsersPanel selfId={selfId}/>}
       {tab === 'content' && <ContentPanel/>}
       {tab === 'sections' && <SectionsAdminPanel onOpenModuleSettings={() => setTab('settings')}/>}
+      {tab === 'module-submissions' && <ModuleSubmissionsAdminPanel/>}
       {tab === 'academy' && <AcademyAdminPanel focusSubmissions={focusSubmissions}/>}
       {tab === 'languages' && <LanguageAdminPanel/>}
       {tab === 'graduates' && <GraduatesAdminPanel/>}

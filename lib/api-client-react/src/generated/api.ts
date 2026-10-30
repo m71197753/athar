@@ -90,6 +90,8 @@ import type {
   AdminGraduateItemInput,
   AdminGraduateItemList,
   AdminGraduateItemUpdate,
+  AdminModuleSubmission,
+  AdminModuleSubmissionList,
   AdminNotification,
   AdminNotificationList,
   AdminOverview,
@@ -148,12 +150,19 @@ import type {
   ListAchievementsParams,
   ListAdminAuditParams,
   ListAdminLanguageContentParams,
+  ListAdminModuleSubmissionsParams,
   ListAdminUsersParams,
   ListLanguageLearningContentParams,
   ListLearningItemsParams,
   ManagedContent,
   MarkAllAdminNotificationsReadResult,
   MemberUpdate,
+  ModuleKey,
+  ModuleSubmission,
+  ModuleSubmissionList,
+  ModuleSubmissionReviewInput,
+  ModuleSubmissionUpload,
+  ModuleSubmissionUploadInput,
   PlatformAccess,
   PlatformContent,
   PlatformSection,
@@ -6460,6 +6469,755 @@ export const useDeleteAchievementAttachment = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteAchievementAttachmentMutationOptions(options), queryClient);
     }
+
+export const getListModuleSubmissionsUrl = (moduleKey: ModuleKey,) => {
+
+
+
+
+  return `/api/modules/${moduleKey}/submissions`
+}
+
+/**
+ * @summary List the authenticated student's files submitted to a module
+ */
+export const listModuleSubmissions = async (moduleKey: ModuleKey, options?: Parameters<typeof customFetch>[1]): Promise<ModuleSubmissionList> => {
+
+  return customFetch<ModuleSubmissionList>(getListModuleSubmissionsUrl(moduleKey),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListModuleSubmissionsQueryKey = (moduleKey: ModuleKey,) => {
+    return [
+    `/api/modules/${moduleKey}/submissions`
+    ] as const;
+    }
+
+
+export const getListModuleSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof listModuleSubmissions>>, TError = ErrorType<void>>(moduleKey: ModuleKey, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListModuleSubmissionsQueryKey(moduleKey);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listModuleSubmissions>>> = ({ signal }) => listModuleSubmissions(moduleKey, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: moduleKey !== null && moduleKey !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListModuleSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof listModuleSubmissions>>>
+export type ListModuleSubmissionsQueryError = ErrorType<void>
+
+
+export function useListModuleSubmissions<TData = Awaited<ReturnType<typeof listModuleSubmissions>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listModuleSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listModuleSubmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListModuleSubmissions<TData = Awaited<ReturnType<typeof listModuleSubmissions>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listModuleSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listModuleSubmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListModuleSubmissions<TData = Awaited<ReturnType<typeof listModuleSubmissions>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the authenticated student's files submitted to a module
+ */
+
+export function useListModuleSubmissions<TData = Awaited<ReturnType<typeof listModuleSubmissions>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListModuleSubmissionsQueryOptions(moduleKey,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteModuleSubmissionUrl = (moduleKey: ModuleKey,
+    submissionId: string,) => {
+
+
+
+
+  return `/api/modules/${moduleKey}/submissions/${submissionId}`
+}
+
+/**
+ * @summary Delete one of the authenticated student's module submissions
+ */
+export const deleteModuleSubmission = async (moduleKey: ModuleKey,
+    submissionId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteModuleSubmissionUrl(moduleKey,submissionId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteModuleSubmissionMutationKey = () => ['deleteModuleSubmission'] as const;
+
+export const getDeleteModuleSubmissionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteModuleSubmission>>, TError,DeleteModuleSubmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteModuleSubmission>>, TError,DeleteModuleSubmissionMutationVariables, TContext> => {
+
+const mutationKey = getDeleteModuleSubmissionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteModuleSubmission>>, DeleteModuleSubmissionMutationVariables> = (props) => {
+          const {moduleKey,submissionId} = props ?? {};
+
+          return  deleteModuleSubmission(moduleKey,submissionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteModuleSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteModuleSubmission>>>
+
+    export type DeleteModuleSubmissionMutationError = ErrorType<void>
+    export type DeleteModuleSubmissionMutationVariables = {moduleKey: ModuleKey;submissionId: string}
+
+    /**
+ * @summary Delete one of the authenticated student's module submissions
+ */
+export const useDeleteModuleSubmission = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteModuleSubmission>>, TError,DeleteModuleSubmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteModuleSubmission>>,
+        TError,
+        DeleteModuleSubmissionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteModuleSubmissionMutationOptions(options), queryClient);
+    }
+
+export const getRequestModuleSubmissionUploadUrl = (moduleKey: ModuleKey,) => {
+
+
+
+
+  return `/api/modules/${moduleKey}/submissions/uploads`
+}
+
+/**
+ * @summary Request a private upload URL for a file submitted to a module
+ */
+export const requestModuleSubmissionUpload = async (moduleKey: ModuleKey,
+    moduleSubmissionUploadInput: ModuleSubmissionUploadInput, options?: Parameters<typeof customFetch>[1]): Promise<ModuleSubmissionUpload> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ModuleSubmissionUpload>(getRequestModuleSubmissionUploadUrl(moduleKey),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moduleSubmissionUploadInput)
+  }
+);}
+
+
+
+
+
+export const getRequestModuleSubmissionUploadMutationKey = () => ['requestModuleSubmissionUpload'] as const;
+
+export const getRequestModuleSubmissionUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestModuleSubmissionUpload>>, TError,RequestModuleSubmissionUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestModuleSubmissionUpload>>, TError,RequestModuleSubmissionUploadMutationVariables, TContext> => {
+
+const mutationKey = getRequestModuleSubmissionUploadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestModuleSubmissionUpload>>, RequestModuleSubmissionUploadMutationVariables> = (props) => {
+          const {moduleKey,data} = props ?? {};
+
+          return  requestModuleSubmissionUpload(moduleKey,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestModuleSubmissionUploadMutationResult = NonNullable<Awaited<ReturnType<typeof requestModuleSubmissionUpload>>>
+    export type RequestModuleSubmissionUploadMutationBody = BodyType<ModuleSubmissionUploadInput>
+    export type RequestModuleSubmissionUploadMutationError = ErrorType<void>
+    export type RequestModuleSubmissionUploadMutationVariables = {moduleKey: ModuleKey;data: BodyType<ModuleSubmissionUploadInput>}
+
+    /**
+ * @summary Request a private upload URL for a file submitted to a module
+ */
+export const useRequestModuleSubmissionUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestModuleSubmissionUpload>>, TError,RequestModuleSubmissionUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestModuleSubmissionUpload>>,
+        TError,
+        RequestModuleSubmissionUploadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestModuleSubmissionUploadMutationOptions(options), queryClient);
+    }
+
+export const getConfirmModuleSubmissionUploadUrl = (moduleKey: ModuleKey,
+    submissionId: string,) => {
+
+
+
+
+  return `/api/modules/${moduleKey}/submissions/${submissionId}/confirm`
+}
+
+/**
+ * @summary Verify and finish a module file submission
+ */
+export const confirmModuleSubmissionUpload = async (moduleKey: ModuleKey,
+    submissionId: string, options?: Parameters<typeof customFetch>[1]): Promise<ModuleSubmission> => {
+
+  return customFetch<ModuleSubmission>(getConfirmModuleSubmissionUploadUrl(moduleKey,submissionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConfirmModuleSubmissionUploadMutationKey = () => ['confirmModuleSubmissionUpload'] as const;
+
+export const getConfirmModuleSubmissionUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>, TError,ConfirmModuleSubmissionUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>, TError,ConfirmModuleSubmissionUploadMutationVariables, TContext> => {
+
+const mutationKey = getConfirmModuleSubmissionUploadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>, ConfirmModuleSubmissionUploadMutationVariables> = (props) => {
+          const {moduleKey,submissionId} = props ?? {};
+
+          return  confirmModuleSubmissionUpload(moduleKey,submissionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmModuleSubmissionUploadMutationResult = NonNullable<Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>>
+
+    export type ConfirmModuleSubmissionUploadMutationError = ErrorType<void>
+    export type ConfirmModuleSubmissionUploadMutationVariables = {moduleKey: ModuleKey;submissionId: string}
+
+    /**
+ * @summary Verify and finish a module file submission
+ */
+export const useConfirmModuleSubmissionUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>, TError,ConfirmModuleSubmissionUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmModuleSubmissionUpload>>,
+        TError,
+        ConfirmModuleSubmissionUploadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmModuleSubmissionUploadMutationOptions(options), queryClient);
+    }
+
+export const getDownloadModuleSubmissionUrl = (moduleKey: ModuleKey,
+    submissionId: string,) => {
+
+
+
+
+  return `/api/modules/${moduleKey}/submissions/${submissionId}/download`
+}
+
+/**
+ * @summary Stream a module submission to its owner
+ */
+export const downloadModuleSubmission = async (moduleKey: ModuleKey,
+    submissionId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadModuleSubmissionUrl(moduleKey,submissionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadModuleSubmissionQueryKey = (moduleKey: ModuleKey,
+    submissionId: string,) => {
+    return [
+    `/api/modules/${moduleKey}/submissions/${submissionId}/download`
+    ] as const;
+    }
+
+
+export const getDownloadModuleSubmissionQueryOptions = <TData = Awaited<ReturnType<typeof downloadModuleSubmission>>, TError = ErrorType<void>>(moduleKey: ModuleKey,
+    submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadModuleSubmissionQueryKey(moduleKey,submissionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadModuleSubmission>>> = ({ signal }) => downloadModuleSubmission(moduleKey,submissionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: moduleKey !== null && moduleKey !== undefined && submissionId !== null && submissionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadModuleSubmissionQueryResult = NonNullable<Awaited<ReturnType<typeof downloadModuleSubmission>>>
+export type DownloadModuleSubmissionQueryError = ErrorType<void>
+
+
+export function useDownloadModuleSubmission<TData = Awaited<ReturnType<typeof downloadModuleSubmission>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey,
+    submissionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadModuleSubmission>>,
+          TError,
+          Awaited<ReturnType<typeof downloadModuleSubmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadModuleSubmission<TData = Awaited<ReturnType<typeof downloadModuleSubmission>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey,
+    submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadModuleSubmission>>,
+          TError,
+          Awaited<ReturnType<typeof downloadModuleSubmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadModuleSubmission<TData = Awaited<ReturnType<typeof downloadModuleSubmission>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey,
+    submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stream a module submission to its owner
+ */
+
+export function useDownloadModuleSubmission<TData = Awaited<ReturnType<typeof downloadModuleSubmission>>, TError = ErrorType<void>>(
+ moduleKey: ModuleKey,
+    submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadModuleSubmissionQueryOptions(moduleKey,submissionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdminModuleSubmissionsUrl = (params?: ListAdminModuleSubmissionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/module-submissions?${stringifiedParams}` : `/api/admin/module-submissions`
+}
+
+/**
+ * @summary List student files submitted to platform modules
+ */
+export const listAdminModuleSubmissions = async (params?: ListAdminModuleSubmissionsParams, options?: Parameters<typeof customFetch>[1]): Promise<AdminModuleSubmissionList> => {
+
+  return customFetch<AdminModuleSubmissionList>(getListAdminModuleSubmissionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminModuleSubmissionsQueryKey = (params?: ListAdminModuleSubmissionsParams,) => {
+    return [
+    `/api/admin/module-submissions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminModuleSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError = ErrorType<void>>(params?: ListAdminModuleSubmissionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminModuleSubmissionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminModuleSubmissions>>> = ({ signal }) => listAdminModuleSubmissions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminModuleSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminModuleSubmissions>>>
+export type ListAdminModuleSubmissionsQueryError = ErrorType<void>
+
+
+export function useListAdminModuleSubmissions<TData = Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError = ErrorType<void>>(
+ params: undefined |  ListAdminModuleSubmissionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminModuleSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminModuleSubmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminModuleSubmissions<TData = Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError = ErrorType<void>>(
+ params?: ListAdminModuleSubmissionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminModuleSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminModuleSubmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminModuleSubmissions<TData = Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError = ErrorType<void>>(
+ params?: ListAdminModuleSubmissionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List student files submitted to platform modules
+ */
+
+export function useListAdminModuleSubmissions<TData = Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError = ErrorType<void>>(
+ params?: ListAdminModuleSubmissionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminModuleSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminModuleSubmissionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewAdminModuleSubmissionUrl = (submissionId: string,) => {
+
+
+
+
+  return `/api/admin/module-submissions/${submissionId}/review`
+}
+
+/**
+ * @summary Approve or reject a student module submission
+ */
+export const reviewAdminModuleSubmission = async (submissionId: string,
+    moduleSubmissionReviewInput: ModuleSubmissionReviewInput, options?: Parameters<typeof customFetch>[1]): Promise<AdminModuleSubmission> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AdminModuleSubmission>(getReviewAdminModuleSubmissionUrl(submissionId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moduleSubmissionReviewInput)
+  }
+);}
+
+
+
+
+
+export const getReviewAdminModuleSubmissionMutationKey = () => ['reviewAdminModuleSubmission'] as const;
+
+export const getReviewAdminModuleSubmissionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminModuleSubmission>>, TError,ReviewAdminModuleSubmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewAdminModuleSubmission>>, TError,ReviewAdminModuleSubmissionMutationVariables, TContext> => {
+
+const mutationKey = getReviewAdminModuleSubmissionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewAdminModuleSubmission>>, ReviewAdminModuleSubmissionMutationVariables> = (props) => {
+          const {submissionId,data} = props ?? {};
+
+          return  reviewAdminModuleSubmission(submissionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewAdminModuleSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof reviewAdminModuleSubmission>>>
+    export type ReviewAdminModuleSubmissionMutationBody = BodyType<ModuleSubmissionReviewInput>
+    export type ReviewAdminModuleSubmissionMutationError = ErrorType<void>
+    export type ReviewAdminModuleSubmissionMutationVariables = {submissionId: string;data: BodyType<ModuleSubmissionReviewInput>}
+
+    /**
+ * @summary Approve or reject a student module submission
+ */
+export const useReviewAdminModuleSubmission = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminModuleSubmission>>, TError,ReviewAdminModuleSubmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewAdminModuleSubmission>>,
+        TError,
+        ReviewAdminModuleSubmissionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewAdminModuleSubmissionMutationOptions(options), queryClient);
+    }
+
+export const getDownloadAdminModuleSubmissionUrl = (submissionId: string,) => {
+
+
+
+
+  return `/api/admin/module-submissions/${submissionId}/download`
+}
+
+/**
+ * @summary Stream a student's file to an administrator for review
+ */
+export const downloadAdminModuleSubmission = async (submissionId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadAdminModuleSubmissionUrl(submissionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadAdminModuleSubmissionQueryKey = (submissionId: string,) => {
+    return [
+    `/api/admin/module-submissions/${submissionId}/download`
+    ] as const;
+    }
+
+
+export const getDownloadAdminModuleSubmissionQueryOptions = <TData = Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError = ErrorType<void>>(submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadAdminModuleSubmissionQueryKey(submissionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>> = ({ signal }) => downloadAdminModuleSubmission(submissionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: submissionId !== null && submissionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadAdminModuleSubmissionQueryResult = NonNullable<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>>
+export type DownloadAdminModuleSubmissionQueryError = ErrorType<void>
+
+
+export function useDownloadAdminModuleSubmission<TData = Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError = ErrorType<void>>(
+ submissionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAdminModuleSubmission>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAdminModuleSubmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAdminModuleSubmission<TData = Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError = ErrorType<void>>(
+ submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAdminModuleSubmission>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAdminModuleSubmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAdminModuleSubmission<TData = Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError = ErrorType<void>>(
+ submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stream a student's file to an administrator for review
+ */
+
+export function useDownloadAdminModuleSubmission<TData = Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError = ErrorType<void>>(
+ submissionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAdminModuleSubmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadAdminModuleSubmissionQueryOptions(submissionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGenerateAchievementDraftUrl = () => {
 

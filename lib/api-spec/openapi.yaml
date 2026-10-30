@@ -1131,6 +1131,153 @@ paths:
         "204": { description: Evidence deleted }
         "401": { description: Authentication required }
         "404": { description: Attachment not found }
+  /modules/{moduleKey}/submissions:
+    get:
+      operationId: listModuleSubmissions
+      tags: [student]
+      summary: List the authenticated student's files submitted to a module
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+      responses:
+        "200":
+          description: The student's module submissions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmissionList" }
+        "401": { description: Authentication required }
+  /modules/{moduleKey}/submissions/{submissionId}:
+    delete:
+      operationId: deleteModuleSubmission
+      tags: [student]
+      summary: Delete one of the authenticated student's module submissions
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Submission deleted }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+  /modules/{moduleKey}/submissions/uploads:
+    post:
+      operationId: requestModuleSubmissionUpload
+      tags: [student]
+      summary: Request a private upload URL for a file submitted to a module
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleSubmissionUploadInput" }
+      responses:
+        "201":
+          description: Short-lived direct upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmissionUpload" }
+        "400": { description: Invalid upload metadata or unsupported file type }
+        "401": { description: Authentication required }
+  /modules/{moduleKey}/submissions/{submissionId}/confirm:
+    post:
+      operationId: confirmModuleSubmissionUpload
+      tags: [student]
+      summary: Verify and finish a module file submission
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Verified submission awaiting review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmission" }
+        "400": { description: Uploaded bytes failed verification }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+  /modules/{moduleKey}/submissions/{submissionId}/download:
+    get:
+      operationId: downloadModuleSubmission
+      tags: [student]
+      summary: Stream a module submission to its owner
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: Range, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Private file content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+        "416": { description: Invalid byte range }
+  /admin/module-submissions:
+    get:
+      operationId: listAdminModuleSubmissions
+      tags: [admin]
+      summary: List student files submitted to platform modules
+      parameters:
+        - { in: query, name: status, required: false, schema: { type: string, enum: [pending, approved, rejected] } }
+        - { in: query, name: page, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated module submission review queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminModuleSubmissionList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/module-submissions/{submissionId}/review:
+    patch:
+      operationId: reviewAdminModuleSubmission
+      tags: [admin]
+      summary: Approve or reject a student module submission
+      parameters:
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleSubmissionReviewInput" }
+      responses:
+        "200":
+          description: Updated submission review state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminModuleSubmission" }
+        "400": { description: Invalid review state }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission not found }
+  /admin/module-submissions/{submissionId}/download:
+    get:
+      operationId: downloadAdminModuleSubmission
+      tags: [admin]
+      summary: Stream a student's file to an administrator for review
+      parameters:
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: Range, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Private file content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission not found }
+        "416": { description: Invalid byte range }
   /ai/achievement-draft:
     post:
       operationId: generateAchievementDraft
@@ -3432,6 +3579,73 @@ components:
       properties:
         id: { type: string, format: uuid }
         uploadUrl: { type: string, format: uri }
+    ModuleSubmissionStatus:
+      type: string
+      enum: [uploading, pending, approved, rejected]
+    ModuleSubmission:
+      type: object
+      required: [id, moduleKey, title, note, originalName, mime, size, status, reviewNote, reviewedAt, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        moduleKey: { $ref: "#/components/schemas/ModuleKey" }
+        title: { type: string }
+        note: { type: ["string", "null"] }
+        originalName: { type: string }
+        mime: { type: string }
+        size: { type: integer, format: int64 }
+        status: { $ref: "#/components/schemas/ModuleSubmissionStatus" }
+        reviewNote: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AdminModuleSubmission:
+      allOf:
+        - $ref: "#/components/schemas/ModuleSubmission"
+        - type: object
+          required: [ownerId, reviewedBy]
+          properties:
+            ownerId: { type: string }
+            reviewedBy: { type: ["string", "null"] }
+    ModuleSubmissionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleSubmission" }
+    AdminModuleSubmissionList:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminModuleSubmission" }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        pageSize: { type: integer, minimum: 1 }
+    ModuleSubmissionUploadInput:
+      type: object
+      additionalProperties: false
+      required: [title, originalName, mime, size]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        note: { type: ["string", "null"], maxLength: 2000 }
+        originalName: { type: string, minLength: 1, maxLength: 255 }
+        mime: { type: string, minLength: 1, maxLength: 120 }
+        size: { type: integer, format: int64, minimum: 1 }
+    ModuleSubmissionUpload:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+    ModuleSubmissionReviewInput:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+        reviewNote: { type: ["string", "null"], maxLength: 1000 }
     AchievementDraftInput:
       type: object
       required: [title, context, action, result]

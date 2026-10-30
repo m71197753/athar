@@ -106,6 +106,7 @@
 .ats-template-pick strong { font-size: 9px; }
 .ats-template-pick small { color: var(--ats-muted); font-size: 7px; }
 .ats-template-pick.is-selected { border-color: #918be1; color: var(--ats-indigo); background: var(--ats-lilac); box-shadow: inset 0 0 0 1px rgba(67,56,202,.05); }
+.ats-template-guidance { margin: 8px 0 0; color: #646578; font-size: 8px; line-height: 1.8; }
 
 .ats-workspace { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(330px,.9fr); align-items: start; gap: 17px; }
 .ats-edit-column { display: grid; gap: 10px; min-width: 0; }
@@ -239,4 +240,31 @@
 @media (prefers-reduced-motion: reduce) {
   .ats-studio,.ats-loading span { animation: none; }
   .ats-button,.ats-draft,.ats-template-pick,.ats-add { transition: none; }
+}
+.ats-paper.ats-ats {
+  border: 1px solid #c9c9c9;
+  border-radius: 0;
+  color: #111;
+  background: #fff;
+  box-shadow: none;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.ats-ats .ats-paper-header { display: block; padding: 0 0 12px; border-bottom: 1px solid #333; }
+.ats-ats .ats-paper-identity h2 { color: #111; font-family: Arial, Helvetica, sans-serif; font-size: 25px; }
+.ats-ats .ats-paper-identity p,.ats-ats .ats-paper-contact { color: #222; font-family: Arial, Helvetica, sans-serif; }
+.ats-ats .ats-paper-contact { display: block; margin-top: 8px; }
+.ats-ats .ats-paper-contact span { display: inline; }
+.ats-ats .ats-paper-contact span:not(:last-child)::after { content: " | "; color: #444; }
+.ats-ats .ats-paper-mark,.ats-ats .ats-paper-foot,.ats-ats .ats-doc-label { display: none !important; }
+.ats-ats .ats-paper-section { margin-top: 15px; }
+.ats-ats .ats-paper-section h3 { padding-bottom: 4px; border-bottom: 1px solid #555; color: #111; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: .015em; }
+.ats-ats .ats-paper-section h3 > span { display: none; }
+.ats-ats .ats-paper-summary,.ats-ats .ats-paper-desc,.ats-ats .ats-paper-meta { color: #222; font-family: Arial, Helvetica, sans-serif; }
+.ats-ats .ats-paper-entry { border-inline-start: 0; padding-inline-start: 0; }
+.ats-ats .ats-paper-entry-top h4,.ats-ats .ats-paper-entry-top time { color: #111; font-family: Arial, Helvetica, sans-serif; }
+.ats-ats .ats-paper-chips { display: block; margin: 0; padding-inline-start: 20px; list-style: disc; }
+.ats-ats .ats-paper-chips li { display: list-item; margin: 2px 0; padding: 0; border: 0; border-radius: 0; color: #111; background: transparent; font-family: Arial, Helvetica, sans-serif; }
+@media print {
+  .ats-paper.ats-ats { border: 0; border-radius: 0; box-shadow: none; font-size: 10pt; }
+  .ats-ats .ats-paper-section h3 { color: #000; }
 }

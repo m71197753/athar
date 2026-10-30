@@ -3559,6 +3559,204 @@ export const DeleteAchievementAttachmentResponse = zod.void()
 
 
 /**
+ * @summary List the authenticated student's files submitted to a module
+ */
+export const ListModuleSubmissionsParams = zod.object({
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant'])
+})
+
+export const ListModuleSubmissionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "title": zod.string(),
+  "note": zod.string().nullable(),
+  "originalName": zod.string(),
+  "mime": zod.string(),
+  "size": zod.number().int(),
+  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
+  "reviewNote": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Delete one of the authenticated student's module submissions
+ */
+export const DeleteModuleSubmissionParams = zod.object({
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "submissionId": zod.coerce.string().uuid()
+})
+
+export const DeleteModuleSubmissionResponse = zod.void()
+
+
+/**
+ * @summary Request a private upload URL for a file submitted to a module
+ */
+export const RequestModuleSubmissionUploadParams = zod.object({
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant'])
+})
+
+export const requestModuleSubmissionUploadBodyTitleMax = 160;
+
+export const requestModuleSubmissionUploadBodyNoteMax = 2000;
+
+export const requestModuleSubmissionUploadBodyOriginalNameMax = 255;
+
+export const requestModuleSubmissionUploadBodyMimeMax = 120;
+
+
+
+
+export const RequestModuleSubmissionUploadBody = zod.object({
+  "title": zod.string().min(1).max(requestModuleSubmissionUploadBodyTitleMax),
+  "note": zod.string().max(requestModuleSubmissionUploadBodyNoteMax).nullish(),
+  "originalName": zod.string().min(1).max(requestModuleSubmissionUploadBodyOriginalNameMax),
+  "mime": zod.string().min(1).max(requestModuleSubmissionUploadBodyMimeMax),
+  "size": zod.number().int().min(1)
+})
+
+export const RequestModuleSubmissionUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "uploadUrl": zod.string().url()
+})
+
+
+/**
+ * @summary Verify and finish a module file submission
+ */
+export const ConfirmModuleSubmissionUploadParams = zod.object({
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "submissionId": zod.coerce.string().uuid()
+})
+
+export const ConfirmModuleSubmissionUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "title": zod.string(),
+  "note": zod.string().nullable(),
+  "originalName": zod.string(),
+  "mime": zod.string(),
+  "size": zod.number().int(),
+  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
+  "reviewNote": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Stream a module submission to its owner
+ */
+export const DownloadModuleSubmissionParams = zod.object({
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "submissionId": zod.coerce.string().uuid()
+})
+
+export const DownloadModuleSubmissionHeader = zod.object({
+  "Range": zod.string().optional()
+})
+
+export const DownloadModuleSubmissionResponse = zod.unknown()
+
+
+/**
+ * @summary List student files submitted to platform modules
+ */
+export const listAdminModuleSubmissionsQueryPageDefault = 1;
+
+
+
+export const ListAdminModuleSubmissionsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'approved', 'rejected']).optional(),
+  "page": zod.coerce.number().int().min(1).default(listAdminModuleSubmissionsQueryPageDefault)
+})
+
+export const listAdminModuleSubmissionsResponseTotalMin = 0;
+
+
+
+
+
+export const ListAdminModuleSubmissionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "title": zod.string(),
+  "note": zod.string().nullable(),
+  "originalName": zod.string(),
+  "mime": zod.string(),
+  "size": zod.number().int(),
+  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
+  "reviewNote": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "ownerId": zod.string(),
+  "reviewedBy": zod.string().nullable()
+}))),
+  "total": zod.number().int().min(listAdminModuleSubmissionsResponseTotalMin),
+  "page": zod.number().int().min(1),
+  "pageSize": zod.number().int().min(1)
+})
+
+
+/**
+ * @summary Approve or reject a student module submission
+ */
+export const ReviewAdminModuleSubmissionParams = zod.object({
+  "submissionId": zod.coerce.string().uuid()
+})
+
+export const reviewAdminModuleSubmissionBodyReviewNoteMax = 1000;
+
+
+
+export const ReviewAdminModuleSubmissionBody = zod.object({
+  "status": zod.enum(['approved', 'rejected']),
+  "reviewNote": zod.string().max(reviewAdminModuleSubmissionBodyReviewNoteMax).nullish()
+})
+
+export const ReviewAdminModuleSubmissionResponse = zod.object({
+  "id": zod.string().uuid(),
+  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
+  "title": zod.string(),
+  "note": zod.string().nullable(),
+  "originalName": zod.string(),
+  "mime": zod.string(),
+  "size": zod.number().int(),
+  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
+  "reviewNote": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "ownerId": zod.string(),
+  "reviewedBy": zod.string().nullable()
+}))
+
+
+/**
+ * @summary Stream a student's file to an administrator for review
+ */
+export const DownloadAdminModuleSubmissionParams = zod.object({
+  "submissionId": zod.coerce.string().uuid()
+})
+
+export const DownloadAdminModuleSubmissionHeader = zod.object({
+  "Range": zod.string().optional()
+})
+
+export const DownloadAdminModuleSubmissionResponse = zod.unknown()
+
+
+/**
  * @summary Create an optional CV bullet and interview story from student-provided facts
  */
 export const generateAchievementDraftBodyTitleMax = 160;

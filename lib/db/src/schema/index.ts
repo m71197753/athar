@@ -27,6 +27,7 @@ export * from "./student-resumes";
 export * from "./platform";
 export * from "./platform-sections";
 export * from "./platform-media";
+export * from "./module-submissions";
 export * from "./ads";
 export * from "./academy";
 export * from "./academy-study";

@@ -350,7 +350,7 @@ function AchievementCard({ item, onEdit, onDelete, onManageAttachments, compact 
   return <article className={`achievement-card ${compact ? 'achievement-compact' : ''}`} data-testid={`card-achievement-${item.id}`}>
     <div className="achievement-icon"><Icon size={19}/></div>
     <div className="achievement-content"><div className="achievement-topline"><span className="achievement-category">{categoryNames[item.category] || 'إنجاز'}</span><time>{new Date(item.achievedOn).toLocaleDateString('ar', { year: 'numeric', month: 'short' })}</time></div><h3 data-testid={`text-achievement-title-${item.id}`}>{item.title}</h3><p>{item.summary || item.resumeBullet || item.result}</p>{item.serviceOffer && <p className="achievement-pitch"><b>عرض مهارة أو مشروع:</b> {item.serviceOffer}</p>}<div className="skill-list">{item.skills?.slice(0, 4).map(skill => <span className="skill-pill" key={skill}>{skill}</span>)}</div></div>
-    {(onEdit || onDelete || onManageAttachments) && <div className="card-actions">{onManageAttachments && <button className="icon-button" aria-label="إدارة مرفقات الإنجاز" title="إضافة صور وملفات وروابط" onClick={() => onManageAttachments(item)} data-testid={`button-attachments-${item.id}`}><Paperclip size={16}/></button>}{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
+    {(onEdit || onDelete || onManageAttachments) && <div className="card-actions">{onManageAttachments && <button className="achievement-evidence-action" aria-label="إضافة صور وملفات وروابط لهذا الإنجاز" title="إضافة صور وملفات وروابط" onClick={() => onManageAttachments(item)} data-testid={`button-attachments-${item.id}`}><Paperclip size={15}/><span>الملفات والأدلة</span></button>}{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
   </article>;
 }
 
@@ -660,7 +660,7 @@ const freshForm = (): AchievementFormState => ({
   achievedOn: new Date().toISOString().slice(0, 10), skills: '', resumeBullet: '', interviewStory: '', serviceOffer: '', summary: '',
 });
 
-function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievement; onClose: () => void; onSaved: () => void }) {
+function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievement; onClose: () => void; onSaved: (achievement: Achievement, created: boolean) => void }) {
   const cache = useQueryClient();
   const [form, setForm] = useState<AchievementFormState>(() => initial ? {
     title: initial.title, category: initial.category, context: initial.context, challenge: initial.challenge || '',
@@ -689,10 +689,10 @@ function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievemen
       skills: form.skills.split(/[،,]/).map(s => s.trim()).filter(Boolean),
       resumeBullet: form.resumeBullet.trim(), interviewStory: form.interviewStory.trim(), serviceOffer: form.serviceOffer.trim(), summary: form.summary.trim(),
     };
-    const done = () => {
+    const done = (achievement: Achievement) => {
       cache.invalidateQueries({ queryKey: getListAchievementsQueryKey() });
       cache.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-      onSaved(); onClose();
+      onSaved(achievement, !initial); onClose();
     };
     if (initial) update.mutate({ id: initial.id, data: payload }, { onSuccess: done });
     else create.mutate({ data: payload }, { onSuccess: done });
@@ -707,6 +707,7 @@ function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievemen
       <label className="field"><span>ماذا فعلت أنت؟ <RequiredMark/></span><textarea required rows={3} maxLength={3000} value={form.action} onChange={e => set('action', e.target.value)} placeholder="صف مساهمتك المحددة، وما الذي قمت به بنفسك." data-testid="input-achievement-action"/></label>
       <label className="field"><span>ما النتيجة؟ <RequiredMark/></span><textarea required rows={2} maxLength={2000} value={form.result} onChange={e => set('result', e.target.value)} placeholder="أثر ملموس، رقم، أو شيء تعلمته." data-testid="input-achievement-result"/></label>
       <label className="field">المهارات التي استخدمتها<span className="field-hint">افصل بين المهارات بفاصلة</span><input value={form.skills} onChange={e => set('skills', e.target.value)} placeholder="التواصل، البحث، إدارة الوقت" data-testid="input-achievement-skills"/></label>
+       {!initial && <div className="achievement-evidence-next-step"><Paperclip size={18}/><div><b>أضف صورك وملفاتك كدليل</b><p>بعد حفظ الإنجاز ستفتح لك مساحة لإرفاق الصور والفيديوهات والملفات أو إضافة نص ورابط.</p></div></div>}
         <div className="ai-callout"><div className="ai-callout-copy"><span className="ai-icon"><Sparkles size={17}/></span><div><b>حوّل تجربتك إلى قصة واضحة</b><small>اقتراحات للسيرة والمقابلة وعرض مهارتك وملخص التجربة.</small></div></div><button className="button button-ai" type="button" disabled={draft.isPending || !form.title || !form.action || !form.result} onClick={makeDraft} data-testid="button-generate-draft">{draft.isPending ? <LoaderCircle size={15} className="spin"/> : <Sparkles size={15}/>} {draft.isPending ? 'نرتّب كلماتك…' : 'اقترح صياغة'}</button></div>
       {draft.isError && <p className="form-error" role="alert" data-testid="status-draft-error">لم نتمكن من إنشاء المسودة. يمكنك المتابعة بصياغتك الخاصة.</p>}
        <label className="field">عبارة للسيرة المهنية<textarea rows={2} maxLength={1000} value={form.resumeBullet} onChange={e => set('resumeBullet', e.target.value)} placeholder="تظهر هذه العبارة في معاينة سيرتك المهنية." data-testid="input-resume-bullet"/></label>
@@ -730,6 +731,10 @@ function AchievementsPage() {
   const remove = useDeleteAchievement();
   const cache = useQueryClient();
   const [, setLocation] = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.querySelector(".content-area")?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
   const openNew = () => { setEditing(undefined); setDialogOpen(true); };
   const openEdit = (item: Achievement) => { setEditing(item); setDialogOpen(true); };
   useEffect(() => {
@@ -755,7 +760,7 @@ function AchievementsPage() {
       <span className="achievement-count" data-testid="text-achievement-count">{result.isLoading ? 'جارٍ تحميل الإنجازات…' : result.isError ? 'تعذّر تحميل الإنجازات' : formatAchievementCount(result.data?.length ?? 0)}</span></div>
     {result.isLoading ? <LoadingPanel label="نجمع تجاربك" /> : result.isError ? <ErrorPanel retry={() => result.refetch()}/> : result.data?.length ? <div className="achievement-list full-achievement-list">{result.data.map(item => <AchievementCard key={item.id} item={item} onEdit={openEdit} onDelete={deleteItem} onManageAttachments={setEvidenceFor}/>)}</div> : <EmptyState title={query || category ? 'لم نجد تجربة بهذا الوصف' : 'كل رحلة تبدأ بتجربة واحدة'} body={query || category ? 'جرّب كلمة بحث أخرى أو غيّر نوع التجربة.' : 'ابدأ بتوثيق مشروع أو نشاط شاركت فيه. التجارب الصغيرة تصنع قصة كبيرة.'} action={query || category ? <button className="button button-outline" onClick={() => { setQuery(''); setCategory(''); }} data-testid="button-clear-filters">مسح البحث والتصفية</button> : <button className="button button-primary" onClick={openNew} data-testid="button-empty-create">أضف أول إنجاز <Plus size={16}/></button>}/>}
     {remove.isError && <p className="form-error inline-error" data-testid="status-delete-error">تعذّر حذف الإنجاز. حاول مرة أخرى.</p>}
-    {dialogOpen && <AchievementDialog initial={editing} onClose={() => setDialogOpen(false)} onSaved={() => {}}/>}
+    {dialogOpen && <AchievementDialog initial={editing} onClose={() => setDialogOpen(false)} onSaved={(achievement, created) => { if (created) setEvidenceFor(achievement); }}/>}
     {evidenceFor && <AchievementAttachmentsDialog achievement={evidenceFor} onClose={() => setEvidenceFor(undefined)}/>}
   </div>;
 }

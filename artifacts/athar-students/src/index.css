@@ -1189,6 +1189,12 @@ body { font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif; }
 .saved-evidence-download { margin-top: 3px; }
 .saved-evidence-preview-trigger { width: fit-content; max-width: 100%; padding: 0; border: 0; border-radius: 9px; background: transparent; cursor: zoom-in; }
 .saved-evidence-preview-button { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 7px 10px; border: 1px solid #d7e0e6; border-radius: 8px; background: #f6f8fb; color: #4338ca; cursor: pointer; font-size: 10px; }
+.achievement-evidence-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 6px 9px; border: 1px solid #cbd6de; border-radius: 8px; color: #42576b; background: #fff; font-size: 9px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.achievement-evidence-action:hover { border-color: #4d7a79; color: #2e6661; background: #f0f7f6; }
+.achievement-evidence-next-step { display: flex; align-items: flex-start; gap: 10px; margin: 2px 0 14px; padding: 12px; border: 1px solid #bfdbd6; border-radius: 10px; color: #32716a; background: #edf7f5; }
+.achievement-evidence-next-step>svg { flex: 0 0 auto; margin-top: 2px; }
+.achievement-evidence-next-step b { display: block; color: #294f4b; font-size: 10px; }
+.achievement-evidence-next-step p { margin: 4px 0 0; color: #526b69; font-size: 9px; line-height: 1.7; }
 .attachment-preview-scrim { z-index: 120; }
 .attachment-preview-dialog { display: grid; grid-template-rows: auto minmax(0,1fr) auto; gap: 12px; width: min(1000px,100%); height: min(88dvh,900px); padding: 15px; border: 1px solid #d7e0e6; border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(20,31,43,.3); }
 .attachment-preview-header,.attachment-preview-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -1199,3 +1205,8 @@ body { font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif; }
 .attachment-preview-footer { justify-content: flex-start; }
 @media (max-width: 560px) { .achievement-attachments-dialog { max-height: 94dvh; }.achievement-attachments-body { padding: 12px; }.attachment-add-panel { padding: 12px; }.saved-evidence-video { max-height: 200px; } }
 @media (max-width: 560px) { .attachment-preview-dialog { height: 94dvh; padding: 10px; border-radius: 15px 15px 0 0; }.attachment-preview-header { align-items: flex-start; flex-direction: column; }.attachment-preview-content iframe { min-height: 200px; } }
+.dark .achievement-evidence-action { border-color: #454b67; color: #e5e7f2; background: #24283a; }
+.dark .achievement-evidence-action:hover { border-color: #67c7bc; color: #b4f1e9; background: #263b3d; }
+.dark .achievement-evidence-next-step { border-color: #396b68; color: #a4e7dc; background: #1f383b; }
+.dark .achievement-evidence-next-step b { color: #d9f5ef; }
+.dark .achievement-evidence-next-step p { color: #b7c6cf; }

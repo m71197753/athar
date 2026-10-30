@@ -16,7 +16,7 @@ import { downloadStudentResumeDocx } from "./resume-export";
 import { scoreStudentResume } from "./resume-document";
 import "./resume-template-studio.css";
 
-type ManualTemplate = "classic" | "modern" | "sidebar";
+type ManualTemplate = "ats" | "classic" | "modern" | "sidebar";
 type EntrySection = "education" | "experience" | "projects" | "courses";
 type ListSection = "skills" | "certifications" | "languages";
 type ResumeEntry = StudentResumeContent[EntrySection][number];
@@ -62,9 +62,19 @@ const entryLimits: Record<EntrySection, number> = { education: 20, experience: 3
 const listLimits: Record<ListSection, number> = { skills: 60, certifications: 30, languages: 20 };
 const listItemLimits: Record<ListSection, number> = { skills: 80, certifications: 180, languages: 100 };
 const templateLabels: Record<ManualTemplate, { title: string; description: string }> = {
+  ats: { title: "ATS بسيط", description: "عمود واحد وعناوين واضحة" },
   classic: { title: "كلاسيكي", description: "ترتيب هادئ وواضح" },
   modern: { title: "حديث", description: "تفاصيل بلمسة نيليّة" },
   sidebar: { title: "جانبي", description: "معلوماتك في عمود مستقل" },
+};
+const atsSectionLabels: Record<EntrySection | ListSection, string> = {
+  education: "EDUCATION | التعليم",
+  experience: "WORK EXPERIENCE | الخبرات",
+  projects: "PROJECTS | المشروعات",
+  courses: "COURSES | الدورات",
+  skills: "SKILLS | المهارات",
+  certifications: "CERTIFICATIONS | الشهادات",
+  languages: "LANGUAGES | اللغات",
 };
 const formatDate = (value: string) => value
   ? new Intl.DateTimeFormat("ar", { year: "numeric", month: "short", day: "numeric" }).format(new Date(value))
@@ -82,7 +92,7 @@ export default function ResumeTemplateStudio() {
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [template, setTemplate] = useState<ManualTemplate>("classic");
+  const [template, setTemplate] = useState<ManualTemplate>("ats");
   const [content, setContent] = useState<StudentResumeContent>(() => blankContent());
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [deleteError, setDeleteError] = useState("");
@@ -375,12 +385,13 @@ export default function ResumeTemplateStudio() {
   );
 
   const renderPreviewSection = (section: EntrySection | ListSection, index: number) => {
+    const label = template === "ats" ? atsSectionLabels[section] : sectionLabels[section];
     if (section === "skills" || section === "certifications" || section === "languages") {
       const items = content[section].map(value => value.trim()).filter(Boolean);
       if (!items.length) return null;
       return (
         <section className="ats-paper-section" key={section} data-testid={`section-preview-${section}`}>
-          <h3><span>{String(index + 1).padStart(2, "0")}</span>{sectionLabels[section]}</h3>
+          <h3>{template !== "ats" && <span>{String(index + 1).padStart(2, "0")}</span>}{label}</h3>
           <ul className="ats-paper-chips" data-testid={`list-preview-${section}`}>
             {items.map((item, itemIndex) => <li key={`${section}-${itemIndex}`} data-testid={`text-preview-${section}-${itemIndex}`}>{item}</li>)}
           </ul>
@@ -393,7 +404,7 @@ export default function ResumeTemplateStudio() {
     if (!entries.length) return null;
     return (
       <section className="ats-paper-section" key={section} data-testid={`section-preview-${section}`}>
-        <h3><span>{String(index + 1).padStart(2, "0")}</span>{sectionLabels[section]}</h3>
+          <h3>{template !== "ats" && <span>{String(index + 1).padStart(2, "0")}</span>}{label}</h3>
         <div className="ats-paper-entries">{entries.map((entry, entryIndex) => (
           <article className="ats-paper-entry" key={`${section}-${entryIndex}`} data-testid={`card-preview-${section}-${entryIndex}`}>
             <div className="ats-paper-entry-top"><h4>{entry.title}</h4><time>{entry.period}</time></div>
@@ -408,14 +419,17 @@ export default function ResumeTemplateStudio() {
   };
 
   const renderPaper = () => {
-    const sectionOrder: (EntrySection | ListSection)[] = [
+    const sectionOrder: (EntrySection | ListSection)[] = template === "ats" ? [
+      "experience", "education", "projects", "skills", "certifications", "courses", "languages",
+    ] : [
       "education", "experience", "projects", "courses", "skills", "certifications", "languages",
     ];
+    const summaryHeading = template === "ats" ? "PROFESSIONAL SUMMARY | الملخص المهني" : "الملخص المهني";
     return (
-      <article className={`ats-paper ats-${template}`} dir="rtl" data-testid="section-resume-preview">
+      <article className={`ats-paper ats-${template}`} dir={template === "ats" ? "auto" : "rtl"} data-testid="section-resume-preview">
         <header className="ats-paper-header">
           <div className="ats-paper-identity">
-            <span className="ats-doc-label">السيرة الذاتية</span>
+            {template !== "ats" && <span className="ats-doc-label">السيرة الذاتية</span>}
             <h2 data-testid="text-resume-name">{content.fullName || "اسمك"}</h2>
             {content.headline && <p className="ats-paper-headline" data-testid="text-resume-headline">{content.headline}</p>}
             {[content.email, content.phone, content.location, content.linkedin, content.website].some(Boolean) &&
@@ -425,7 +439,7 @@ export default function ResumeTemplateStudio() {
                 )}
               </div>}
           </div>
-          {content.fullName && <div className="ats-paper-mark" aria-hidden="true">{content.fullName.trim().slice(0, 1)}</div>}
+          {template !== "ats" && content.fullName && <div className="ats-paper-mark" aria-hidden="true">{content.fullName.trim().slice(0, 1)}</div>}
         </header>
         {template === "sidebar" ? (
           <>
@@ -439,11 +453,11 @@ export default function ResumeTemplateStudio() {
           </>
         ) : (
           <>
-            {content.summary && <section className="ats-paper-section"><h3><span>01</span>الملخص المهني</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{content.summary}</p></section>}
+            {content.summary && <section className="ats-paper-section"><h3>{template !== "ats" && <span>01</span>}{summaryHeading}</h3><p className="ats-paper-summary" data-testid="text-preview-summary">{content.summary}</p></section>}
             {sectionOrder.map((section, index) => renderPreviewSection(section, index + (content.summary ? 1 : 0)))}
           </>
         )}
-        <footer className="ats-paper-foot"><img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" /></footer>
+        {template !== "ats" && <footer className="ats-paper-foot"><img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" /></footer>}
       </article>
     );
   };
@@ -520,6 +534,7 @@ export default function ResumeTemplateStudio() {
                   </button>
                 ))}
               </div>
+              {template === "ats" && <p className="ats-template-guidance">تنسيق أحادي العمود بعناوين قياسية. اكتب خبراتك الحقيقية وراجع الملف؛ توافق ATS لا يضمن اجتياز كل نظام فرز.</p>}
             </div>
             <button type="button" className="ats-button ats-primary" onClick={createDraft} disabled={createResume.isPending}
               data-testid="button-create-manual-resume">
@@ -547,6 +562,7 @@ export default function ResumeTemplateStudio() {
                   </button>
                 ))}
               </div>
+              {template === "ats" && <p className="ats-template-guidance">تنسيق أحادي العمود بعناوين قياسية. اكتب خبراتك الحقيقية وراجع الملف؛ توافق ATS لا يضمن اجتياز كل نظام فرز.</p>}
               <div className="ats-save-line" role="status" data-testid="status-manual-save">
                 {saveState === "saved" ? <Check size={14} /> : saveState === "error" ? <AlertCircle size={14} /> : saveState === "saving" ? <LoaderCircle size={14} /> : <Save size={14} />}
                 <span>{saveState === "saved" ? "تم حفظ التغييرات" :

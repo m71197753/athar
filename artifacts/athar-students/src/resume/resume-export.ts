@@ -114,6 +114,9 @@ export async function downloadStudentResumeDocx(
   const { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } = await import("docx");
   const professional = ["professional", "modern", "sidebar"].includes(template);
   const color = professional ? teal : ink;
+  const rightToLeft = template !== "ats" || /[\u0600-\u06ff]/.test(JSON.stringify(content));
+  const alignment = rightToLeft ? AlignmentType.RIGHT : AlignmentType.LEFT;
+  const headingLabel = (arabic: string, english: string) => template === "ats" ? `${english} | ${arabic}` : arabic;
   const paragraph = (text: string, options?: { bold?: boolean; color?: string; size?: number }) => new Paragraph({
     children: [new TextRun({
       text,
@@ -121,17 +124,17 @@ export async function downloadStudentResumeDocx(
       size: options?.size ?? 21,
       bold: options?.bold,
       color: options?.color ?? ink,
-      rightToLeft: true,
+      rightToLeft,
     })],
-    alignment: AlignmentType.RIGHT,
-    bidirectional: true,
+    alignment,
+    bidirectional: rightToLeft,
     spacing: { after: 95 },
   });
   const heading = (text: string) => new Paragraph({
     text,
     heading: HeadingLevel.HEADING_2,
-    alignment: AlignmentType.RIGHT,
-    bidirectional: true,
+    alignment,
+    bidirectional: rightToLeft,
     run: { color, bold: true, font: "Arial" },
     spacing: { before: 230, after: 100 },
   });
@@ -148,7 +151,7 @@ export async function downloadStudentResumeDocx(
   ].map(value => value.trim()).filter(Boolean);
   if (contact.length) children.push(paragraph(contact.join(" · "), { color: "536377" }));
   if (content.summary.trim()) {
-    children.push(heading("الملخص المهني"));
+    children.push(heading(headingLabel("الملخص المهني", "PROFESSIONAL SUMMARY")));
     children.push(paragraph(content.summary.trim()));
   }
 
@@ -169,20 +172,25 @@ export async function downloadStudentResumeDocx(
     }
   };
 
-  addEntries("التعليم", content.education);
-  addEntries("الخبرات", content.experience);
-  addEntries("المشروعات", content.projects);
-  addEntries("الدورات", content.courses);
+  if (template === "ats") {
+    addEntries(headingLabel("الخبرات", "WORK EXPERIENCE"), content.experience);
+    addEntries(headingLabel("التعليم", "EDUCATION"), content.education);
+  } else {
+    addEntries("التعليم", content.education);
+    addEntries("الخبرات", content.experience);
+  }
+  addEntries(headingLabel("المشروعات", "PROJECTS"), content.projects);
+  addEntries(headingLabel("الدورات", "COURSES"), content.courses);
   if (content.skills.some(value => value.trim())) {
-    children.push(heading("المهارات"));
+    children.push(heading(headingLabel("المهارات", "SKILLS")));
     children.push(paragraph(content.skills.map(value => value.trim()).filter(Boolean).join(" · ")));
   }
   if (content.certifications.some(value => value.trim())) {
-    children.push(heading("الشهادات"));
+    children.push(heading(headingLabel("الشهادات", "CERTIFICATIONS")));
     content.certifications.map(value => value.trim()).filter(Boolean).forEach(value => children.push(paragraph(value)));
   }
   if (content.languages.some(value => value.trim())) {
-    children.push(heading("اللغات"));
+    children.push(heading(headingLabel("اللغات", "LANGUAGES")));
     children.push(paragraph(content.languages.map(value => value.trim()).filter(Boolean).join(" · ")));
   }
 
