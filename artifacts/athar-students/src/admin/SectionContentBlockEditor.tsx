@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
+import { ArrowRight, FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
 import { RequiredMark } from "../components/RequiredMark";
 import { useConfirmSectionMediaUpload, useRequestSectionMediaUpload } from "@workspace/api-client-react";
 import type { SectionBlock, SectionMediaUploadInput } from "@workspace/api-client-react";
@@ -34,6 +34,7 @@ export function SectionContentBlockEditor({
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [uploadPercent, setUploadPercent] = useState(0);
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
@@ -120,7 +121,13 @@ export function SectionContentBlockEditor({
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
       {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
       {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
-      {block.url && block.mediaType === "file" && <a className="adm-media-file-link" href={adminPreviewMediaUrl(block.url)} target="_blank" rel="noopener noreferrer"><FileText size={16}/> فتح المرفق</a>}
+       {block.url && block.mediaType === "file" && <button className="adm-media-file-link" type="button" onClick={() => setFilePreviewOpen(true)}><FileText size={16}/> معاينة داخل أثر</button>}
+       {filePreviewOpen && block.url && block.mediaType === "file" && <div className="adm-inline-file-preview-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setFilePreviewOpen(false); }}>
+         <section className="adm-inline-file-preview" role="dialog" aria-modal="true" aria-label={`معاينة ${block.title}`}>
+           <header><b>{block.title || "معاينة الملف"}</b><button type="button" onClick={() => setFilePreviewOpen(false)}><ArrowRight size={16}/> رجوع للبرنامج</button></header>
+           <iframe src={adminPreviewMediaUrl(block.url)} title={`معاينة ${block.title}`} />
+         </section>
+       </div>}
       {block.url && <span className="adm-upload-status">{block.mediaType === "image" ? <ImageIcon size={14}/> : block.mediaType === "audio" ? <Headphones size={14}/> : block.mediaType === "video" ? <Video size={14}/> : <FileText size={14}/>} تم التحقق من الملف؛ سيظهر للطلاب بعد نشر المحتوى.</span>}
     </>}
   </div>;

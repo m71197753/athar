@@ -28,7 +28,7 @@ const ResumeStudio = lazy(() => import('./resume/ResumeStudio'));
 const ResumeTemplateStudio = lazy(() => import('./resume/ResumeTemplateStudio'));
 const DemoDataPage = lazy(() => import('./demo/DemoDataPage').then(module => ({ default: module.DemoDataPage })));
 import {
-  ArrowDownLeft, ArrowLeft, Award, BookOpen, BriefcaseBusiness,
+  ArrowDownLeft, ArrowLeft, ArrowRight, Award, BookOpen, BriefcaseBusiness,
   Check, ChevronDown, CircleHelp, ClipboardList, Copy, Download, FileText, Filter,
   GraduationCap, HeartHandshake, Lightbulb, LoaderCircle, LogOut, Menu, Pencil,
   Paperclip, Plus, Search, Share2, Sparkles, Target, Trash2, TrendingUp, Upload, X, ShieldCheck, Route as RouteIcon, CircleCheck, Clock3,
@@ -80,6 +80,43 @@ const categories = Object.keys(categoryNames);
 
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
+}
+
+function BrowserBackGuard() {
+  const [loc, setLocation] = useLocation();
+  const locationRef = useRef(loc);
+  useEffect(() => { locationRef.current = loc; }, [loc]);
+  useEffect(() => {
+    const appOrigin = window.location.origin;
+    window.history.pushState({ atharBackGuard: true }, '', window.location.href);
+    const handlePopState = (event: PopStateEvent) => {
+      const path = window.location.pathname;
+      const insideApp = window.location.origin === appOrigin &&
+        (!basePath || path === basePath || path.startsWith(`${basePath}/`));
+      const previousRoute = stripBase(path);
+      const currentRoute = stripBase(locationRef.current.split('?')[0]);
+      if (insideApp && previousRoute !== currentRoute) {
+        window.dispatchEvent(new Event('athar:browser-back'));
+        return;
+      }
+
+      event.stopImmediatePropagation();
+      if (insideApp) {
+        window.history.pushState({ atharBackGuard: true }, '', window.location.href);
+        return;
+      }
+      if (currentRoute === '/' || currentRoute.startsWith('/sign-in') || currentRoute.startsWith('/sign-up')) {
+        const appUrl = `${basePath}${locationRef.current.startsWith('/') ? locationRef.current : `/${locationRef.current}`}`;
+        window.history.pushState({ atharBackGuard: true }, '', appUrl || '/');
+        return;
+      }
+      window.dispatchEvent(new Event('athar:browser-back'));
+      setLocation('/dashboard');
+    };
+    window.addEventListener('popstate', handlePopState, true);
+    return () => window.removeEventListener('popstate', handlePopState, true);
+  }, [setLocation]);
+  return null;
 }
 
 const clerkAppearance = {
@@ -217,6 +254,10 @@ function Shell({ children: content }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const backStackRef = useRef<string[]>([]);
+  const lastLocationRef = useRef<string | null>(null);
+  const browserBackRef = useRef(false);
+  const skipLocationRecordRef = useRef(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const { data: health } = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey(), retry: false } });
@@ -254,6 +295,30 @@ function Shell({ children: content }: { children: ReactNode }) {
   const customSectionTitle = currentPath.startsWith('/sections/')
     ? platform.data?.sections.find(section => `/sections/${section.slug}` === currentPath)?.title
     : undefined;
+  useEffect(() => {
+    const markBrowserBack = () => { browserBackRef.current = true; };
+    window.addEventListener('athar:browser-back', markBrowserBack);
+    return () => window.removeEventListener('athar:browser-back', markBrowserBack);
+  }, []);
+  useEffect(() => {
+    const previous = lastLocationRef.current;
+    if (previous && previous !== loc) {
+      if (browserBackRef.current) backStackRef.current.pop();
+      else if (!skipLocationRecordRef.current) {
+        backStackRef.current.push(previous);
+        if (backStackRef.current.length > 40) backStackRef.current.shift();
+      }
+    }
+    lastLocationRef.current = loc;
+    browserBackRef.current = false;
+    skipLocationRecordRef.current = false;
+  }, [loc]);
+  const goBackWithinApp = () => {
+    const previous = backStackRef.current.pop() ?? '/dashboard';
+    if (previous === loc) return;
+    skipLocationRecordRef.current = true;
+    setLocation(previous);
+  };
   useEffect(() => {
     if (!profileMenuOpen) return;
     const closeOnOutside = (event: PointerEvent) => {
@@ -294,7 +359,7 @@ function Shell({ children: content }: { children: ReactNode }) {
       <div className="sidebar-status"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'المساحة تعمل' : 'جارٍ الاتصال'}</div>
        <div className="side-user"><span className="user-avatar">{user?.firstName?.slice(0, 1) || 'ط'}</span><span className="user-meta"><b>{user?.fullName || 'طالب أثر'}</b><small>مساحتك الشخصية</small></span></div>
     </aside>
-        <div className="main-column"><header className="topbar"><button className="mobile-menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" data-testid="button-open-menu"><Menu size={20}/></button><Link href="/dashboard" className="mobile-header-brand" data-testid="link-mobile-header-brand"><Brand small/></Link><span className="topbar-crumb">مساحة الطالب <span>/</span> {customSectionTitle ?? (crumbPath ? routeTitles[crumbPath] : 'أثر')}</span><button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} title={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)} data-testid="button-sidebar-toggle">{sidebarCollapsed ? <PanelRightOpen size={18}/> : <PanelRightClose size={18}/>}</button><ThemeToggle/><div className="topbar-right"><span className="topbar-note">وثّق ما تعلّمته اليوم</span><div className="profile-menu-wrap" ref={profileMenuRef}><button ref={profileTriggerRef} type="button" className="avatar-mini avatar-trigger" aria-label="فتح قائمة الحساب" aria-haspopup="menu" aria-expanded={profileMenuOpen} aria-controls="topbar-profile-menu" onClick={() => setProfileMenuOpen(open => !open)} data-testid="button-profile-menu">{user?.firstName?.slice(0,1) || 'ط'}</button>{profileMenuOpen && <div className="profile-menu" id="topbar-profile-menu" role="menu" dir="rtl"><div className="profile-menu-heading"><b>{user?.fullName || 'طالب أثر'}</b><small>{user?.primaryEmailAddress?.emailAddress || 'مساحتك الشخصية'}</small></div><Link href="/profile" role="menuitem" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}><UserRound size={17}/> الملف الشخصي</Link><button type="button" role="menuitem" className="profile-menu-item profile-sign-out" onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-sign-out"><LogOut size={17}/> تسجيل الخروج</button></div>}</div></div></header><main className="content-area">{children}</main><footer className="app-footer"><span>أثر — تجاربك الجامعية في مكان واحد</span><Link href="/privacy" className="text-link">الخصوصية</Link><span className="footer-health"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'الاتصال مستقر' : 'جارٍ التحقق من الاتصال'}</span></footer></div>
+        <div className="main-column"><header className="topbar"><button className="app-back-button" type="button" onClick={goBackWithinApp} aria-label="الرجوع للصفحة السابقة داخل أثر" title="الرجوع للصفحة السابقة داخل أثر" data-testid="button-app-back"><ArrowRight size={18}/><span>رجوع</span></button><button className="mobile-menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" data-testid="button-open-menu"><Menu size={20}/></button><Link href="/dashboard" className="mobile-header-brand" data-testid="link-mobile-header-brand"><Brand small/></Link><span className="topbar-crumb">مساحة الطالب <span>/</span> {customSectionTitle ?? (crumbPath ? routeTitles[crumbPath] : 'أثر')}</span><button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} title={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)} data-testid="button-sidebar-toggle">{sidebarCollapsed ? <PanelRightOpen size={18}/> : <PanelRightClose size={18}/>}</button><ThemeToggle/><div className="topbar-right"><span className="topbar-note">وثّق ما تعلّمته اليوم</span><div className="profile-menu-wrap" ref={profileMenuRef}><button ref={profileTriggerRef} type="button" className="avatar-mini avatar-trigger" aria-label="فتح قائمة الحساب" aria-haspopup="menu" aria-expanded={profileMenuOpen} aria-controls="topbar-profile-menu" onClick={() => setProfileMenuOpen(open => !open)} data-testid="button-profile-menu">{user?.firstName?.slice(0,1) || 'ط'}</button>{profileMenuOpen && <div className="profile-menu" id="topbar-profile-menu" role="menu" dir="rtl"><div className="profile-menu-heading"><b>{user?.fullName || 'طالب أثر'}</b><small>{user?.primaryEmailAddress?.emailAddress || 'مساحتك الشخصية'}</small></div><Link href="/profile" role="menuitem" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}><UserRound size={17}/> الملف الشخصي</Link><button type="button" role="menuitem" className="profile-menu-item profile-sign-out" onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-sign-out"><LogOut size={17}/> تسجيل الخروج</button></div>}</div></div></header><main className="content-area">{children}</main><footer className="app-footer"><span>أثر — تجاربك الجامعية في مكان واحد</span><Link href="/privacy" className="text-link">الخصوصية</Link><span className="footer-health"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'الاتصال مستقر' : 'جارٍ التحقق من الاتصال'}</span></footer></div>
     <nav className="mobile-bottom-nav" aria-label="التنقل السريع">
       {mobileItems.slice(0, 2).map(item => { const Icon = item.icon; const label = item.href === '/achievements' ? 'الأثر' : item.label; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
       <button className="mobile-create-button" type="button" onClick={openNewAchievement} aria-label="وثّق أثراً جديداً" data-testid="mobile-nav-create"><Plus size={21}/></button>
@@ -1462,7 +1527,7 @@ function App() {
   if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
   return <QueryClientProvider client={queryClient}>
     <PlatformThemeSync/>
-    <WouterRouter base={basePath}><AuthRouter/></WouterRouter>
+    <WouterRouter base={basePath}><BrowserBackGuard/><AuthRouter/></WouterRouter>
   </QueryClientProvider>;
 }
 

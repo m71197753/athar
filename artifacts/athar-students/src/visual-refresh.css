@@ -580,6 +580,10 @@ body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
 .landing-nav { border-color: var(--athar-line); }
 .hero-copy > p, .landing-band > p, .journey-step p { line-height: 1.95; }
 .hero h1 { letter-spacing: -.035em; }
+.app-back-button { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; gap:5px; min-height:36px; padding:0 9px; border:1px solid var(--athar-line); border-radius:10px; color:var(--athar-primary-deep); background:var(--athar-paper-raised); font:700 11px inherit; cursor:pointer; }
+.app-back-button:hover { border-color:var(--athar-primary); background:var(--athar-primary-soft); }
+.app-back-button:focus-visible { outline:2px solid var(--athar-primary); outline-offset:2px; }
+@media(max-width:560px) { .app-back-button { width:34px; min-height:34px; padding:0; } .app-back-button span { display:none; } }
 .hero h1 em { color: var(--athar-primary); }
 .hero-art:before { background: radial-gradient(circle at 48% 46%, rgba(59,112,107,.15), rgba(166,185,168,.09) 42%, transparent 72%); }
 .orbit, .core-ring { border-color: color-mix(in srgb, var(--athar-primary) 25%, transparent); }
