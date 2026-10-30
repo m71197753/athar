@@ -382,6 +382,15 @@ export const AppearanceSettingsFontFamily = {
   Arial: 'Arial',
 } as const;
 
+export type AppearanceSettingsIconShape = typeof AppearanceSettingsIconShape[keyof typeof AppearanceSettingsIconShape];
+
+
+export const AppearanceSettingsIconShape = {
+  rounded: 'rounded',
+  circle: 'circle',
+  square: 'square',
+} as const;
+
 export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   primaryColor: string;
@@ -405,6 +414,9 @@ export interface AppearanceSettings {
   cardTextColor?: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   cardBorderColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  iconColor?: string;
+  iconShape?: AppearanceSettingsIconShape;
   /**
      * @minLength 2
      * @maxLength 80

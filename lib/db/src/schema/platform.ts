@@ -60,6 +60,8 @@ export const platformSettingsTable = pgTable("platform_settings", {
     headingColor?: string;
     cardTextColor?: string;
     cardBorderColor?: string;
+    iconColor?: string;
+    iconShape?: "rounded" | "circle" | "square";
     welcomeTitle: string;
     welcomeDescription: string;
   }>().notNull().default({

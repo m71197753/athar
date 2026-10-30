@@ -618,6 +618,7 @@ export const getPlatformContentResponseAppearanceTextColorRegExp = new RegExp('^
 export const getPlatformContentResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getPlatformContentResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceWelcomeTitleMin = 2;
 export const getPlatformContentResponseAppearanceWelcomeTitleMax = 80;
 
@@ -710,6 +711,8 @@ export const GetPlatformContentResponse = zod.object({
   "headingColor": zod.string().regex(getPlatformContentResponseAppearanceHeadingColorRegExp).optional(),
   "cardTextColor": zod.string().regex(getPlatformContentResponseAppearanceCardTextColorRegExp).optional(),
   "cardBorderColor": zod.string().regex(getPlatformContentResponseAppearanceCardBorderColorRegExp).optional(),
+  "iconColor": zod.string().regex(getPlatformContentResponseAppearanceIconColorRegExp).optional(),
+  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(getPlatformContentResponseAppearanceWelcomeTitleMin).max(getPlatformContentResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getPlatformContentResponseAppearanceWelcomeDescriptionMin).max(getPlatformContentResponseAppearanceWelcomeDescriptionMax)
 }),
@@ -982,6 +985,7 @@ export const getAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#[
 export const getAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const getAdminSettingsResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const getAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1020,6 +1024,8 @@ export const GetAdminSettingsResponse = zod.object({
   "headingColor": zod.string().regex(getAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
   "cardTextColor": zod.string().regex(getAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
   "cardBorderColor": zod.string().regex(getAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
+  "iconColor": zod.string().regex(getAdminSettingsResponseAppearanceIconColorRegExp).optional(),
+  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(getAdminSettingsResponseAppearanceWelcomeTitleMin).max(getAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(getAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })
@@ -1054,6 +1060,7 @@ export const saveAdminSettingsBodyAppearanceTextColorRegExp = new RegExp('^#[0-9
 export const saveAdminSettingsBodyAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsBodyAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMax = 80;
 
@@ -1092,6 +1099,8 @@ export const SaveAdminSettingsBody = zod.object({
   "headingColor": zod.string().regex(saveAdminSettingsBodyAppearanceHeadingColorRegExp).optional(),
   "cardTextColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardTextColorRegExp).optional(),
   "cardBorderColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardBorderColorRegExp).optional(),
+  "iconColor": zod.string().regex(saveAdminSettingsBodyAppearanceIconColorRegExp).optional(),
+  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeTitleMin).max(saveAdminSettingsBodyAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeDescriptionMin).max(saveAdminSettingsBodyAppearanceWelcomeDescriptionMax)
 })
@@ -1125,6 +1134,7 @@ export const saveAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#
 export const saveAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+export const saveAdminSettingsResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1163,6 +1173,8 @@ export const SaveAdminSettingsResponse = zod.object({
   "headingColor": zod.string().regex(saveAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
   "cardTextColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
   "cardBorderColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
+  "iconColor": zod.string().regex(saveAdminSettingsResponseAppearanceIconColorRegExp).optional(),
+  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeTitleMin).max(saveAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(saveAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })

@@ -51,6 +51,7 @@ export async function platformAppearance() {
   const legacyDefault = parsed.data.primaryColor.toUpperCase() === "#4F46E5" &&
     !parsed.data.fontFamily && !parsed.data.textColor && !parsed.data.headingColor &&
     !parsed.data.cardTextColor && !parsed.data.cardBorderColor &&
+    !parsed.data.iconColor && !parsed.data.iconShape &&
     parsed.data.accentColor.toUpperCase() === "#6366F1" &&
     parsed.data.canvasColor.toUpperCase() === "#F8FAFC" &&
     parsed.data.surfaceColor.toUpperCase() === "#FFFFFF";

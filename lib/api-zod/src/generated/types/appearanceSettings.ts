@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AppearanceSettingsFontFamily } from './appearanceSettingsFontFamily';
+import type { AppearanceSettingsIconShape } from './appearanceSettingsIconShape';
 
 export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
@@ -30,6 +31,9 @@ export interface AppearanceSettings {
   cardTextColor?: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   cardBorderColor?: string;
+  /** @pattern ^#[0-9A-Fa-f]{6}$ */
+  iconColor?: string;
+  iconShape?: AppearanceSettingsIconShape;
   /**
      * @minLength 2
      * @maxLength 80

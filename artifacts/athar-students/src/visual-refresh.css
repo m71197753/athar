@@ -634,6 +634,31 @@ body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
+/* Admin-configurable general icon tint and icon-tile shape. */
+.app-frame {
+  --athar-icon-color: var(--platform-icon-color-light, var(--athar-primary));
+  --athar-icon-soft: var(--platform-icon-soft-light, var(--athar-primary-soft));
+  --athar-icon-radius: var(--platform-icon-radius, 14px);
+}
+.dark .app-frame {
+  --athar-icon-color: var(--platform-icon-color-dark, var(--athar-primary-accent));
+  --athar-icon-soft: var(--platform-icon-soft-dark, var(--athar-primary-soft));
+}
+.app-frame :is(.side-link > svg, .mobile-bottom-link > svg) { color: var(--athar-icon-color) !important; }
+.app-frame :is(
+  .dashboard-feature-icon, .dashboard-start-icon, .dashboard-stat-icon,
+  .metric-icon-green, .metric-icon-gold, .achievement-icon, .step-icon, .growth-symbol,
+  .lesson-index, .ai-icon, .share-panel-icon, .gr-portfolio-icon, .lang-admin-hero-icon,
+  .adm-notification-icon, .adm-module-submission-icon, .ac-row-icon,
+  .student-submissions-mark, .student-submission-file-icon,
+  .custom-course-cover-icon, .custom-course-empty-icon, .custom-course-material-icon,
+  .demo-hero-icon, .demo-icon
+) {
+  color: var(--athar-icon-color) !important;
+  background-color: var(--athar-icon-soft) !important;
+  border-radius: var(--athar-icon-radius) !important;
+}
+
 /* The submitted 3D wordmark is designed for a dark tile. */
 img[src$="athar-wordmark-3d.png"] {
   padding: 3px 6px;

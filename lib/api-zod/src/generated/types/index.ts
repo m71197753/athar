@@ -147,6 +147,7 @@ export * from './adSlot';
 export * from './adStatistics';
 export * from './appearanceSettings';
 export * from './appearanceSettingsFontFamily';
+export * from './appearanceSettingsIconShape';
 export * from './auditEntry';
 export * from './auditPage';
 export * from './careerAssistantComparison';

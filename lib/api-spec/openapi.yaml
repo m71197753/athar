@@ -3140,6 +3140,8 @@ components:
         headingColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         cardTextColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         cardBorderColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        iconColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        iconShape: { type: string, enum: [rounded, circle, square] }
         welcomeTitle: { type: string, minLength: 2, maxLength: 80 }
         welcomeDescription: { type: string, minLength: 2, maxLength: 220 }
     PlatformAccess:

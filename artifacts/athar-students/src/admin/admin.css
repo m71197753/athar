@@ -195,6 +195,16 @@
 .adm-appearance-preview-card > b { display:block; color:var(--a-ink); font:800 17px/1.6 'Cairo',sans-serif; }
 .adm-appearance-preview-card > p { margin:4px 0 12px; color:var(--a-muted); font-size:11px; line-height:1.8; }
 .adm-appearance-preview-card > button { min-height:34px; padding:7px 13px; border:0; border-radius:9px; font:700 11px 'Cairo',sans-serif; }
+.adm-icon-style-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 14px; }
+.adm-icon-color-field { margin:0; }
+.adm-icon-shape-field { min-width:0; padding:10px 12px; border:1px solid var(--a-line); border-radius:12px; background:var(--a-bg); }
+.adm-icon-shape-label { display:block; margin-bottom:9px; color:var(--a-ink); font-size:12px; font-weight:700; }
+.adm-icon-shape-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.adm-icon-shape-option { min-height:64px; display:grid; justify-items:center; align-content:center; gap:5px; border:1px solid var(--a-line); border-radius:10px; color:var(--a-muted); background:var(--a-card); font:700 10px 'Cairo',sans-serif; cursor:pointer; }
+.adm-icon-shape-option[aria-pressed="true"], .adm-icon-shape-option:hover { border-color:var(--a-teal); color:var(--a-ink); background:var(--a-soft); }
+.adm-icon-shape-swatch { width:30px; height:30px; display:grid; place-items:center; }
+.adm-icon-preview-row { display:flex; align-items:center; gap:9px; margin:10px 0 12px; color:var(--a-muted); font-size:10px; font-weight:700; }
+.adm-icon-preview-row > span { width:38px; height:38px; display:grid; place-items:center; }
 .adm-global-note { margin:10px 0 0; color:var(--a-muted); font-size:11px; }
 .adm-module-editor-list { display:grid; gap:10px; }
 .adm-module-editor { padding:14px; border:1px solid var(--a-line); border-radius:15px; background:var(--a-card); }
@@ -300,3 +310,4 @@
 .adm-field select { width:100%; min-height:43px; padding:9px 11px; border:1px solid var(--a-line); border-radius:12px; color:var(--a-ink); background:var(--a-paper); font:inherit; }
 .adm-field select:focus { outline:none; border-color:var(--a-teal); box-shadow:0 0 0 3px color-mix(in srgb,var(--a-teal) 14%,transparent); }
 @media(max-width:700px) { .adm-section-appearance { grid-template-columns:1fr; } .adm-section-appearance-fields { grid-template-columns:1fr; } }
+@media(max-width:700px) { .adm-icon-style-settings { grid-template-columns:1fr; } }

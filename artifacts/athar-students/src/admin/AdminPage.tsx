@@ -23,7 +23,7 @@ import { SectionAppearanceFields } from '../components/SectionAppearanceFields';
 import './admin.css';
 import AdsAdminPanel from '../ads/AdsAdminPanel';
 import { AcademyAdminPanel } from '../academy';
-import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, PLATFORM_FONTS, appearanceContrast, getAppearanceTextColor } from '../lib/platform-appearance';
+import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, ICON_SHAPES, PLATFORM_FONTS, appearanceContrast, getAppearanceIconRadius, getAppearanceTextColor } from '../lib/platform-appearance';
 import { SectionsAdminPanel } from './SectionsAdminPanel';
 import { GraduatesAdminPanel } from './GraduatesAdminPanel';
 import { SectionContentBlockEditor } from './SectionContentBlockEditor';
@@ -342,6 +342,9 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   if (q.isError || !moduleDraft || !appearanceDraft || !q.data) return <ErrorBox error={q.error} retry={() => q.refetch()}/>;
   const serverModules = q.data.moduleSettings;
   const serverAppearance = q.data.appearance;
+  const iconColor = appearanceDraft.iconColor ?? DEFAULT_APPEARANCE.iconColor ?? appearanceDraft.primaryColor;
+  const iconShape = appearanceDraft.iconShape ?? DEFAULT_APPEARANCE.iconShape ?? 'rounded';
+  const iconRadius = getAppearanceIconRadius(iconShape);
   const canonicalModules = (modules: ModuleSetting[]) => [...modules].sort((a, b) => a.key.localeCompare(b.key));
   const modulesDirty = JSON.stringify(canonicalModules(moduleDraft)) !== JSON.stringify(canonicalModules(serverModules));
   const appearanceDirty = JSON.stringify(appearanceDraft) !== JSON.stringify(serverAppearance);
@@ -383,7 +386,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   };
   const choosePreset = (preset: AppearanceSettings) => {
     setMsg(null);
-    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor, cardTextColor: preset.cardTextColor, cardBorderColor: preset.cardBorderColor }));
+    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor, cardTextColor: preset.cardTextColor, cardBorderColor: preset.cardBorderColor, iconColor: preset.iconColor ?? preset.primaryColor }));
   };
   const persist = (modules: ModuleSetting[], appearance: AppearanceSettings) => {
     const invalidContent = modules.some(module => (module.blocks ?? []).length > 20 || (module.blocks ?? []).some(block =>
@@ -452,7 +455,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
       </article>;
     })}</div>
     <section className="adm-appearance" aria-labelledby="adm-appearance-title">
-      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">الخطوط وألوان الواجهة</h2><p>إعدادات عامة لكل الطلاب، تشمل الإنجازات. ألوان النص والخلفيات المخصصة للوضع الفاتح؛ الوضع الداكن يحتفظ بألوان مريحة للقراءة.</p></div></div>
+      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">الخطوط وألوان الواجهة</h2><p>إعدادات عامة لكل الطلاب، تشمل لون الأيقونات وشكل خلفيتها. يحتفظ الوضع الداكن بتباين مريح للقراءة.</p></div></div>
       <label className="adm-field"><span>خط المنصة</span><select value={appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'} onChange={e => updateAppearance('fontFamily', e.target.value as AppearanceSettings['fontFamily'])} data-testid="select-platform-font">
         <option value="IBM Plex Sans Arabic">أثر — نص واضح وعناوين كايرو</option>
         <option value="Cairo">كايرو — عربي هندسي</option>
@@ -478,15 +481,31 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           <span>{label}</span><span className="adm-color-value"><NamedColorPicker label={label} value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'} onChange={value => updateAppearance(key, value.toUpperCase())} testId={`admin-appearance-${key}`}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'}</code></span>
         </label>)}
       </div>
+      <div className="adm-icon-style-settings">
+        <label className="adm-color-field adm-icon-color-field">
+          <span>لون الأيقونات العامة</span>
+          <span className="adm-color-value"><NamedColorPicker label="لون الأيقونات العامة" value={iconColor} onChange={value => updateAppearance('iconColor', value.toUpperCase())} testId="admin-appearance-icon-color"/><code dir="ltr">{iconColor}</code></span>
+        </label>
+        <div className="adm-icon-shape-field">
+          <span className="adm-icon-shape-label">شكل خلفية الأيقونات</span>
+          <div className="adm-icon-shape-options" role="group" aria-label="شكل خلفية الأيقونات">
+            {ICON_SHAPES.map(shape => <button key={shape.value} type="button" className="adm-icon-shape-option" aria-pressed={iconShape === shape.value} onClick={() => updateAppearance('iconShape', shape.value)} data-testid={`button-platform-icon-shape-${shape.value}`}>
+              <span className="adm-icon-shape-swatch" style={{ color: iconColor, background: `color-mix(in srgb, ${iconColor} 13%, ${appearanceDraft.surfaceColor})`, borderRadius: shape.radius }}><Palette size={18}/></span>
+              <span>{shape.label}</span>
+            </button>)}
+          </div>
+        </div>
+      </div>
       <div className="adm-editor adm-copy-editor">
          <label className="adm-field"><span>عنوان الترحيب <RequiredMark/></span><input required minLength={2} maxLength={80} value={appearanceDraft.welcomeTitle} onChange={e => updateAppearance('welcomeTitle', e.target.value)} /></label>
          <label className="adm-field"><span>النص التعريفي <RequiredMark/></span><textarea required minLength={2} maxLength={220} rows={3} value={appearanceDraft.welcomeDescription} onChange={e => updateAppearance('welcomeDescription', e.target.value)} /></label>
       </div>
-      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3 || appearanceContrast(appearanceDraft.cardTextColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5) && <p className="adm-form-error" role="status">تباين النص مع البطاقة منخفض. اختر نصًا أغمق على الخلفيات الفاتحة، أو نصًا أفتح على الخلفيات الداكنة.</p>}
+      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3 || appearanceContrast(appearanceDraft.cardTextColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(iconColor, appearanceDraft.surfaceColor) < 3) && <p className="adm-form-error" role="status">تباين النص أو الأيقونات مع البطاقة منخفض. اختر لونًا أوضح لسهولة القراءة والرؤية.</p>}
       <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor, '--platform-font-body': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'], '--platform-font-heading': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'Cairo'], '--platform-font-scale': (appearanceDraft.fontScale ?? 100) / 100 } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
         <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.cardBorderColor ?? '#E2E8F0' } as CSSProperties}>
           <span className="adm-preview-label" style={{ color: appearanceDraft.primaryColor }}>معاينة الواجهة</span>
           <b style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeTitle}</b><p style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeDescription}</p>
+          <div className="adm-icon-preview-row"><span style={{ color: iconColor, background: `color-mix(in srgb, ${iconColor} 13%, ${appearanceDraft.surfaceColor})`, borderRadius: iconRadius }}><Palette size={19}/></span><small>معاينة لون وشكل الأيقونة</small></div>
           <button type="button" style={{ background: appearanceDraft.primaryColor, color: getAppearanceTextColor(appearanceDraft.primaryColor) }}>ابدأ الآن</button>
         </div>
       </div>
@@ -497,7 +516,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
       {dirty && <button type="button" className="button button-outline" disabled={save.isPending} onClick={() => { setModuleDraft(serverModules); setAppearanceDraft(serverAppearance); setMsg(null); }}><RotateCcw size={15}/> تراجع</button>}
       <button type="button" className="button button-primary" disabled={!dirty || save.isPending} onClick={() => persist(moduleDraft, appearanceDraft)}>{save.isPending ? 'جارٍ الحفظ…' : 'حفظ الإعدادات'}</button>
     </div>
-    <p className="adm-global-note">تغييرات الألوان ورسالة الترحيب تظهر لكل الطلاب بعد الحفظ، مع بقاء الشعار كما هو.</p>
+    <p className="adm-global-note">تغييرات الألوان ورسالة الترحيب وشكل الأيقونات تظهر لكل الطلاب بعد الحفظ، مع بقاء الشعار كما هو.</p>
   </section>;
 }
 
