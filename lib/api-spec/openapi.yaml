@@ -991,6 +991,146 @@ paths:
           description: Achievement not found
         "401":
           description: Authentication required
+  /achievements/{id}/attachments:
+    get:
+      operationId: listAchievementAttachments
+      tags: [student]
+      summary: List private evidence attached to an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Achievement evidence
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AchievementAttachment" }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+    post:
+      operationId: createAchievementAttachment
+      tags: [student]
+      summary: Add text or a link as private evidence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AchievementAttachmentInput" }
+      responses:
+        "201":
+          description: Evidence added
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachment" }
+        "400": { description: Invalid evidence }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+  /achievements/{id}/attachments/uploads:
+    post:
+      operationId: requestAchievementAttachmentUpload
+      tags: [student]
+      summary: Request a private direct-upload URL for achievement evidence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AchievementAttachmentUploadInput" }
+      responses:
+        "201":
+          description: Short-lived upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachmentUpload" }
+        "400": { description: Unsupported file or invalid metadata }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+  /achievements/{id}/attachments/{attachmentId}/confirm:
+    post:
+      operationId: confirmAchievementAttachmentUpload
+      tags: [student]
+      summary: Verify and finish an achievement evidence upload
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Verified file attachment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachment" }
+        "400": { description: Upload is incomplete or invalid }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+  /achievements/{id}/attachments/{attachmentId}/download:
+    get:
+      operationId: downloadAchievementAttachment
+      tags: [student]
+      summary: Stream private achievement evidence to its owner
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Range
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Private attachment content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+        "416": { description: Invalid byte range }
+  /achievements/{id}/attachments/{attachmentId}:
+    delete:
+      operationId: deleteAchievementAttachment
+      tags: [student]
+      summary: Delete private evidence from an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Evidence deleted }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
   /ai/achievement-draft:
     post:
       operationId: generateAchievementDraft
@@ -3256,6 +3396,42 @@ components:
         interviewStory: { type: ["string", "null"], maxLength: 3000 }
         serviceOffer: { type: ["string", "null"], maxLength: 2000 }
         summary: { type: ["string", "null"], maxLength: 1000 }
+    AchievementAttachment:
+      type: object
+      required: [id, kind, title, content, url, originalName, mime, size, status, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [file, text, link] }
+        title: { type: string }
+        content: { type: ["string", "null"] }
+        url: { type: ["string", "null"], format: uri }
+        originalName: { type: ["string", "null"] }
+        mime: { type: ["string", "null"] }
+        size: { type: ["integer", "null"], format: int64 }
+        status: { type: string, enum: [uploading, ready] }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AchievementAttachmentInput:
+      type: object
+      required: [kind, title]
+      properties:
+        kind: { type: string, enum: [text, link] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        content: { type: string, maxLength: 8000 }
+        url: { type: string, format: uri, maxLength: 2048 }
+    AchievementAttachmentUploadInput:
+      type: object
+      required: [name, mime, size]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        mime: { type: string, minLength: 1, maxLength: 120 }
+        size: { type: integer, format: int64, minimum: 1 }
+    AchievementAttachmentUpload:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
     AchievementDraftInput:
       type: object
       required: [title, context, action, result]

@@ -66,6 +66,10 @@ import type {
   AcademySubjectSummary,
   AcademyUploadUrl,
   Achievement,
+  AchievementAttachment,
+  AchievementAttachmentInput,
+  AchievementAttachmentUpload,
+  AchievementAttachmentUploadInput,
   AchievementDraft,
   AchievementDraftInput,
   AchievementInput,
@@ -5915,6 +5919,546 @@ export const useDeleteAchievement = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDeleteAchievementMutationOptions(options), queryClient);
+    }
+
+export const getListAchievementAttachmentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments`
+}
+
+/**
+ * @summary List private evidence attached to an achievement
+ */
+export const listAchievementAttachments = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<AchievementAttachment[]> => {
+
+  return customFetch<AchievementAttachment[]>(getListAchievementAttachmentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAchievementAttachmentsQueryKey = (id: string,) => {
+    return [
+    `/api/achievements/${id}/attachments`
+    ] as const;
+    }
+
+
+export const getListAchievementAttachmentsQueryOptions = <TData = Awaited<ReturnType<typeof listAchievementAttachments>>, TError = ErrorType<void>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAchievementAttachmentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAchievementAttachments>>> = ({ signal }) => listAchievementAttachments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAchievementAttachmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listAchievementAttachments>>>
+export type ListAchievementAttachmentsQueryError = ErrorType<void>
+
+
+export function useListAchievementAttachments<TData = Awaited<ReturnType<typeof listAchievementAttachments>>, TError = ErrorType<void>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAchievementAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listAchievementAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAchievementAttachments<TData = Awaited<ReturnType<typeof listAchievementAttachments>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAchievementAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listAchievementAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAchievementAttachments<TData = Awaited<ReturnType<typeof listAchievementAttachments>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List private evidence attached to an achievement
+ */
+
+export function useListAchievementAttachments<TData = Awaited<ReturnType<typeof listAchievementAttachments>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAchievementAttachments>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAchievementAttachmentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAchievementAttachmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments`
+}
+
+/**
+ * @summary Add text or a link as private evidence
+ */
+export const createAchievementAttachment = async (id: string,
+    achievementAttachmentInput: AchievementAttachmentInput, options?: Parameters<typeof customFetch>[1]): Promise<AchievementAttachment> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AchievementAttachment>(getCreateAchievementAttachmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(achievementAttachmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAchievementAttachmentMutationKey = () => ['createAchievementAttachment'] as const;
+
+export const getCreateAchievementAttachmentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAchievementAttachment>>, TError,CreateAchievementAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAchievementAttachment>>, TError,CreateAchievementAttachmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateAchievementAttachmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAchievementAttachment>>, CreateAchievementAttachmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createAchievementAttachment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAchievementAttachmentMutationResult = NonNullable<Awaited<ReturnType<typeof createAchievementAttachment>>>
+    export type CreateAchievementAttachmentMutationBody = BodyType<AchievementAttachmentInput>
+    export type CreateAchievementAttachmentMutationError = ErrorType<void>
+    export type CreateAchievementAttachmentMutationVariables = {id: string;data: BodyType<AchievementAttachmentInput>}
+
+    /**
+ * @summary Add text or a link as private evidence
+ */
+export const useCreateAchievementAttachment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAchievementAttachment>>, TError,CreateAchievementAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAchievementAttachment>>,
+        TError,
+        CreateAchievementAttachmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAchievementAttachmentMutationOptions(options), queryClient);
+    }
+
+export const getRequestAchievementAttachmentUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments/uploads`
+}
+
+/**
+ * @summary Request a private direct-upload URL for achievement evidence
+ */
+export const requestAchievementAttachmentUpload = async (id: string,
+    achievementAttachmentUploadInput: AchievementAttachmentUploadInput, options?: Parameters<typeof customFetch>[1]): Promise<AchievementAttachmentUpload> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AchievementAttachmentUpload>(getRequestAchievementAttachmentUploadUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(achievementAttachmentUploadInput)
+  }
+);}
+
+
+
+
+
+export const getRequestAchievementAttachmentUploadMutationKey = () => ['requestAchievementAttachmentUpload'] as const;
+
+export const getRequestAchievementAttachmentUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>, TError,RequestAchievementAttachmentUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>, TError,RequestAchievementAttachmentUploadMutationVariables, TContext> => {
+
+const mutationKey = getRequestAchievementAttachmentUploadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>, RequestAchievementAttachmentUploadMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  requestAchievementAttachmentUpload(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestAchievementAttachmentUploadMutationResult = NonNullable<Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>>
+    export type RequestAchievementAttachmentUploadMutationBody = BodyType<AchievementAttachmentUploadInput>
+    export type RequestAchievementAttachmentUploadMutationError = ErrorType<void>
+    export type RequestAchievementAttachmentUploadMutationVariables = {id: string;data: BodyType<AchievementAttachmentUploadInput>}
+
+    /**
+ * @summary Request a private direct-upload URL for achievement evidence
+ */
+export const useRequestAchievementAttachmentUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>, TError,RequestAchievementAttachmentUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestAchievementAttachmentUpload>>,
+        TError,
+        RequestAchievementAttachmentUploadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestAchievementAttachmentUploadMutationOptions(options), queryClient);
+    }
+
+export const getConfirmAchievementAttachmentUploadUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments/${attachmentId}/confirm`
+}
+
+/**
+ * @summary Verify and finish an achievement evidence upload
+ */
+export const confirmAchievementAttachmentUpload = async (id: string,
+    attachmentId: string, options?: Parameters<typeof customFetch>[1]): Promise<AchievementAttachment> => {
+
+  return customFetch<AchievementAttachment>(getConfirmAchievementAttachmentUploadUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConfirmAchievementAttachmentUploadMutationKey = () => ['confirmAchievementAttachmentUpload'] as const;
+
+export const getConfirmAchievementAttachmentUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>, TError,ConfirmAchievementAttachmentUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>, TError,ConfirmAchievementAttachmentUploadMutationVariables, TContext> => {
+
+const mutationKey = getConfirmAchievementAttachmentUploadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>, ConfirmAchievementAttachmentUploadMutationVariables> = (props) => {
+          const {id,attachmentId} = props ?? {};
+
+          return  confirmAchievementAttachmentUpload(id,attachmentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmAchievementAttachmentUploadMutationResult = NonNullable<Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>>
+
+    export type ConfirmAchievementAttachmentUploadMutationError = ErrorType<void>
+    export type ConfirmAchievementAttachmentUploadMutationVariables = {id: string;attachmentId: string}
+
+    /**
+ * @summary Verify and finish an achievement evidence upload
+ */
+export const useConfirmAchievementAttachmentUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>, TError,ConfirmAchievementAttachmentUploadMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmAchievementAttachmentUpload>>,
+        TError,
+        ConfirmAchievementAttachmentUploadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmAchievementAttachmentUploadMutationOptions(options), queryClient);
+    }
+
+export const getDownloadAchievementAttachmentUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments/${attachmentId}/download`
+}
+
+/**
+ * @summary Stream private achievement evidence to its owner
+ */
+export const downloadAchievementAttachment = async (id: string,
+    attachmentId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadAchievementAttachmentUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadAchievementAttachmentQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/achievements/${id}/attachments/${attachmentId}/download`
+    ] as const;
+    }
+
+
+export const getDownloadAchievementAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadAchievementAttachmentQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadAchievementAttachment>>> = ({ signal }) => downloadAchievementAttachment(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadAchievementAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadAchievementAttachment>>>
+export type DownloadAchievementAttachmentQueryError = ErrorType<void>
+
+
+export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAchievementAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAchievementAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAchievementAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAchievementAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stream private achievement evidence to its owner
+ */
+
+export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadAchievementAttachmentQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteAchievementAttachmentUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments/${attachmentId}`
+}
+
+/**
+ * @summary Delete private evidence from an achievement
+ */
+export const deleteAchievementAttachment = async (id: string,
+    attachmentId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteAchievementAttachmentUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAchievementAttachmentMutationKey = () => ['deleteAchievementAttachment'] as const;
+
+export const getDeleteAchievementAttachmentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAchievementAttachment>>, TError,DeleteAchievementAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAchievementAttachment>>, TError,DeleteAchievementAttachmentMutationVariables, TContext> => {
+
+const mutationKey = getDeleteAchievementAttachmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAchievementAttachment>>, DeleteAchievementAttachmentMutationVariables> = (props) => {
+          const {id,attachmentId} = props ?? {};
+
+          return  deleteAchievementAttachment(id,attachmentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAchievementAttachmentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAchievementAttachment>>>
+
+    export type DeleteAchievementAttachmentMutationError = ErrorType<void>
+    export type DeleteAchievementAttachmentMutationVariables = {id: string;attachmentId: string}
+
+    /**
+ * @summary Delete private evidence from an achievement
+ */
+export const useDeleteAchievementAttachment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAchievementAttachment>>, TError,DeleteAchievementAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAchievementAttachment>>,
+        TError,
+        DeleteAchievementAttachmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteAchievementAttachmentMutationOptions(options), queryClient);
     }
 
 export const getGenerateAchievementDraftUrl = () => {

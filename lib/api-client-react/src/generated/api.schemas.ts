@@ -1124,6 +1124,84 @@ export interface AchievementUpdate {
   summary?: string | null;
 }
 
+export type AchievementAttachmentKind = typeof AchievementAttachmentKind[keyof typeof AchievementAttachmentKind];
+
+
+export const AchievementAttachmentKind = {
+  file: 'file',
+  text: 'text',
+  link: 'link',
+} as const;
+
+export type AchievementAttachmentStatus = typeof AchievementAttachmentStatus[keyof typeof AchievementAttachmentStatus];
+
+
+export const AchievementAttachmentStatus = {
+  uploading: 'uploading',
+  ready: 'ready',
+} as const;
+
+export interface AchievementAttachment {
+  id: string;
+  kind: AchievementAttachmentKind;
+  title: string;
+  /** @nullable */
+  content: string | null;
+  /** @nullable */
+  url: string | null;
+  /** @nullable */
+  originalName: string | null;
+  /** @nullable */
+  mime: string | null;
+  /** @nullable */
+  size: number | null;
+  status: AchievementAttachmentStatus;
+  /** @nullable */
+  downloadUrl: string | null;
+  createdAt: string;
+}
+
+export type AchievementAttachmentInputKind = typeof AchievementAttachmentInputKind[keyof typeof AchievementAttachmentInputKind];
+
+
+export const AchievementAttachmentInputKind = {
+  text: 'text',
+  link: 'link',
+} as const;
+
+export interface AchievementAttachmentInput {
+  kind: AchievementAttachmentInputKind;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  /** @maxLength 8000 */
+  content?: string;
+  /** @maxLength 2048 */
+  url?: string;
+}
+
+export interface AchievementAttachmentUploadInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  mime: string;
+  /** @minimum 1 */
+  size: number;
+}
+
+export interface AchievementAttachmentUpload {
+  id: string;
+  uploadUrl: string;
+}
+
 export interface AchievementDraftInput {
   /**
      * @minLength 1

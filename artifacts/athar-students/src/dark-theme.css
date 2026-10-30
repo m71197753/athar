@@ -517,3 +517,74 @@
   .dark .public-resume-page { color: #263f35; }
   .dark .resume-paper, .dark .public-resume-paper { background: #fff !important; box-shadow: none !important; }
 }
+
+/* Career assistant — indigo surfaces tuned for night use; scoped to /assistant. */
+@media screen {
+  .dark .page-wrap:has(.assistant-layout) {
+    --assistant-night-line: #34345d;
+    border-color: #2e2d53;
+    background: radial-gradient(ellipse at 92% 2%, rgba(99,102,241,.13), transparent 36%), linear-gradient(145deg,#17172d 0%,#151629 62%,#191a35 100%);
+    color: #eeedff;
+  }
+  .dark .page-wrap:has(.assistant-layout) .page-title h1 { color: #f0efff; }
+  .dark .page-wrap:has(.assistant-layout) .page-title p { color: #b7b5d5; }
+  .dark .page-wrap:has(.assistant-layout) .page-kicker { color: #a5a0ff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-main {
+    border-color: #34345d;
+    background: #1d1d37;
+    box-shadow: 0 16px 38px rgba(0,0,0,.25);
+  }
+  .dark .page-wrap:has(.assistant-layout) .assistant-heading { border-color: #343451; background: linear-gradient(100deg,#20203c,#22223f); }
+  .dark .page-wrap:has(.assistant-layout) .assistant-symbol { border-color: #454274; background: #302e59; color: #c5c2ff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-heading b { color: #f0efff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-heading small { color: #b2b0ce; }
+  .dark .page-wrap:has(.assistant-layout) .session-badge { border-color: #494477; background: #302d54; color: #c5c2ff; }
+  .dark .page-wrap:has(.assistant-layout) .chat-window {
+    background: radial-gradient(circle at 12% 18%,rgba(165,160,255,.06) 0 1px,transparent 1.5px) 0 0 / 19px 19px,#17172d;
+  }
+  .dark .page-wrap:has(.assistant-layout) .assistant-orbit { color: #c5c2ff; background: #302e59; box-shadow: 0 0 0 9px rgba(165,160,255,.09); }
+  .dark .page-wrap:has(.assistant-layout) .assistant-empty h2 { color: #efeeff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-empty>p { color: #b7b5d5; }
+  .dark .page-wrap:has(.assistant-layout) .prompt-chips button { border-color: #3d3b64; background: #22223e; color: #d0cfea; }
+  .dark .page-wrap:has(.assistant-layout) .prompt-chips button:hover { border-color: #8079da; background: #302e59; color: #e4e2ff; }
+  .dark .page-wrap:has(.assistant-layout) .chat-message { border-color: #3b3a60; background: #252541; box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+  .dark .page-wrap:has(.assistant-layout) .chat-message>span { color: #b4afff; }
+  .dark .page-wrap:has(.assistant-layout) .chat-message p { color: #e0def4; }
+  .dark .page-wrap:has(.assistant-layout) .chat-user { border-color: #5d55d2; background: linear-gradient(135deg,#4338CA,#4F46E5); }
+  .dark .page-wrap:has(.assistant-layout) .chat-user>span,.dark .page-wrap:has(.assistant-layout) .chat-user p { color: #fff; }
+  .dark .page-wrap:has(.assistant-layout) .chat-assistant { border-right-color: #8c87e9; }
+  .dark .page-wrap:has(.assistant-layout) .typing-dots { color: #c1bdff!important; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-form textarea { border-color: #45436d; background: #19192f; color: #f0efff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-form textarea:focus { border-color: #9b95ff; box-shadow: 0 0 0 3px rgba(129,121,255,.2); }
+  .dark .page-wrap:has(.assistant-layout) .assistant-form .button-primary { border-color: #625be1; background: #5148d0; color: #fff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-form .button-primary:hover:not(:disabled) { background: #625be1; }
+  .dark .page-wrap:has(.assistant-layout) .session-note { color: #aaa8c7; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-error { border-color: #70414e; background: #38232f; color: #ffb9c7; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-error button { color: #ffc4cf; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-mode-switch button { border-color: #3d3b64; background: #22223e; color: #c6c4df; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-mode-switch button.active { border-color: #827bed; background: #302e59; color: #e0deff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-compare-note { color: #b7b5d5; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-answer-pair article { border-color: #3d3b64; background: #22223e; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-answer-pair b { color: #c5c2ff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-answer-pair p { color: #e0def4; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-aside { border-color: #39365f; background: linear-gradient(155deg,#28264b,#20203b 75%); }
+  .dark .page-wrap:has(.assistant-layout) .assistant-aside h3,
+  .dark .page-wrap:has(.assistant-layout) .assistant-aside b { color: #efeeff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-aside p { color: #c4c1dc; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-tip { border-color: rgba(165,160,255,.16); background: rgba(40,38,75,.76); color: #c5c2ff; }
+  .dark .page-wrap:has(.assistant-layout) .assistant-tip p { color: #c4c1dc; }
+  .dark .page-wrap:has(.assistant-layout) :is(button,textarea,a):focus-visible { outline-color: #a5a0ff; }
+}
+
+.dark .attachment-add-panel,
+.dark .saved-evidence-item { border-color: #383d57; background: #1c2031; }
+.dark .attachment-add-panel h3,
+.dark .achievement-attachments-list h3,
+.dark .saved-evidence-copy { color: #eef0fb; }
+.dark .attachment-add-panel>p,
+.dark .attachment-muted,
+.dark .saved-evidence-copy>p { color: #b1b9ce; }
+.dark .queued-evidence-file { background: #292f43; color: #d5d9ea; }
+.dark .evidence-upload-progress { color: #d5d9ea; }
+.dark .saved-evidence-image { background: #262b3d; }
+.dark .saved-evidence-copy>a { color: #b2adff; }

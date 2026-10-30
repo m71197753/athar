@@ -19,6 +19,7 @@
 
 export * from "./students";
 export * from "./achievements";
+export * from "./achievement-attachments";
 export * from "./career";
 export * from "./learning";
 export * from "./resume-shares";

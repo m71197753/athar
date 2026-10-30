@@ -3424,6 +3424,141 @@ export const DeleteAchievementResponse = zod.void()
 
 
 /**
+ * @summary List private evidence attached to an achievement
+ */
+export const ListAchievementAttachmentsParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ListAchievementAttachmentsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "kind": zod.enum(['file', 'text', 'link']),
+  "title": zod.string(),
+  "content": zod.string().nullable(),
+  "url": zod.string().url().nullable(),
+  "originalName": zod.string().nullable(),
+  "mime": zod.string().nullable(),
+  "size": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'ready']),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAchievementAttachmentsResponse = zod.array(ListAchievementAttachmentsResponseItem)
+
+
+/**
+ * @summary Add text or a link as private evidence
+ */
+export const CreateAchievementAttachmentParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const createAchievementAttachmentBodyTitleMax = 120;
+
+export const createAchievementAttachmentBodyContentMax = 8000;
+
+export const createAchievementAttachmentBodyUrlMax = 2048;
+
+
+
+export const CreateAchievementAttachmentBody = zod.object({
+  "kind": zod.enum(['text', 'link']),
+  "title": zod.string().min(1).max(createAchievementAttachmentBodyTitleMax),
+  "content": zod.string().max(createAchievementAttachmentBodyContentMax).optional(),
+  "url": zod.string().url().max(createAchievementAttachmentBodyUrlMax).optional()
+})
+
+export const CreateAchievementAttachmentResponse = zod.object({
+  "id": zod.string().uuid(),
+  "kind": zod.enum(['file', 'text', 'link']),
+  "title": zod.string(),
+  "content": zod.string().nullable(),
+  "url": zod.string().url().nullable(),
+  "originalName": zod.string().nullable(),
+  "mime": zod.string().nullable(),
+  "size": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'ready']),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Request a private direct-upload URL for achievement evidence
+ */
+export const RequestAchievementAttachmentUploadParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const requestAchievementAttachmentUploadBodyNameMax = 255;
+
+export const requestAchievementAttachmentUploadBodyMimeMax = 120;
+
+
+
+
+export const RequestAchievementAttachmentUploadBody = zod.object({
+  "name": zod.string().min(1).max(requestAchievementAttachmentUploadBodyNameMax),
+  "mime": zod.string().min(1).max(requestAchievementAttachmentUploadBodyMimeMax),
+  "size": zod.number().int().min(1)
+})
+
+export const RequestAchievementAttachmentUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "uploadUrl": zod.string().url()
+})
+
+
+/**
+ * @summary Verify and finish an achievement evidence upload
+ */
+export const ConfirmAchievementAttachmentUploadParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "attachmentId": zod.coerce.string().uuid()
+})
+
+export const ConfirmAchievementAttachmentUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "kind": zod.enum(['file', 'text', 'link']),
+  "title": zod.string(),
+  "content": zod.string().nullable(),
+  "url": zod.string().url().nullable(),
+  "originalName": zod.string().nullable(),
+  "mime": zod.string().nullable(),
+  "size": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'ready']),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Stream private achievement evidence to its owner
+ */
+export const DownloadAchievementAttachmentParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "attachmentId": zod.coerce.string().uuid()
+})
+
+export const DownloadAchievementAttachmentHeader = zod.object({
+  "Range": zod.string().optional()
+})
+
+export const DownloadAchievementAttachmentResponse = zod.unknown()
+
+
+/**
+ * @summary Delete private evidence from an achievement
+ */
+export const DeleteAchievementAttachmentParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "attachmentId": zod.coerce.string().uuid()
+})
+
+export const DeleteAchievementAttachmentResponse = zod.void()
+
+
+/**
  * @summary Create an optional CV bullet and interview story from student-provided facts
  */
 export const generateAchievementDraftBodyTitleMax = 160;

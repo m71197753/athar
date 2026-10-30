@@ -31,7 +31,7 @@ import {
   ArrowDownLeft, ArrowLeft, Award, BookOpen, BriefcaseBusiness,
   Check, ChevronDown, CircleHelp, ClipboardList, Copy, Download, FileText, Filter,
   GraduationCap, HeartHandshake, Lightbulb, LoaderCircle, LogOut, Menu, Pencil,
-  Plus, Search, Share2, Sparkles, Target, Trash2, TrendingUp, X, ShieldCheck, Route as RouteIcon, CircleCheck, Clock3,
+  Paperclip, Plus, Search, Share2, Sparkles, Target, Trash2, TrendingUp, Upload, X, ShieldCheck, Route as RouteIcon, CircleCheck, Clock3,
   BookMarked, MessageCircle, Send, NotebookPen, Play, CheckCircle2, ExternalLink,
   PanelRightClose, PanelRightOpen, UserRound,
 } from 'lucide-react';
@@ -39,7 +39,10 @@ import {
   useGetPlatformAccess, getGetPlatformAccessQueryKey,
   getGetCareerPlanQueryKey, getGetDashboardSummaryQueryKey, getGetStudentProfileQueryKey, getHealthCheckQueryKey,
   getGetPublicResumeQueryKey, getGetResumeShareSettingsQueryKey,
-  getListAchievementsQueryKey, useCreateAchievement, useDeleteAchievement,
+  getListAchievementAttachmentsQueryKey, getListAchievementsQueryKey,
+  useConfirmAchievementAttachmentUpload, useCreateAchievement, useCreateAchievementAttachment,
+  useDeleteAchievement, useDeleteAchievementAttachment, useListAchievementAttachments,
+  useRequestAchievementAttachmentUpload,
   useGenerateAchievementDraft, useGetDashboardSummary, useGetStudentProfile,
   useHealthCheck, useListAchievements, useSaveStudentProfile, useUpdateAchievement,
   useGetPublicResume, useGetResumeShareSettings, useSaveResumeShareSettings,
@@ -51,7 +54,7 @@ import {
   useGetPlatformContent, getGetPlatformContentQueryKey,
 } from '@workspace/api-client-react';
 import type {
-  Achievement, AchievementDraftInput, AchievementInput, CareerPlanInput, CareerPlanOverview,
+  Achievement, AchievementAttachment, AchievementAttachmentInput, AchievementDraftInput, AchievementInput, CareerPlanInput, CareerPlanOverview,
   CareerPlanSuggestions, CareerReminder, CareerTask, CareerTasksInput, CareerTaskUpdate, DashboardSummary,
   ModuleKey, StudentProfileInput, ResumeShareUpdate,
   LearningItem, LearningItemInput, LearningItemUpdate,
@@ -342,13 +345,203 @@ function ProgressRing({ value, label }: { value: number; label: string }) {
   return <div className="progress-ring-wrap"><div className="progress-ring" style={{ '--progress': `${Math.max(0, Math.min(100, value))}%` } as CSSProperties}><div className="progress-ring-inner"><b>{value}<small>%</small></b></div></div><span>{label}</span></div>;
 }
 
-function AchievementCard({ item, onEdit, onDelete, compact = false }: { item: Achievement; onEdit?: (a: Achievement) => void; onDelete?: (a: Achievement) => void; compact?: boolean }) {
+function AchievementCard({ item, onEdit, onDelete, onManageAttachments, compact = false }: { item: Achievement; onEdit?: (a: Achievement) => void; onDelete?: (a: Achievement) => void; onManageAttachments?: (a: Achievement) => void; compact?: boolean }) {
   const Icon = categoryIcons[item.category] || ClipboardList;
   return <article className={`achievement-card ${compact ? 'achievement-compact' : ''}`} data-testid={`card-achievement-${item.id}`}>
     <div className="achievement-icon"><Icon size={19}/></div>
     <div className="achievement-content"><div className="achievement-topline"><span className="achievement-category">{categoryNames[item.category] || 'إنجاز'}</span><time>{new Date(item.achievedOn).toLocaleDateString('ar', { year: 'numeric', month: 'short' })}</time></div><h3 data-testid={`text-achievement-title-${item.id}`}>{item.title}</h3><p>{item.summary || item.resumeBullet || item.result}</p>{item.serviceOffer && <p className="achievement-pitch"><b>عرض مهارة أو مشروع:</b> {item.serviceOffer}</p>}<div className="skill-list">{item.skills?.slice(0, 4).map(skill => <span className="skill-pill" key={skill}>{skill}</span>)}</div></div>
-    {(onEdit || onDelete) && <div className="card-actions">{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
+    {(onEdit || onDelete || onManageAttachments) && <div className="card-actions">{onManageAttachments && <button className="icon-button" aria-label="إدارة مرفقات الإنجاز" title="إضافة صور وملفات وروابط" onClick={() => onManageAttachments(item)} data-testid={`button-attachments-${item.id}`}><Paperclip size={16}/></button>}{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
   </article>;
+}
+
+const achievementMimeByExtension: Record<string, string> = {
+  pdf: 'application/pdf',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  txt: 'text/plain',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+};
+
+function achievementFileMime(file: File): string {
+  const extension = file.name.toLowerCase().split('.').pop() || '';
+  return (file.type || achievementMimeByExtension[extension] || '').split(';')[0].toLowerCase();
+}
+
+function uploadToSignedUrl(file: File, mime: string, uploadUrl: string, onProgress: (progress: number) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('PUT', uploadUrl);
+    request.setRequestHeader('Content-Type', mime);
+    request.upload.onprogress = event => {
+      if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 100));
+    };
+    request.onerror = () => reject(new Error('انقطع الاتصال أثناء رفع الملف.'));
+    request.onabort = () => reject(new Error('تم إيقاف رفع الملف.'));
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        onProgress(100);
+        resolve();
+      } else reject(new Error('لم يقبل التخزين الملف. حاول رفعه مرة أخرى.'));
+    };
+    request.send(file);
+  });
+}
+
+function AchievementAttachmentsDialog({ achievement, onClose }: { achievement: Achievement; onClose: () => void }) {
+  const cache = useQueryClient();
+  const attachments = useListAchievementAttachments(achievement.id, {
+    query: { queryKey: getListAchievementAttachmentsQueryKey(achievement.id) },
+  });
+  const createAttachment = useCreateAchievementAttachment();
+  const requestUpload = useRequestAchievementAttachmentUpload();
+  const confirmUpload = useConfirmAchievementAttachmentUpload();
+  const deleteAttachment = useDeleteAchievementAttachment();
+  const [kind, setKind] = useState<'text' | 'link'>('text');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [url, setUrl] = useState('');
+  const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ name: string; percent: number } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const refreshAttachments = () => cache.invalidateQueries({ queryKey: getListAchievementAttachmentsQueryKey(achievement.id) });
+
+  const addTextOrLink = async (event: FormEvent) => {
+    event.preventDefault();
+    setError('');
+    const data: AchievementAttachmentInput = {
+      kind,
+      title: title.trim(),
+      ...(kind === 'text' ? { content: content.trim() } : { url: url.trim() }),
+    };
+    try {
+      await createAttachment.mutateAsync({ id: achievement.id, data });
+      setTitle('');
+      setContent('');
+      setUrl('');
+      await refreshAttachments();
+    } catch {
+      setError('تعذّر حفظ النص أو الرابط. راجع البيانات وحاول مرة أخرى.');
+    }
+  };
+
+  const uploadQueuedFiles = async () => {
+    if (!queuedFiles.length || uploading) return;
+    setUploading(true);
+    setError('');
+    for (const file of queuedFiles) {
+      const mime = achievementFileMime(file);
+      let uploadId: string | null = null;
+      let transferCompleted = false;
+      try {
+        if (!mime) throw new Error('لا يمكن تحديد نوع الملف. اختر PDF أو DOCX أو TXT أو صورة أو فيديو MP4/WebM.');
+        const upload = await requestUpload.mutateAsync({
+          id: achievement.id,
+          data: { name: file.name, mime, size: file.size },
+        });
+        uploadId = upload.id;
+        setUploadProgress({ name: file.name, percent: 0 });
+        await uploadToSignedUrl(file, mime, upload.uploadUrl, percent => {
+          setUploadProgress({ name: file.name, percent });
+        });
+        transferCompleted = true;
+        await confirmUpload.mutateAsync({ id: achievement.id, attachmentId: upload.id });
+        setQueuedFiles(current => current.filter(item => item !== file));
+        setUploadProgress(null);
+        await refreshAttachments();
+      } catch (uploadError) {
+        if (uploadId && !transferCompleted) {
+          try {
+            await deleteAttachment.mutateAsync({ id: achievement.id, attachmentId: uploadId });
+          } catch {
+            // Leave the pending row visible so it can be removed from the attachment list.
+          }
+        }
+        setError(uploadError instanceof Error ? uploadError.message : 'تعذّر رفع الملف.');
+        setUploadProgress(null);
+        await attachments.refetch();
+        break;
+      }
+    }
+    setUploading(false);
+  };
+
+  const removeAttachment = async (attachment: AchievementAttachment) => {
+    if (!window.confirm(`حذف «${attachment.title}» من هذا الإنجاز؟`)) return;
+    setError('');
+    try {
+      await deleteAttachment.mutateAsync({ id: achievement.id, attachmentId: attachment.id });
+      await refreshAttachments();
+    } catch {
+      setError('تعذّر حذف المرفق. حاول مرة أخرى.');
+    }
+  };
+
+  return <div className="dialog-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !uploading) onClose(); }}>
+    <section className="achievement-dialog achievement-attachments-dialog" role="dialog" aria-modal="true" aria-labelledby="attachments-dialog-title" dir="rtl" data-testid="dialog-achievement-attachments">
+      <header className="dialog-header"><div><span className="page-kicker">توثيق التجربة</span><h2 id="attachments-dialog-title">أدلة إنجازك</h2><p>{achievement.title} — أضف ملفاتك أو نصوصك وروابطك. هذه المرفقات خاصة ولا تظهر في سيرتك العامة.</p></div><button className="icon-button" type="button" onClick={onClose} disabled={uploading} aria-label="إغلاق"><X size={19}/></button></header>
+      <div className="achievement-attachments-body">
+        <section className="attachment-add-panel">
+          <h3><Paperclip size={17}/> صور وفيديوهات وملفات</h3>
+          <p>الأنواع المدعومة: JPG وPNG وWebP وMP4 وWebM وPDF وDOCX وTXT.</p>
+          <label className="button button-outline attachment-file-picker"><Upload size={16}/> اختر ملفات
+            <input
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf,.docx,.txt,image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+              disabled={uploading}
+              onChange={event => {
+                const files = Array.from(event.currentTarget.files ?? []);
+                if (files.length) setQueuedFiles(current => [...current, ...files]);
+                event.currentTarget.value = '';
+              }}
+              data-testid="input-achievement-files"
+            />
+          </label>
+          {queuedFiles.length > 0 && <div className="queued-evidence-files">
+            {queuedFiles.map((file, index) => <span className="queued-evidence-file" key={`${file.name}-${file.size}-${file.lastModified}-${index}`}><FileText size={14}/>{file.name}<button type="button" aria-label={`إزالة ${file.name}`} disabled={uploading} onClick={() => setQueuedFiles(current => current.filter((_, fileIndex) => fileIndex !== index))}><X size={14}/></button></span>)}
+          </div>}
+          {uploadProgress && <div className="evidence-upload-progress" role="status"><span>جارٍ رفع {uploadProgress.name}</span><progress max={100} value={uploadProgress.percent}/><b>{uploadProgress.percent}٪</b></div>}
+          {queuedFiles.length > 0 && <button className="button button-primary" type="button" disabled={uploading} onClick={uploadQueuedFiles} data-testid="button-upload-achievement-files">{uploading ? <LoaderCircle size={16} className="spin"/> : <Upload size={16}/>} {uploading ? 'جارٍ الرفع' : `ارفع ${queuedFiles.length} ملف`}</button>}
+        </section>
+
+        <form className="attachment-add-panel" onSubmit={addTextOrLink}>
+          <h3>نص أو رابط</h3>
+          <label className="field">نوع الإضافة<select value={kind} onChange={event => setKind(event.target.value as 'text' | 'link')} data-testid="select-achievement-attachment-kind"><option value="text">نص أو ملاحظة</option><option value="link">رابط</option></select></label>
+          <label className="field">العنوان<input required maxLength={120} value={title} onChange={event => setTitle(event.target.value)} placeholder={kind === 'text' ? 'مثال: ما تعلمته من التجربة' : 'مثال: صفحة المشروع'} data-testid="input-achievement-attachment-title"/></label>
+          {kind === 'text'
+            ? <label className="field">النص<textarea required rows={3} maxLength={8000} value={content} onChange={event => setContent(event.target.value)} placeholder="أضف تفاصيل أو ملاحظات مرتبطة بالإنجاز." data-testid="input-achievement-attachment-content"/></label>
+            : <label className="field">الرابط<input required type="url" maxLength={2048} value={url} onChange={event => setUrl(event.target.value)} placeholder="https://example.com" dir="ltr" data-testid="input-achievement-attachment-url"/></label>}
+          <button className="button button-outline" type="submit" disabled={createAttachment.isPending} data-testid="button-save-achievement-attachment">{createAttachment.isPending ? <LoaderCircle size={16} className="spin"/> : <Plus size={16}/>} إضافة</button>
+        </form>
+
+        <section className="achievement-attachments-list" aria-live="polite">
+          <h3>المرفقات المحفوظة</h3>
+          {attachments.isLoading ? <p className="attachment-muted">جارٍ تحميل المرفقات…</p>
+            : attachments.isError ? <button className="button button-outline" type="button" onClick={() => attachments.refetch()}>تعذّر التحميل — أعد المحاولة</button>
+              : attachments.data?.length ? attachments.data.map(attachment => <article className="saved-evidence-item" key={attachment.id} data-testid={`attachment-${attachment.id}`}>
+                <div className="saved-evidence-copy">
+                  <b>{attachment.title}</b>
+                  {attachment.kind === 'text' && <p>{attachment.content}</p>}
+                  {attachment.kind === 'link' && attachment.url && <a href={attachment.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={14}/>{attachment.url}</a>}
+                  {attachment.kind === 'file' && attachment.status === 'uploading' && <small>الرفع لم يكتمل بعد.</small>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('image/') && attachment.downloadUrl && <img className="saved-evidence-image" src={attachment.downloadUrl} alt={attachment.title} loading="lazy"/>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('video/') && attachment.downloadUrl && <video className="saved-evidence-video" src={attachment.downloadUrl} controls preload="metadata"/>}
+                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.downloadUrl && <a className="saved-evidence-download" href={attachment.downloadUrl}><Download size={14}/>{attachment.originalName || 'فتح الملف'}</a>}
+                </div>
+                <button className="icon-button danger-icon" type="button" aria-label={`حذف ${attachment.title}`} disabled={deleteAttachment.isPending || uploading} onClick={() => removeAttachment(attachment)}><Trash2 size={15}/></button>
+              </article>)
+                : <p className="attachment-muted">لم تضف أدلة لهذا الإنجاز بعد.</p>}
+        </section>
+        {error && <p className="form-error" role="alert" data-testid="status-achievement-attachment-error">{error}</p>}
+      </div>
+      <footer className="dialog-footer"><button className="button button-primary" type="button" disabled={uploading} onClick={onClose}>تم</button></footer>
+    </section>
+  </div>;
 }
 
 function DashboardPage() {
@@ -510,6 +703,7 @@ function AchievementsPage() {
   const [category, setCategory] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Achievement | undefined>();
+  const [evidenceFor, setEvidenceFor] = useState<Achievement | undefined>();
   const params = useMemo(() => ({ query: query || undefined, category: category ? category as 'project' : undefined }), [query, category]);
   const result = useListAchievements(params, { query: { queryKey: getListAchievementsQueryKey(params) } });
   const remove = useDeleteAchievement();
@@ -538,9 +732,10 @@ function AchievementsPage() {
     <div className="achievement-tools"><label className="search-box"><Search size={18}/><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث في إنجازاتك…" aria-label="ابحث في الإنجازات" data-testid="input-search-achievements"/>{query && <button type="button" className="clear-search" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15}/></button>}</label>
       <label className="filter-box"><Filter size={16}/><select value={category} onChange={e => setCategory(e.target.value)} aria-label="تصفية حسب نوع التجربة" data-testid="select-filter-category"><option value="">كل التجارب</option>{categories.map(c => <option key={c} value={c}>{categoryNames[c]}</option>)}</select><ChevronDown size={14}/></label>
       <span className="achievement-count" data-testid="text-achievement-count">{result.isLoading ? 'جارٍ تحميل الإنجازات…' : result.isError ? 'تعذّر تحميل الإنجازات' : formatAchievementCount(result.data?.length ?? 0)}</span></div>
-    {result.isLoading ? <LoadingPanel label="نجمع تجاربك" /> : result.isError ? <ErrorPanel retry={() => result.refetch()}/> : result.data?.length ? <div className="achievement-list full-achievement-list">{result.data.map(item => <AchievementCard key={item.id} item={item} onEdit={openEdit} onDelete={deleteItem}/>)}</div> : <EmptyState title={query || category ? 'لم نجد تجربة بهذا الوصف' : 'كل رحلة تبدأ بتجربة واحدة'} body={query || category ? 'جرّب كلمة بحث أخرى أو غيّر نوع التجربة.' : 'ابدأ بتوثيق مشروع أو نشاط شاركت فيه. التجارب الصغيرة تصنع قصة كبيرة.'} action={query || category ? <button className="button button-outline" onClick={() => { setQuery(''); setCategory(''); }} data-testid="button-clear-filters">مسح البحث والتصفية</button> : <button className="button button-primary" onClick={openNew} data-testid="button-empty-create">أضف أول إنجاز <Plus size={16}/></button>}/>}
+    {result.isLoading ? <LoadingPanel label="نجمع تجاربك" /> : result.isError ? <ErrorPanel retry={() => result.refetch()}/> : result.data?.length ? <div className="achievement-list full-achievement-list">{result.data.map(item => <AchievementCard key={item.id} item={item} onEdit={openEdit} onDelete={deleteItem} onManageAttachments={setEvidenceFor}/>)}</div> : <EmptyState title={query || category ? 'لم نجد تجربة بهذا الوصف' : 'كل رحلة تبدأ بتجربة واحدة'} body={query || category ? 'جرّب كلمة بحث أخرى أو غيّر نوع التجربة.' : 'ابدأ بتوثيق مشروع أو نشاط شاركت فيه. التجارب الصغيرة تصنع قصة كبيرة.'} action={query || category ? <button className="button button-outline" onClick={() => { setQuery(''); setCategory(''); }} data-testid="button-clear-filters">مسح البحث والتصفية</button> : <button className="button button-primary" onClick={openNew} data-testid="button-empty-create">أضف أول إنجاز <Plus size={16}/></button>}/>}
     {remove.isError && <p className="form-error inline-error" data-testid="status-delete-error">تعذّر حذف الإنجاز. حاول مرة أخرى.</p>}
     {dialogOpen && <AchievementDialog initial={editing} onClose={() => setDialogOpen(false)} onSaved={() => {}}/>}
+    {evidenceFor && <AchievementAttachmentsDialog achievement={evidenceFor} onClose={() => setEvidenceFor(undefined)}/>}
   </div>;
 }
 
