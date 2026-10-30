@@ -267,7 +267,7 @@ function Shell({ children: content }: { children: ReactNode }) {
     { href: '/dashboard', label: 'الرئيسية', icon: Target },
     { href: '/profile', label: 'ملفي الشخصي', icon: GraduationCap },
     { href: '/resume-templates', label: 'قوالب السيرة', icon: FileText },
-    ...(access.data?.role !== 'admin' ? [{ href: '/office', label: 'المستندات والجداول', icon: NotebookPen }] : []),
+    { href: '/office', label: 'المستندات والجداول', icon: NotebookPen },
     ...(access.data?.role === 'admin' || access.data?.enabledModules.includes('graduates') ? [{ href: '/graduates', label: 'مساحة الخريجين', icon: BriefcaseBusiness }] : []),
     ...(platform.data?.sections ?? []).map(section => ({
       href: `/sections/${section.slug}`, label: section.title,
@@ -280,6 +280,7 @@ function Shell({ children: content }: { children: ReactNode }) {
     { href: '/dashboard', label: 'الرئيسية', icon: Target },
     { href: '/achievements', label: 'إنجازاتي', icon: Award },
     { href: '/resume', label: 'سيرتي المهنية', icon: FileText },
+    { href: '/office', label: 'المستندات', icon: NotebookPen },
     ...(access.data?.role === 'admin' || access.data?.enabledModules.includes('graduates') ? [{ href: '/graduates', label: 'مساحة الخريجين', icon: BriefcaseBusiness }] : []),
     { href: '/profile', label: 'ملفي الشخصي', icon: GraduationCap },
   ];
@@ -366,7 +367,7 @@ function Shell({ children: content }: { children: ReactNode }) {
     <nav className="mobile-bottom-nav" aria-label="التنقل السريع">
       {mobileItems.slice(0, 2).map(item => { const Icon = item.icon; const label = item.href === '/achievements' ? 'الأثر' : item.label; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
       <button className="mobile-create-button" type="button" onClick={openNewAchievement} aria-label="وثّق أثراً جديداً" data-testid="mobile-nav-create"><Plus size={21}/></button>
-      {mobileItems.slice(2).map(item => { const Icon = item.icon; const label = item.href === '/resume' ? 'سيرتي' : item.href === '/graduates' ? 'الخريجون' : 'ملفي'; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
+      {mobileItems.slice(2).map(item => { const Icon = item.icon; const label = item.href === '/resume' ? 'سيرتي' : item.href === '/office' ? 'مستندات' : item.href === '/graduates' ? 'الخريجون' : 'ملفي'; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} aria-label={item.label} title={item.label} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
     </nav>
   </div>;
 }
