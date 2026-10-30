@@ -2497,6 +2497,726 @@ export const SaveResumeShareSettingsResponse = zod.object({
 
 
 /**
+ * @summary List the current student's private resume drafts
+ */
+export const listStudentResumesResponseContentFullNameMax = 120;
+
+export const listStudentResumesResponseContentEmailMax = 200;
+
+export const listStudentResumesResponseContentPhoneMax = 60;
+
+export const listStudentResumesResponseContentLocationMax = 160;
+
+export const listStudentResumesResponseContentLinkedinMax = 400;
+
+export const listStudentResumesResponseContentWebsiteMax = 400;
+
+export const listStudentResumesResponseContentHeadlineMax = 240;
+
+export const listStudentResumesResponseContentSummaryMax = 2000;
+
+export const listStudentResumesResponseContentEducationItemTitleMax = 180;
+
+export const listStudentResumesResponseContentEducationItemOrganizationMax = 180;
+
+export const listStudentResumesResponseContentEducationItemLocationMax = 180;
+
+export const listStudentResumesResponseContentEducationItemPeriodMax = 100;
+
+export const listStudentResumesResponseContentEducationItemDescriptionMax = 2000;
+
+export const listStudentResumesResponseContentEducationItemLinkMax = 400;
+
+export const listStudentResumesResponseContentEducationMax = 20;
+
+export const listStudentResumesResponseContentExperienceItemTitleMax = 180;
+
+export const listStudentResumesResponseContentExperienceItemOrganizationMax = 180;
+
+export const listStudentResumesResponseContentExperienceItemLocationMax = 180;
+
+export const listStudentResumesResponseContentExperienceItemPeriodMax = 100;
+
+export const listStudentResumesResponseContentExperienceItemDescriptionMax = 2000;
+
+export const listStudentResumesResponseContentExperienceItemLinkMax = 400;
+
+export const listStudentResumesResponseContentExperienceMax = 30;
+
+export const listStudentResumesResponseContentProjectsItemTitleMax = 180;
+
+export const listStudentResumesResponseContentProjectsItemOrganizationMax = 180;
+
+export const listStudentResumesResponseContentProjectsItemLocationMax = 180;
+
+export const listStudentResumesResponseContentProjectsItemPeriodMax = 100;
+
+export const listStudentResumesResponseContentProjectsItemDescriptionMax = 2000;
+
+export const listStudentResumesResponseContentProjectsItemLinkMax = 400;
+
+export const listStudentResumesResponseContentProjectsMax = 30;
+
+export const listStudentResumesResponseContentCoursesItemTitleMax = 180;
+
+export const listStudentResumesResponseContentCoursesItemOrganizationMax = 180;
+
+export const listStudentResumesResponseContentCoursesItemLocationMax = 180;
+
+export const listStudentResumesResponseContentCoursesItemPeriodMax = 100;
+
+export const listStudentResumesResponseContentCoursesItemDescriptionMax = 2000;
+
+export const listStudentResumesResponseContentCoursesItemLinkMax = 400;
+
+export const listStudentResumesResponseContentCoursesMax = 30;
+
+export const listStudentResumesResponseContentSkillsItemMax = 80;
+
+export const listStudentResumesResponseContentSkillsMax = 60;
+
+export const listStudentResumesResponseContentCertificationsItemMax = 180;
+
+export const listStudentResumesResponseContentCertificationsMax = 30;
+
+export const listStudentResumesResponseContentLanguagesItemMax = 100;
+
+export const listStudentResumesResponseContentLanguagesMax = 20;
+
+
+
+export const ListStudentResumesResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string(),
+  "template": zod.enum(['ats', 'professional']),
+  "content": zod.object({
+  "fullName": zod.string().max(listStudentResumesResponseContentFullNameMax),
+  "email": zod.string().max(listStudentResumesResponseContentEmailMax),
+  "phone": zod.string().max(listStudentResumesResponseContentPhoneMax),
+  "location": zod.string().max(listStudentResumesResponseContentLocationMax),
+  "linkedin": zod.string().max(listStudentResumesResponseContentLinkedinMax),
+  "website": zod.string().max(listStudentResumesResponseContentWebsiteMax),
+  "headline": zod.string().max(listStudentResumesResponseContentHeadlineMax),
+  "summary": zod.string().max(listStudentResumesResponseContentSummaryMax),
+  "education": zod.array(zod.object({
+  "title": zod.string().max(listStudentResumesResponseContentEducationItemTitleMax),
+  "organization": zod.string().max(listStudentResumesResponseContentEducationItemOrganizationMax),
+  "location": zod.string().max(listStudentResumesResponseContentEducationItemLocationMax),
+  "period": zod.string().max(listStudentResumesResponseContentEducationItemPeriodMax),
+  "description": zod.string().max(listStudentResumesResponseContentEducationItemDescriptionMax),
+  "link": zod.string().max(listStudentResumesResponseContentEducationItemLinkMax)
+})).max(listStudentResumesResponseContentEducationMax),
+  "experience": zod.array(zod.object({
+  "title": zod.string().max(listStudentResumesResponseContentExperienceItemTitleMax),
+  "organization": zod.string().max(listStudentResumesResponseContentExperienceItemOrganizationMax),
+  "location": zod.string().max(listStudentResumesResponseContentExperienceItemLocationMax),
+  "period": zod.string().max(listStudentResumesResponseContentExperienceItemPeriodMax),
+  "description": zod.string().max(listStudentResumesResponseContentExperienceItemDescriptionMax),
+  "link": zod.string().max(listStudentResumesResponseContentExperienceItemLinkMax)
+})).max(listStudentResumesResponseContentExperienceMax),
+  "projects": zod.array(zod.object({
+  "title": zod.string().max(listStudentResumesResponseContentProjectsItemTitleMax),
+  "organization": zod.string().max(listStudentResumesResponseContentProjectsItemOrganizationMax),
+  "location": zod.string().max(listStudentResumesResponseContentProjectsItemLocationMax),
+  "period": zod.string().max(listStudentResumesResponseContentProjectsItemPeriodMax),
+  "description": zod.string().max(listStudentResumesResponseContentProjectsItemDescriptionMax),
+  "link": zod.string().max(listStudentResumesResponseContentProjectsItemLinkMax)
+})).max(listStudentResumesResponseContentProjectsMax),
+  "courses": zod.array(zod.object({
+  "title": zod.string().max(listStudentResumesResponseContentCoursesItemTitleMax),
+  "organization": zod.string().max(listStudentResumesResponseContentCoursesItemOrganizationMax),
+  "location": zod.string().max(listStudentResumesResponseContentCoursesItemLocationMax),
+  "period": zod.string().max(listStudentResumesResponseContentCoursesItemPeriodMax),
+  "description": zod.string().max(listStudentResumesResponseContentCoursesItemDescriptionMax),
+  "link": zod.string().max(listStudentResumesResponseContentCoursesItemLinkMax)
+})).max(listStudentResumesResponseContentCoursesMax),
+  "skills": zod.array(zod.string().max(listStudentResumesResponseContentSkillsItemMax)).max(listStudentResumesResponseContentSkillsMax),
+  "certifications": zod.array(zod.string().max(listStudentResumesResponseContentCertificationsItemMax)).max(listStudentResumesResponseContentCertificationsMax),
+  "languages": zod.array(zod.string().max(listStudentResumesResponseContentLanguagesItemMax)).max(listStudentResumesResponseContentLanguagesMax)
+}),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListStudentResumesResponse = zod.array(ListStudentResumesResponseItem)
+
+
+/**
+ * @summary Create a private resume draft
+ */
+export const createStudentResumeBodyTitleMax = 120;
+
+export const createStudentResumeBodyContentFullNameMax = 120;
+
+export const createStudentResumeBodyContentEmailMax = 200;
+
+export const createStudentResumeBodyContentPhoneMax = 60;
+
+export const createStudentResumeBodyContentLocationMax = 160;
+
+export const createStudentResumeBodyContentLinkedinMax = 400;
+
+export const createStudentResumeBodyContentWebsiteMax = 400;
+
+export const createStudentResumeBodyContentHeadlineMax = 240;
+
+export const createStudentResumeBodyContentSummaryMax = 2000;
+
+export const createStudentResumeBodyContentEducationItemTitleMax = 180;
+
+export const createStudentResumeBodyContentEducationItemOrganizationMax = 180;
+
+export const createStudentResumeBodyContentEducationItemLocationMax = 180;
+
+export const createStudentResumeBodyContentEducationItemPeriodMax = 100;
+
+export const createStudentResumeBodyContentEducationItemDescriptionMax = 2000;
+
+export const createStudentResumeBodyContentEducationItemLinkMax = 400;
+
+export const createStudentResumeBodyContentEducationMax = 20;
+
+export const createStudentResumeBodyContentExperienceItemTitleMax = 180;
+
+export const createStudentResumeBodyContentExperienceItemOrganizationMax = 180;
+
+export const createStudentResumeBodyContentExperienceItemLocationMax = 180;
+
+export const createStudentResumeBodyContentExperienceItemPeriodMax = 100;
+
+export const createStudentResumeBodyContentExperienceItemDescriptionMax = 2000;
+
+export const createStudentResumeBodyContentExperienceItemLinkMax = 400;
+
+export const createStudentResumeBodyContentExperienceMax = 30;
+
+export const createStudentResumeBodyContentProjectsItemTitleMax = 180;
+
+export const createStudentResumeBodyContentProjectsItemOrganizationMax = 180;
+
+export const createStudentResumeBodyContentProjectsItemLocationMax = 180;
+
+export const createStudentResumeBodyContentProjectsItemPeriodMax = 100;
+
+export const createStudentResumeBodyContentProjectsItemDescriptionMax = 2000;
+
+export const createStudentResumeBodyContentProjectsItemLinkMax = 400;
+
+export const createStudentResumeBodyContentProjectsMax = 30;
+
+export const createStudentResumeBodyContentCoursesItemTitleMax = 180;
+
+export const createStudentResumeBodyContentCoursesItemOrganizationMax = 180;
+
+export const createStudentResumeBodyContentCoursesItemLocationMax = 180;
+
+export const createStudentResumeBodyContentCoursesItemPeriodMax = 100;
+
+export const createStudentResumeBodyContentCoursesItemDescriptionMax = 2000;
+
+export const createStudentResumeBodyContentCoursesItemLinkMax = 400;
+
+export const createStudentResumeBodyContentCoursesMax = 30;
+
+export const createStudentResumeBodyContentSkillsItemMax = 80;
+
+export const createStudentResumeBodyContentSkillsMax = 60;
+
+export const createStudentResumeBodyContentCertificationsItemMax = 180;
+
+export const createStudentResumeBodyContentCertificationsMax = 30;
+
+export const createStudentResumeBodyContentLanguagesItemMax = 100;
+
+export const createStudentResumeBodyContentLanguagesMax = 20;
+
+
+
+export const CreateStudentResumeBody = zod.object({
+  "title": zod.string().min(1).max(createStudentResumeBodyTitleMax),
+  "template": zod.enum(['ats', 'professional']),
+  "content": zod.object({
+  "fullName": zod.string().max(createStudentResumeBodyContentFullNameMax),
+  "email": zod.string().max(createStudentResumeBodyContentEmailMax),
+  "phone": zod.string().max(createStudentResumeBodyContentPhoneMax),
+  "location": zod.string().max(createStudentResumeBodyContentLocationMax),
+  "linkedin": zod.string().max(createStudentResumeBodyContentLinkedinMax),
+  "website": zod.string().max(createStudentResumeBodyContentWebsiteMax),
+  "headline": zod.string().max(createStudentResumeBodyContentHeadlineMax),
+  "summary": zod.string().max(createStudentResumeBodyContentSummaryMax),
+  "education": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeBodyContentEducationItemTitleMax),
+  "organization": zod.string().max(createStudentResumeBodyContentEducationItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeBodyContentEducationItemLocationMax),
+  "period": zod.string().max(createStudentResumeBodyContentEducationItemPeriodMax),
+  "description": zod.string().max(createStudentResumeBodyContentEducationItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeBodyContentEducationItemLinkMax)
+})).max(createStudentResumeBodyContentEducationMax),
+  "experience": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeBodyContentExperienceItemTitleMax),
+  "organization": zod.string().max(createStudentResumeBodyContentExperienceItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeBodyContentExperienceItemLocationMax),
+  "period": zod.string().max(createStudentResumeBodyContentExperienceItemPeriodMax),
+  "description": zod.string().max(createStudentResumeBodyContentExperienceItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeBodyContentExperienceItemLinkMax)
+})).max(createStudentResumeBodyContentExperienceMax),
+  "projects": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeBodyContentProjectsItemTitleMax),
+  "organization": zod.string().max(createStudentResumeBodyContentProjectsItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeBodyContentProjectsItemLocationMax),
+  "period": zod.string().max(createStudentResumeBodyContentProjectsItemPeriodMax),
+  "description": zod.string().max(createStudentResumeBodyContentProjectsItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeBodyContentProjectsItemLinkMax)
+})).max(createStudentResumeBodyContentProjectsMax),
+  "courses": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeBodyContentCoursesItemTitleMax),
+  "organization": zod.string().max(createStudentResumeBodyContentCoursesItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeBodyContentCoursesItemLocationMax),
+  "period": zod.string().max(createStudentResumeBodyContentCoursesItemPeriodMax),
+  "description": zod.string().max(createStudentResumeBodyContentCoursesItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeBodyContentCoursesItemLinkMax)
+})).max(createStudentResumeBodyContentCoursesMax),
+  "skills": zod.array(zod.string().max(createStudentResumeBodyContentSkillsItemMax)).max(createStudentResumeBodyContentSkillsMax),
+  "certifications": zod.array(zod.string().max(createStudentResumeBodyContentCertificationsItemMax)).max(createStudentResumeBodyContentCertificationsMax),
+  "languages": zod.array(zod.string().max(createStudentResumeBodyContentLanguagesItemMax)).max(createStudentResumeBodyContentLanguagesMax)
+})
+})
+
+export const createStudentResumeResponseContentFullNameMax = 120;
+
+export const createStudentResumeResponseContentEmailMax = 200;
+
+export const createStudentResumeResponseContentPhoneMax = 60;
+
+export const createStudentResumeResponseContentLocationMax = 160;
+
+export const createStudentResumeResponseContentLinkedinMax = 400;
+
+export const createStudentResumeResponseContentWebsiteMax = 400;
+
+export const createStudentResumeResponseContentHeadlineMax = 240;
+
+export const createStudentResumeResponseContentSummaryMax = 2000;
+
+export const createStudentResumeResponseContentEducationItemTitleMax = 180;
+
+export const createStudentResumeResponseContentEducationItemOrganizationMax = 180;
+
+export const createStudentResumeResponseContentEducationItemLocationMax = 180;
+
+export const createStudentResumeResponseContentEducationItemPeriodMax = 100;
+
+export const createStudentResumeResponseContentEducationItemDescriptionMax = 2000;
+
+export const createStudentResumeResponseContentEducationItemLinkMax = 400;
+
+export const createStudentResumeResponseContentEducationMax = 20;
+
+export const createStudentResumeResponseContentExperienceItemTitleMax = 180;
+
+export const createStudentResumeResponseContentExperienceItemOrganizationMax = 180;
+
+export const createStudentResumeResponseContentExperienceItemLocationMax = 180;
+
+export const createStudentResumeResponseContentExperienceItemPeriodMax = 100;
+
+export const createStudentResumeResponseContentExperienceItemDescriptionMax = 2000;
+
+export const createStudentResumeResponseContentExperienceItemLinkMax = 400;
+
+export const createStudentResumeResponseContentExperienceMax = 30;
+
+export const createStudentResumeResponseContentProjectsItemTitleMax = 180;
+
+export const createStudentResumeResponseContentProjectsItemOrganizationMax = 180;
+
+export const createStudentResumeResponseContentProjectsItemLocationMax = 180;
+
+export const createStudentResumeResponseContentProjectsItemPeriodMax = 100;
+
+export const createStudentResumeResponseContentProjectsItemDescriptionMax = 2000;
+
+export const createStudentResumeResponseContentProjectsItemLinkMax = 400;
+
+export const createStudentResumeResponseContentProjectsMax = 30;
+
+export const createStudentResumeResponseContentCoursesItemTitleMax = 180;
+
+export const createStudentResumeResponseContentCoursesItemOrganizationMax = 180;
+
+export const createStudentResumeResponseContentCoursesItemLocationMax = 180;
+
+export const createStudentResumeResponseContentCoursesItemPeriodMax = 100;
+
+export const createStudentResumeResponseContentCoursesItemDescriptionMax = 2000;
+
+export const createStudentResumeResponseContentCoursesItemLinkMax = 400;
+
+export const createStudentResumeResponseContentCoursesMax = 30;
+
+export const createStudentResumeResponseContentSkillsItemMax = 80;
+
+export const createStudentResumeResponseContentSkillsMax = 60;
+
+export const createStudentResumeResponseContentCertificationsItemMax = 180;
+
+export const createStudentResumeResponseContentCertificationsMax = 30;
+
+export const createStudentResumeResponseContentLanguagesItemMax = 100;
+
+export const createStudentResumeResponseContentLanguagesMax = 20;
+
+
+
+export const CreateStudentResumeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string(),
+  "template": zod.enum(['ats', 'professional']),
+  "content": zod.object({
+  "fullName": zod.string().max(createStudentResumeResponseContentFullNameMax),
+  "email": zod.string().max(createStudentResumeResponseContentEmailMax),
+  "phone": zod.string().max(createStudentResumeResponseContentPhoneMax),
+  "location": zod.string().max(createStudentResumeResponseContentLocationMax),
+  "linkedin": zod.string().max(createStudentResumeResponseContentLinkedinMax),
+  "website": zod.string().max(createStudentResumeResponseContentWebsiteMax),
+  "headline": zod.string().max(createStudentResumeResponseContentHeadlineMax),
+  "summary": zod.string().max(createStudentResumeResponseContentSummaryMax),
+  "education": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeResponseContentEducationItemTitleMax),
+  "organization": zod.string().max(createStudentResumeResponseContentEducationItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeResponseContentEducationItemLocationMax),
+  "period": zod.string().max(createStudentResumeResponseContentEducationItemPeriodMax),
+  "description": zod.string().max(createStudentResumeResponseContentEducationItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeResponseContentEducationItemLinkMax)
+})).max(createStudentResumeResponseContentEducationMax),
+  "experience": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeResponseContentExperienceItemTitleMax),
+  "organization": zod.string().max(createStudentResumeResponseContentExperienceItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeResponseContentExperienceItemLocationMax),
+  "period": zod.string().max(createStudentResumeResponseContentExperienceItemPeriodMax),
+  "description": zod.string().max(createStudentResumeResponseContentExperienceItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeResponseContentExperienceItemLinkMax)
+})).max(createStudentResumeResponseContentExperienceMax),
+  "projects": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeResponseContentProjectsItemTitleMax),
+  "organization": zod.string().max(createStudentResumeResponseContentProjectsItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeResponseContentProjectsItemLocationMax),
+  "period": zod.string().max(createStudentResumeResponseContentProjectsItemPeriodMax),
+  "description": zod.string().max(createStudentResumeResponseContentProjectsItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeResponseContentProjectsItemLinkMax)
+})).max(createStudentResumeResponseContentProjectsMax),
+  "courses": zod.array(zod.object({
+  "title": zod.string().max(createStudentResumeResponseContentCoursesItemTitleMax),
+  "organization": zod.string().max(createStudentResumeResponseContentCoursesItemOrganizationMax),
+  "location": zod.string().max(createStudentResumeResponseContentCoursesItemLocationMax),
+  "period": zod.string().max(createStudentResumeResponseContentCoursesItemPeriodMax),
+  "description": zod.string().max(createStudentResumeResponseContentCoursesItemDescriptionMax),
+  "link": zod.string().max(createStudentResumeResponseContentCoursesItemLinkMax)
+})).max(createStudentResumeResponseContentCoursesMax),
+  "skills": zod.array(zod.string().max(createStudentResumeResponseContentSkillsItemMax)).max(createStudentResumeResponseContentSkillsMax),
+  "certifications": zod.array(zod.string().max(createStudentResumeResponseContentCertificationsItemMax)).max(createStudentResumeResponseContentCertificationsMax),
+  "languages": zod.array(zod.string().max(createStudentResumeResponseContentLanguagesItemMax)).max(createStudentResumeResponseContentLanguagesMax)
+}),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an owned private resume draft
+ */
+export const UpdateStudentResumeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const updateStudentResumeBodyTitleMax = 120;
+
+export const updateStudentResumeBodyContentFullNameMax = 120;
+
+export const updateStudentResumeBodyContentEmailMax = 200;
+
+export const updateStudentResumeBodyContentPhoneMax = 60;
+
+export const updateStudentResumeBodyContentLocationMax = 160;
+
+export const updateStudentResumeBodyContentLinkedinMax = 400;
+
+export const updateStudentResumeBodyContentWebsiteMax = 400;
+
+export const updateStudentResumeBodyContentHeadlineMax = 240;
+
+export const updateStudentResumeBodyContentSummaryMax = 2000;
+
+export const updateStudentResumeBodyContentEducationItemTitleMax = 180;
+
+export const updateStudentResumeBodyContentEducationItemOrganizationMax = 180;
+
+export const updateStudentResumeBodyContentEducationItemLocationMax = 180;
+
+export const updateStudentResumeBodyContentEducationItemPeriodMax = 100;
+
+export const updateStudentResumeBodyContentEducationItemDescriptionMax = 2000;
+
+export const updateStudentResumeBodyContentEducationItemLinkMax = 400;
+
+export const updateStudentResumeBodyContentEducationMax = 20;
+
+export const updateStudentResumeBodyContentExperienceItemTitleMax = 180;
+
+export const updateStudentResumeBodyContentExperienceItemOrganizationMax = 180;
+
+export const updateStudentResumeBodyContentExperienceItemLocationMax = 180;
+
+export const updateStudentResumeBodyContentExperienceItemPeriodMax = 100;
+
+export const updateStudentResumeBodyContentExperienceItemDescriptionMax = 2000;
+
+export const updateStudentResumeBodyContentExperienceItemLinkMax = 400;
+
+export const updateStudentResumeBodyContentExperienceMax = 30;
+
+export const updateStudentResumeBodyContentProjectsItemTitleMax = 180;
+
+export const updateStudentResumeBodyContentProjectsItemOrganizationMax = 180;
+
+export const updateStudentResumeBodyContentProjectsItemLocationMax = 180;
+
+export const updateStudentResumeBodyContentProjectsItemPeriodMax = 100;
+
+export const updateStudentResumeBodyContentProjectsItemDescriptionMax = 2000;
+
+export const updateStudentResumeBodyContentProjectsItemLinkMax = 400;
+
+export const updateStudentResumeBodyContentProjectsMax = 30;
+
+export const updateStudentResumeBodyContentCoursesItemTitleMax = 180;
+
+export const updateStudentResumeBodyContentCoursesItemOrganizationMax = 180;
+
+export const updateStudentResumeBodyContentCoursesItemLocationMax = 180;
+
+export const updateStudentResumeBodyContentCoursesItemPeriodMax = 100;
+
+export const updateStudentResumeBodyContentCoursesItemDescriptionMax = 2000;
+
+export const updateStudentResumeBodyContentCoursesItemLinkMax = 400;
+
+export const updateStudentResumeBodyContentCoursesMax = 30;
+
+export const updateStudentResumeBodyContentSkillsItemMax = 80;
+
+export const updateStudentResumeBodyContentSkillsMax = 60;
+
+export const updateStudentResumeBodyContentCertificationsItemMax = 180;
+
+export const updateStudentResumeBodyContentCertificationsMax = 30;
+
+export const updateStudentResumeBodyContentLanguagesItemMax = 100;
+
+export const updateStudentResumeBodyContentLanguagesMax = 20;
+
+
+
+export const UpdateStudentResumeBody = zod.object({
+  "title": zod.string().min(1).max(updateStudentResumeBodyTitleMax),
+  "template": zod.enum(['ats', 'professional']),
+  "content": zod.object({
+  "fullName": zod.string().max(updateStudentResumeBodyContentFullNameMax),
+  "email": zod.string().max(updateStudentResumeBodyContentEmailMax),
+  "phone": zod.string().max(updateStudentResumeBodyContentPhoneMax),
+  "location": zod.string().max(updateStudentResumeBodyContentLocationMax),
+  "linkedin": zod.string().max(updateStudentResumeBodyContentLinkedinMax),
+  "website": zod.string().max(updateStudentResumeBodyContentWebsiteMax),
+  "headline": zod.string().max(updateStudentResumeBodyContentHeadlineMax),
+  "summary": zod.string().max(updateStudentResumeBodyContentSummaryMax),
+  "education": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeBodyContentEducationItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeBodyContentEducationItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeBodyContentEducationItemLocationMax),
+  "period": zod.string().max(updateStudentResumeBodyContentEducationItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeBodyContentEducationItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeBodyContentEducationItemLinkMax)
+})).max(updateStudentResumeBodyContentEducationMax),
+  "experience": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeBodyContentExperienceItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeBodyContentExperienceItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeBodyContentExperienceItemLocationMax),
+  "period": zod.string().max(updateStudentResumeBodyContentExperienceItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeBodyContentExperienceItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeBodyContentExperienceItemLinkMax)
+})).max(updateStudentResumeBodyContentExperienceMax),
+  "projects": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeBodyContentProjectsItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeBodyContentProjectsItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeBodyContentProjectsItemLocationMax),
+  "period": zod.string().max(updateStudentResumeBodyContentProjectsItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeBodyContentProjectsItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeBodyContentProjectsItemLinkMax)
+})).max(updateStudentResumeBodyContentProjectsMax),
+  "courses": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeBodyContentCoursesItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeBodyContentCoursesItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeBodyContentCoursesItemLocationMax),
+  "period": zod.string().max(updateStudentResumeBodyContentCoursesItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeBodyContentCoursesItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeBodyContentCoursesItemLinkMax)
+})).max(updateStudentResumeBodyContentCoursesMax),
+  "skills": zod.array(zod.string().max(updateStudentResumeBodyContentSkillsItemMax)).max(updateStudentResumeBodyContentSkillsMax),
+  "certifications": zod.array(zod.string().max(updateStudentResumeBodyContentCertificationsItemMax)).max(updateStudentResumeBodyContentCertificationsMax),
+  "languages": zod.array(zod.string().max(updateStudentResumeBodyContentLanguagesItemMax)).max(updateStudentResumeBodyContentLanguagesMax)
+})
+})
+
+export const updateStudentResumeResponseContentFullNameMax = 120;
+
+export const updateStudentResumeResponseContentEmailMax = 200;
+
+export const updateStudentResumeResponseContentPhoneMax = 60;
+
+export const updateStudentResumeResponseContentLocationMax = 160;
+
+export const updateStudentResumeResponseContentLinkedinMax = 400;
+
+export const updateStudentResumeResponseContentWebsiteMax = 400;
+
+export const updateStudentResumeResponseContentHeadlineMax = 240;
+
+export const updateStudentResumeResponseContentSummaryMax = 2000;
+
+export const updateStudentResumeResponseContentEducationItemTitleMax = 180;
+
+export const updateStudentResumeResponseContentEducationItemOrganizationMax = 180;
+
+export const updateStudentResumeResponseContentEducationItemLocationMax = 180;
+
+export const updateStudentResumeResponseContentEducationItemPeriodMax = 100;
+
+export const updateStudentResumeResponseContentEducationItemDescriptionMax = 2000;
+
+export const updateStudentResumeResponseContentEducationItemLinkMax = 400;
+
+export const updateStudentResumeResponseContentEducationMax = 20;
+
+export const updateStudentResumeResponseContentExperienceItemTitleMax = 180;
+
+export const updateStudentResumeResponseContentExperienceItemOrganizationMax = 180;
+
+export const updateStudentResumeResponseContentExperienceItemLocationMax = 180;
+
+export const updateStudentResumeResponseContentExperienceItemPeriodMax = 100;
+
+export const updateStudentResumeResponseContentExperienceItemDescriptionMax = 2000;
+
+export const updateStudentResumeResponseContentExperienceItemLinkMax = 400;
+
+export const updateStudentResumeResponseContentExperienceMax = 30;
+
+export const updateStudentResumeResponseContentProjectsItemTitleMax = 180;
+
+export const updateStudentResumeResponseContentProjectsItemOrganizationMax = 180;
+
+export const updateStudentResumeResponseContentProjectsItemLocationMax = 180;
+
+export const updateStudentResumeResponseContentProjectsItemPeriodMax = 100;
+
+export const updateStudentResumeResponseContentProjectsItemDescriptionMax = 2000;
+
+export const updateStudentResumeResponseContentProjectsItemLinkMax = 400;
+
+export const updateStudentResumeResponseContentProjectsMax = 30;
+
+export const updateStudentResumeResponseContentCoursesItemTitleMax = 180;
+
+export const updateStudentResumeResponseContentCoursesItemOrganizationMax = 180;
+
+export const updateStudentResumeResponseContentCoursesItemLocationMax = 180;
+
+export const updateStudentResumeResponseContentCoursesItemPeriodMax = 100;
+
+export const updateStudentResumeResponseContentCoursesItemDescriptionMax = 2000;
+
+export const updateStudentResumeResponseContentCoursesItemLinkMax = 400;
+
+export const updateStudentResumeResponseContentCoursesMax = 30;
+
+export const updateStudentResumeResponseContentSkillsItemMax = 80;
+
+export const updateStudentResumeResponseContentSkillsMax = 60;
+
+export const updateStudentResumeResponseContentCertificationsItemMax = 180;
+
+export const updateStudentResumeResponseContentCertificationsMax = 30;
+
+export const updateStudentResumeResponseContentLanguagesItemMax = 100;
+
+export const updateStudentResumeResponseContentLanguagesMax = 20;
+
+
+
+export const UpdateStudentResumeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string(),
+  "template": zod.enum(['ats', 'professional']),
+  "content": zod.object({
+  "fullName": zod.string().max(updateStudentResumeResponseContentFullNameMax),
+  "email": zod.string().max(updateStudentResumeResponseContentEmailMax),
+  "phone": zod.string().max(updateStudentResumeResponseContentPhoneMax),
+  "location": zod.string().max(updateStudentResumeResponseContentLocationMax),
+  "linkedin": zod.string().max(updateStudentResumeResponseContentLinkedinMax),
+  "website": zod.string().max(updateStudentResumeResponseContentWebsiteMax),
+  "headline": zod.string().max(updateStudentResumeResponseContentHeadlineMax),
+  "summary": zod.string().max(updateStudentResumeResponseContentSummaryMax),
+  "education": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeResponseContentEducationItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeResponseContentEducationItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeResponseContentEducationItemLocationMax),
+  "period": zod.string().max(updateStudentResumeResponseContentEducationItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeResponseContentEducationItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeResponseContentEducationItemLinkMax)
+})).max(updateStudentResumeResponseContentEducationMax),
+  "experience": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeResponseContentExperienceItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeResponseContentExperienceItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeResponseContentExperienceItemLocationMax),
+  "period": zod.string().max(updateStudentResumeResponseContentExperienceItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeResponseContentExperienceItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeResponseContentExperienceItemLinkMax)
+})).max(updateStudentResumeResponseContentExperienceMax),
+  "projects": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeResponseContentProjectsItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeResponseContentProjectsItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeResponseContentProjectsItemLocationMax),
+  "period": zod.string().max(updateStudentResumeResponseContentProjectsItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeResponseContentProjectsItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeResponseContentProjectsItemLinkMax)
+})).max(updateStudentResumeResponseContentProjectsMax),
+  "courses": zod.array(zod.object({
+  "title": zod.string().max(updateStudentResumeResponseContentCoursesItemTitleMax),
+  "organization": zod.string().max(updateStudentResumeResponseContentCoursesItemOrganizationMax),
+  "location": zod.string().max(updateStudentResumeResponseContentCoursesItemLocationMax),
+  "period": zod.string().max(updateStudentResumeResponseContentCoursesItemPeriodMax),
+  "description": zod.string().max(updateStudentResumeResponseContentCoursesItemDescriptionMax),
+  "link": zod.string().max(updateStudentResumeResponseContentCoursesItemLinkMax)
+})).max(updateStudentResumeResponseContentCoursesMax),
+  "skills": zod.array(zod.string().max(updateStudentResumeResponseContentSkillsItemMax)).max(updateStudentResumeResponseContentSkillsMax),
+  "certifications": zod.array(zod.string().max(updateStudentResumeResponseContentCertificationsItemMax)).max(updateStudentResumeResponseContentCertificationsMax),
+  "languages": zod.array(zod.string().max(updateStudentResumeResponseContentLanguagesItemMax)).max(updateStudentResumeResponseContentLanguagesMax)
+}),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an owned private resume draft
+ */
+export const DeleteStudentResumeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteStudentResumeResponse = zod.void()
+
+
+/**
  * @summary Get only the fields approved for a public professional profile
  */
 export const getPublicResumePathTokenMin = 32;
@@ -2731,6 +3451,30 @@ export const GenerateAchievementDraftResponse = zod.object({
   "interviewStory": zod.string(),
   "serviceOffer": zod.string(),
   "summary": zod.string()
+})
+
+
+/**
+ * @summary Rewrite a student-provided resume summary or achievement without inventing facts
+ */
+export const rewriteResumeTextBodySourceTextMax = 3000;
+
+export const rewriteResumeTextBodyTargetRoleMax = 180;
+
+
+
+export const RewriteResumeTextBody = zod.object({
+  "mode": zod.enum(['summary', 'bullet']),
+  "sourceText": zod.string().min(1).max(rewriteResumeTextBodySourceTextMax),
+  "targetRole": zod.string().max(rewriteResumeTextBodyTargetRoleMax).optional()
+})
+
+export const rewriteResumeTextResponseSuggestionMax = 3000;
+
+
+
+export const RewriteResumeTextResponse = zod.object({
+  "suggestion": zod.string().min(1).max(rewriteResumeTextResponseSuggestionMax)
 })
 
 

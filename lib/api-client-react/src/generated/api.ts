@@ -158,6 +158,8 @@ import type {
   PublicResume,
   ResumeShareSettings,
   ResumeShareUpdate,
+  ResumeWritingInput,
+  ResumeWritingSuggestion,
   SearchAcademyParams,
   SectionInput,
   SectionMediaProgress,
@@ -166,7 +168,11 @@ import type {
   SectionMediaUploadRequest,
   SectionMediaUploadResult,
   StudentProfile,
-  StudentProfileInput
+  StudentProfileInput,
+  StudentResume,
+  StudentResumeInput,
+  StudentResumeList,
+  StudentResumeUpdate
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -5099,6 +5105,358 @@ export const useSaveResumeShareSettings = <TError = ErrorType<void>,
       return useMutation(getSaveResumeShareSettingsMutationOptions(options), queryClient);
     }
 
+export const getListStudentResumesUrl = () => {
+
+
+
+
+  return `/api/student/resumes`
+}
+
+/**
+ * @summary List the current student's private resume drafts
+ */
+export const listStudentResumes = async ( options?: Parameters<typeof customFetch>[1]): Promise<StudentResumeList> => {
+
+  return customFetch<StudentResumeList>(getListStudentResumesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStudentResumesQueryKey = () => {
+    return [
+    `/api/student/resumes`
+    ] as const;
+    }
+
+
+export const getListStudentResumesQueryOptions = <TData = Awaited<ReturnType<typeof listStudentResumes>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStudentResumesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStudentResumes>>> = ({ signal }) => listStudentResumes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStudentResumesQueryResult = NonNullable<Awaited<ReturnType<typeof listStudentResumes>>>
+export type ListStudentResumesQueryError = ErrorType<void>
+
+
+export function useListStudentResumes<TData = Awaited<ReturnType<typeof listStudentResumes>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentResumes>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentResumes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentResumes<TData = Awaited<ReturnType<typeof listStudentResumes>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentResumes>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentResumes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentResumes<TData = Awaited<ReturnType<typeof listStudentResumes>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the current student's private resume drafts
+ */
+
+export function useListStudentResumes<TData = Awaited<ReturnType<typeof listStudentResumes>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentResumes>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStudentResumesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStudentResumeUrl = () => {
+
+
+
+
+  return `/api/student/resumes`
+}
+
+/**
+ * @summary Create a private resume draft
+ */
+export const createStudentResume = async (studentResumeInput: StudentResumeInput, options?: Parameters<typeof customFetch>[1]): Promise<StudentResume> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StudentResume>(getCreateStudentResumeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(studentResumeInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStudentResumeMutationKey = () => ['createStudentResume'] as const;
+
+export const getCreateStudentResumeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStudentResume>>, TError,CreateStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStudentResume>>, TError,CreateStudentResumeMutationVariables, TContext> => {
+
+const mutationKey = getCreateStudentResumeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStudentResume>>, CreateStudentResumeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStudentResume(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStudentResumeMutationResult = NonNullable<Awaited<ReturnType<typeof createStudentResume>>>
+    export type CreateStudentResumeMutationBody = BodyType<StudentResumeInput>
+    export type CreateStudentResumeMutationError = ErrorType<void>
+    export type CreateStudentResumeMutationVariables = {data: BodyType<StudentResumeInput>}
+
+    /**
+ * @summary Create a private resume draft
+ */
+export const useCreateStudentResume = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStudentResume>>, TError,CreateStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStudentResume>>,
+        TError,
+        CreateStudentResumeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStudentResumeMutationOptions(options), queryClient);
+    }
+
+export const getUpdateStudentResumeUrl = (id: string,) => {
+
+
+
+
+  return `/api/student/resumes/${id}`
+}
+
+/**
+ * @summary Update an owned private resume draft
+ */
+export const updateStudentResume = async (id: string,
+    studentResumeUpdate: StudentResumeUpdate, options?: Parameters<typeof customFetch>[1]): Promise<StudentResume> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StudentResume>(getUpdateStudentResumeUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(studentResumeUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateStudentResumeMutationKey = () => ['updateStudentResume'] as const;
+
+export const getUpdateStudentResumeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentResume>>, TError,UpdateStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStudentResume>>, TError,UpdateStudentResumeMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStudentResumeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudentResume>>, UpdateStudentResumeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStudentResume(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStudentResumeMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudentResume>>>
+    export type UpdateStudentResumeMutationBody = BodyType<StudentResumeUpdate>
+    export type UpdateStudentResumeMutationError = ErrorType<void>
+    export type UpdateStudentResumeMutationVariables = {id: string;data: BodyType<StudentResumeUpdate>}
+
+    /**
+ * @summary Update an owned private resume draft
+ */
+export const useUpdateStudentResume = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentResume>>, TError,UpdateStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStudentResume>>,
+        TError,
+        UpdateStudentResumeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStudentResumeMutationOptions(options), queryClient);
+    }
+
+export const getDeleteStudentResumeUrl = (id: string,) => {
+
+
+
+
+  return `/api/student/resumes/${id}`
+}
+
+/**
+ * @summary Delete an owned private resume draft
+ */
+export const deleteStudentResume = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteStudentResumeUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteStudentResumeMutationKey = () => ['deleteStudentResume'] as const;
+
+export const getDeleteStudentResumeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStudentResume>>, TError,DeleteStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStudentResume>>, TError,DeleteStudentResumeMutationVariables, TContext> => {
+
+const mutationKey = getDeleteStudentResumeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStudentResume>>, DeleteStudentResumeMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteStudentResume(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStudentResumeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStudentResume>>>
+
+    export type DeleteStudentResumeMutationError = ErrorType<void>
+    export type DeleteStudentResumeMutationVariables = {id: string}
+
+    /**
+ * @summary Delete an owned private resume draft
+ */
+export const useDeleteStudentResume = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStudentResume>>, TError,DeleteStudentResumeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStudentResume>>,
+        TError,
+        DeleteStudentResumeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteStudentResumeMutationOptions(options), queryClient);
+    }
+
 export const getGetPublicResumeUrl = (token: string,) => {
 
 
@@ -5645,6 +6003,94 @@ export const useGenerateAchievementDraft = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getGenerateAchievementDraftMutationOptions(options), queryClient);
+    }
+
+export const getRewriteResumeTextUrl = () => {
+
+
+
+
+  return `/api/ai/resume-writing`
+}
+
+/**
+ * @summary Rewrite a student-provided resume summary or achievement without inventing facts
+ */
+export const rewriteResumeText = async (resumeWritingInput: ResumeWritingInput, options?: Parameters<typeof customFetch>[1]): Promise<ResumeWritingSuggestion> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ResumeWritingSuggestion>(getRewriteResumeTextUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(resumeWritingInput)
+  }
+);}
+
+
+
+
+
+export const getRewriteResumeTextMutationKey = () => ['rewriteResumeText'] as const;
+
+export const getRewriteResumeTextMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rewriteResumeText>>, TError,RewriteResumeTextMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rewriteResumeText>>, TError,RewriteResumeTextMutationVariables, TContext> => {
+
+const mutationKey = getRewriteResumeTextMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rewriteResumeText>>, RewriteResumeTextMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  rewriteResumeText(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RewriteResumeTextMutationResult = NonNullable<Awaited<ReturnType<typeof rewriteResumeText>>>
+    export type RewriteResumeTextMutationBody = BodyType<ResumeWritingInput>
+    export type RewriteResumeTextMutationError = ErrorType<void>
+    export type RewriteResumeTextMutationVariables = {data: BodyType<ResumeWritingInput>}
+
+    /**
+ * @summary Rewrite a student-provided resume summary or achievement without inventing facts
+ */
+export const useRewriteResumeText = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rewriteResumeText>>, TError,RewriteResumeTextMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rewriteResumeText>>,
+        TError,
+        RewriteResumeTextMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRewriteResumeTextMutationOptions(options), queryClient);
     }
 
 export const getAskCareerAssistantUrl = () => {

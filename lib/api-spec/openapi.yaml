@@ -790,6 +790,92 @@ paths:
           description: Invalid sharing settings or selected item
         "401":
           description: Authentication required
+  /student/resumes:
+    get:
+      operationId: listStudentResumes
+      tags: [student]
+      summary: List the current student's private resume drafts
+      responses:
+        "200":
+          description: Private resume drafts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResumeList"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createStudentResume
+      tags: [student]
+      summary: Create a private resume draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentResumeInput"
+      responses:
+        "201":
+          description: Created private resume draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResume"
+        "400":
+          description: Invalid resume draft
+        "401":
+          description: Authentication required
+        "429":
+          description: The student's draft limit has been reached
+  /student/resumes/{id}:
+    put:
+      operationId: updateStudentResume
+      tags: [student]
+      summary: Update an owned private resume draft
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentResumeUpdate"
+      responses:
+        "200":
+          description: Updated private resume draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResume"
+        "400":
+          description: Invalid resume draft
+        "401":
+          description: Authentication required
+        "404":
+          description: Resume draft not found
+    delete:
+      operationId: deleteStudentResume
+      tags: [student]
+      summary: Delete an owned private resume draft
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Resume draft deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Resume draft not found
   /public/resume/{token}:
     get:
       operationId: getPublicResume
@@ -927,6 +1013,32 @@ paths:
           description: Invalid input
         "401":
           description: Authentication required
+  /ai/resume-writing:
+    post:
+      operationId: rewriteResumeText
+      tags: [ai]
+      summary: Rewrite a student-provided resume summary or achievement without inventing facts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeWritingInput"
+      responses:
+        "200":
+          description: Suggested rewritten resume text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeWritingSuggestion"
+        "400":
+          description: Invalid source text
+        "401":
+          description: Authentication required
+        "429":
+          description: Wait before requesting another rewrite
+        "502":
+          description: AI writing assistance is temporarily unavailable
   /ai/career-assistant:
     post:
       operationId: askCareerAssistant
@@ -2916,6 +3028,95 @@ components:
           type: array
           maxItems: 30
           items: { type: string, maxLength: 60 }
+    ResumeSectionEntry:
+      type: object
+      required: [title, organization, location, period, description, link]
+      properties:
+        title: { type: string, maxLength: 180 }
+        organization: { type: string, maxLength: 180 }
+        location: { type: string, maxLength: 180 }
+        period: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 2000 }
+        link: { type: string, maxLength: 400 }
+    StudentResumeContent:
+      type: object
+      required: [fullName, email, phone, location, linkedin, website, headline, summary, education, experience, projects, courses, skills, certifications, languages]
+      properties:
+        fullName: { type: string, maxLength: 120 }
+        email: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 60 }
+        location: { type: string, maxLength: 160 }
+        linkedin: { type: string, maxLength: 400 }
+        website: { type: string, maxLength: 400 }
+        headline: { type: string, maxLength: 240 }
+        summary: { type: string, maxLength: 2000 }
+        education:
+          type: array
+          maxItems: 20
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        experience:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        projects:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        courses:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        skills:
+          type: array
+          maxItems: 60
+          items: { type: string, maxLength: 80 }
+        certifications:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 180 }
+        languages:
+          type: array
+          maxItems: 20
+          items: { type: string, maxLength: 100 }
+    StudentResume:
+      type: object
+      required: [id, title, template, content, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        template: { type: string, enum: [ats, professional] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StudentResumeList:
+      type: array
+      items: { $ref: "#/components/schemas/StudentResume" }
+    StudentResumeInput:
+      type: object
+      required: [title, template, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        template: { type: string, enum: [ats, professional] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+    StudentResumeUpdate:
+      type: object
+      required: [title, template, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        template: { type: string, enum: [ats, professional] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+    ResumeWritingInput:
+      type: object
+      required: [mode, sourceText]
+      properties:
+        mode: { type: string, enum: [summary, bullet] }
+        sourceText: { type: string, minLength: 1, maxLength: 3000 }
+        targetRole: { type: string, maxLength: 180 }
+    ResumeWritingSuggestion:
+      type: object
+      required: [suggestion]
+      properties:
+        suggestion: { type: string, minLength: 1, maxLength: 3000 }
     ResumeShareSettings:
       type: object
       required: [enabled, token, showName, showHeadline, showUniversity, showMajor, showYearOfStudy, showSkills, achievementIds, courseIds]

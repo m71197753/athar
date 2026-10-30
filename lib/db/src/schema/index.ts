@@ -22,6 +22,7 @@ export * from "./achievements";
 export * from "./career";
 export * from "./learning";
 export * from "./resume-shares";
+export * from "./student-resumes";
 export * from "./platform";
 export * from "./platform-sections";
 export * from "./platform-media";

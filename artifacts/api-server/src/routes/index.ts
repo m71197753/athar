@@ -5,6 +5,7 @@ import aiRouter from "./ai";
 import careerRouter from "./career";
 import learningRouter from "./learning";
 import resumeShareRouter from "./resume-share";
+import studentResumesRouter from "./student-resumes";
 import adminRouter from "./admin";
 import adsRouter from "./ads";
 import academyRouter from "./academy";
@@ -38,5 +39,6 @@ router.use(careerRouter);
 router.use(learningRouter);
 router.use(academyRouter);
 router.use(resumeShareRouter);
+router.use(studentResumesRouter);
 
 export default router;

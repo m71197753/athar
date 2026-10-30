@@ -1,4 +1,5 @@
 import type { ResumeData } from "./resume-ats";
+import type { StudentResumeContent } from "@workspace/api-client-react";
 import type { Paragraph as ParagraphType } from "docx";
 
 const ink = "203239";
@@ -101,6 +102,106 @@ export async function downloadResumeDocx(data: ResumeData, template: "ats" | "pr
   const link = document.createElement("a");
   link.href = url;
   link.download = "سيرتي-المهنية.docx";
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function downloadStudentResumeDocx(
+  content: StudentResumeContent,
+  template: "ats" | "professional",
+  documentTitle: string,
+) {
+  const { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } = await import("docx");
+  const professional = template === "professional";
+  const color = professional ? teal : ink;
+  const paragraph = (text: string, options?: { bold?: boolean; color?: string; size?: number }) => new Paragraph({
+    children: [new TextRun({
+      text,
+      font: "Arial",
+      size: options?.size ?? 21,
+      bold: options?.bold,
+      color: options?.color ?? ink,
+      rightToLeft: true,
+    })],
+    alignment: AlignmentType.RIGHT,
+    bidirectional: true,
+    spacing: { after: 95 },
+  });
+  const heading = (text: string) => new Paragraph({
+    text,
+    heading: HeadingLevel.HEADING_2,
+    alignment: AlignmentType.RIGHT,
+    bidirectional: true,
+    run: { color, bold: true, font: "Arial" },
+    spacing: { before: 230, after: 100 },
+  });
+  const children: ParagraphType[] = [
+    paragraph(content.fullName.trim() || "السيرة الذاتية", { bold: true, color, size: 36 }),
+  ];
+  const contact = [
+    content.headline,
+    content.email,
+    content.phone,
+    content.location,
+    content.linkedin,
+    content.website,
+  ].map(value => value.trim()).filter(Boolean);
+  if (contact.length) children.push(paragraph(contact.join(" · "), { color: "536377" }));
+  if (content.summary.trim()) {
+    children.push(heading("الملخص المهني"));
+    children.push(paragraph(content.summary.trim()));
+  }
+
+  const addEntries = (title: string, entries: StudentResumeContent["education"]) => {
+    const populated = entries.filter(entry =>
+      [entry.title, entry.organization, entry.description, entry.link].some(value => value.trim()),
+    );
+    if (!populated.length) return;
+    children.push(heading(title));
+    for (const entry of populated) {
+      if (entry.title.trim()) children.push(paragraph(entry.title.trim(), { bold: true }));
+      const meta = [entry.organization, entry.location, entry.period].map(value => value.trim()).filter(Boolean);
+      if (meta.length) children.push(paragraph(meta.join(" · "), { color: "536377" }));
+      for (const line of entry.description.split(/\r?\n/).map(value => value.trim()).filter(Boolean)) {
+        children.push(paragraph(line));
+      }
+      if (entry.link.trim()) children.push(paragraph(entry.link.trim(), { color: "3B706B" }));
+    }
+  };
+
+  addEntries("التعليم", content.education);
+  addEntries("الخبرات", content.experience);
+  addEntries("المشروعات", content.projects);
+  addEntries("الدورات", content.courses);
+  if (content.skills.some(value => value.trim())) {
+    children.push(heading("المهارات"));
+    children.push(paragraph(content.skills.map(value => value.trim()).filter(Boolean).join(" · ")));
+  }
+  if (content.certifications.some(value => value.trim())) {
+    children.push(heading("الشهادات"));
+    content.certifications.map(value => value.trim()).filter(Boolean).forEach(value => children.push(paragraph(value)));
+  }
+  if (content.languages.some(value => value.trim())) {
+    children.push(heading("اللغات"));
+    children.push(paragraph(content.languages.map(value => value.trim()).filter(Boolean).join(" · ")));
+  }
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          margin: { top: 720, right: 900, bottom: 720, left: 900 },
+        },
+      },
+      children,
+    }],
+  });
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const safeTitle = documentTitle.trim().replace(/[\\/:*?"<>|]/g, "-").slice(0, 80);
+  link.download = `${safeTitle || "سيرتي-المهنية"}.docx`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

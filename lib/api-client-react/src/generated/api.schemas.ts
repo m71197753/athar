@@ -752,6 +752,145 @@ export interface StudentProfileInput {
   skills: string[];
 }
 
+export interface ResumeSectionEntry {
+  /** @maxLength 180 */
+  title: string;
+  /** @maxLength 180 */
+  organization: string;
+  /** @maxLength 180 */
+  location: string;
+  /** @maxLength 100 */
+  period: string;
+  /** @maxLength 2000 */
+  description: string;
+  /** @maxLength 400 */
+  link: string;
+}
+
+export interface StudentResumeContent {
+  /** @maxLength 120 */
+  fullName: string;
+  /** @maxLength 200 */
+  email: string;
+  /** @maxLength 60 */
+  phone: string;
+  /** @maxLength 160 */
+  location: string;
+  /** @maxLength 400 */
+  linkedin: string;
+  /** @maxLength 400 */
+  website: string;
+  /** @maxLength 240 */
+  headline: string;
+  /** @maxLength 2000 */
+  summary: string;
+  /** @maxItems 20 */
+  education: ResumeSectionEntry[];
+  /** @maxItems 30 */
+  experience: ResumeSectionEntry[];
+  /** @maxItems 30 */
+  projects: ResumeSectionEntry[];
+  /** @maxItems 30 */
+  courses: ResumeSectionEntry[];
+  /**
+     * @maxItems 60
+     * @items.maxLength 80
+     */
+  skills: string[];
+  /**
+     * @maxItems 30
+     * @items.maxLength 180
+     */
+  certifications: string[];
+  /**
+     * @maxItems 20
+     * @items.maxLength 100
+     */
+  languages: string[];
+}
+
+export type StudentResumeTemplate = typeof StudentResumeTemplate[keyof typeof StudentResumeTemplate];
+
+
+export const StudentResumeTemplate = {
+  ats: 'ats',
+  professional: 'professional',
+} as const;
+
+export interface StudentResume {
+  id: string;
+  title: string;
+  template: StudentResumeTemplate;
+  content: StudentResumeContent;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type StudentResumeList = StudentResume[];
+
+export type StudentResumeInputTemplate = typeof StudentResumeInputTemplate[keyof typeof StudentResumeInputTemplate];
+
+
+export const StudentResumeInputTemplate = {
+  ats: 'ats',
+  professional: 'professional',
+} as const;
+
+export interface StudentResumeInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  template: StudentResumeInputTemplate;
+  content: StudentResumeContent;
+}
+
+export type StudentResumeUpdateTemplate = typeof StudentResumeUpdateTemplate[keyof typeof StudentResumeUpdateTemplate];
+
+
+export const StudentResumeUpdateTemplate = {
+  ats: 'ats',
+  professional: 'professional',
+} as const;
+
+export interface StudentResumeUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  template: StudentResumeUpdateTemplate;
+  content: StudentResumeContent;
+}
+
+export type ResumeWritingInputMode = typeof ResumeWritingInputMode[keyof typeof ResumeWritingInputMode];
+
+
+export const ResumeWritingInputMode = {
+  summary: 'summary',
+  bullet: 'bullet',
+} as const;
+
+export interface ResumeWritingInput {
+  mode: ResumeWritingInputMode;
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  sourceText: string;
+  /** @maxLength 180 */
+  targetRole?: string;
+}
+
+export interface ResumeWritingSuggestion {
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  suggestion: string;
+}
+
 export interface ResumeShareSettings {
   enabled: boolean;
   /** @nullable */
