@@ -402,7 +402,7 @@ router.put("/admin/settings", async (req, res) => {
     })),
   }));
   const keys = new Set(moduleSettings.map(module => module.key));
-  if (keys.size !== ALL_MODULES.length || !ALL_MODULES.every(key => keys.has(key)) ||
+  if (moduleSettings.length !== ALL_MODULES.length || keys.size !== ALL_MODULES.length || !ALL_MODULES.every(key => keys.has(key)) ||
       moduleSettings.some(module => module.title.length < 2 || module.blocks.length > 20 ||
         module.blocks.some(block => !block.title || (block.type === "text" ? !block.body || block.url !== "" :
           block.type === "link" ? !validUrl("resource", block.url) :

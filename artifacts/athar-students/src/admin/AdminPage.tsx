@@ -529,7 +529,7 @@ export default function AdminPage() {
   const [focusSubmissions, setFocusSubmissions] = useState(false);
   const frame = (body: ReactNode) => <div className="adm-frame" dir="rtl">
     <header className="adm-top"><Link href="/dashboard" className="adm-brand" aria-label="العودة إلى مساحة الطالب"><Brand/></Link><span className="adm-crumb"><ShieldCheck size={16}/> لوحة الإشراف</span><ThemeToggle/>
-      <Link href="/dashboard" className="adm-back" data-testid="link-admin-back-to-app">الرجوع للبرنامج <ArrowRight size={14}/></Link></header>{body}</div>;
+      <Link href="/dashboard" className="adm-back" aria-label="الرجوع للبرنامج" title="الرجوع للبرنامج" data-testid="link-admin-back-to-app"><ArrowRight size={16}/><span>الرجوع للبرنامج</span></Link></header>{body}</div>;
   if (access.isLoading) return frame(<main className="adm-main"><Skeleton rows={4}/></main>);
   const s = statusOf(access.error);
   if (access.isError && s !== 401 && s !== 403) return frame(<main className="adm-main"><ErrorBox error={access.error} retry={() => access.refetch()}/></main>);

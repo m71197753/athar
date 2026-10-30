@@ -418,10 +418,7 @@ export interface AppearanceSettings {
 }
 
 export interface PlatformSettings {
-  /**
-     * @minItems 7
-     * @maxItems 7
-     */
+  /** @minItems 1 */
   moduleSettings: ModuleSetting[];
   appearance: AppearanceSettings;
 }

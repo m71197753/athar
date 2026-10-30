@@ -3036,8 +3036,7 @@ components:
       properties:
         moduleSettings:
           type: array
-          minItems: 7
-          maxItems: 7
+          minItems: 1
           items: { $ref: "#/components/schemas/ModuleSetting" }
         appearance: { $ref: "#/components/schemas/AppearanceSettings" }
     AppearanceSettings:

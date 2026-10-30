@@ -970,8 +970,6 @@ export const getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const getAdminSettingsResponseModuleSettingsItemBlocksMax = 20;
 
-export const getAdminSettingsResponseModuleSettingsMin = 7;
-export const getAdminSettingsResponseModuleSettingsMax = 7;
 
 export const getAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -1010,7 +1008,7 @@ export const GetAdminSettingsResponse = zod.object({
   "url": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(getAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
-})).min(getAdminSettingsResponseModuleSettingsMin).max(getAdminSettingsResponseModuleSettingsMax),
+})).min(1),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(getAdminSettingsResponseAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(getAdminSettingsResponseAppearanceAccentColorRegExp),
@@ -1044,8 +1042,6 @@ export const saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const saveAdminSettingsBodyModuleSettingsItemBlocksMax = 20;
 
-export const saveAdminSettingsBodyModuleSettingsMin = 7;
-export const saveAdminSettingsBodyModuleSettingsMax = 7;
 
 export const saveAdminSettingsBodyAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -1084,7 +1080,7 @@ export const SaveAdminSettingsBody = zod.object({
   "url": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsBodyModuleSettingsItemBlocksMax).optional()
-})).min(saveAdminSettingsBodyModuleSettingsMin).max(saveAdminSettingsBodyModuleSettingsMax),
+})).min(1),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(saveAdminSettingsBodyAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(saveAdminSettingsBodyAppearanceAccentColorRegExp),
@@ -1117,8 +1113,6 @@ export const saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const saveAdminSettingsResponseModuleSettingsItemBlocksMax = 20;
 
-export const saveAdminSettingsResponseModuleSettingsMin = 7;
-export const saveAdminSettingsResponseModuleSettingsMax = 7;
 
 export const saveAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
@@ -1157,7 +1151,7 @@ export const SaveAdminSettingsResponse = zod.object({
   "url": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
-})).min(saveAdminSettingsResponseModuleSettingsMin).max(saveAdminSettingsResponseModuleSettingsMax),
+})).min(1),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(saveAdminSettingsResponseAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(saveAdminSettingsResponseAppearanceAccentColorRegExp),

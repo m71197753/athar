@@ -67,11 +67,11 @@
 .adm-upload-hint { color:var(--a-muted,#63747d); font-size:11px; }
 .adm-upload-status { display:flex; align-items:center; gap:6px; color:var(--a-muted,#63747d); font-size:12px; }
 .adm-media-preview { width:min(100%,520px); max-height:340px; object-fit:contain; background:#0b1820; border-radius:12px; }
-.adm-media-file-link { display:inline-flex; align-items:center; gap:8px; width:fit-content; padding:9px 12px; border:1px solid var(--a-line,#d9e2e7); border-radius:10px; color:var(--a-teal); }
+.adm-media-file-link { display:inline-flex; align-items:center; gap:8px; width:fit-content; padding:9px 12px; border:1px solid var(--a-line,#d9e2e7); border-radius:10px; color:var(--a-teal); background:var(--a-card); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
 .adm-inline-file-preview-scrim { position:fixed; inset:0; z-index:10000; display:grid; place-items:center; padding:14px; background:rgba(10,18,30,.76); }
 .adm-inline-file-preview { display:flex; width:min(100%,1100px); height:min(88dvh,900px); flex-direction:column; overflow:hidden; border:1px solid var(--a-line); border-radius:16px; background:var(--a-card); box-shadow:0 24px 70px rgba(0,0,0,.3); }
 .adm-inline-file-preview > header { display:flex; min-height:52px; align-items:center; justify-content:space-between; gap:12px; padding:8px 14px; border-bottom:1px solid var(--a-line); color:var(--a-ink); }
-.adm-inline-file-preview > header button { display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:6px 11px; border:1px solid var(--a-line); border-radius:9px; color:var(--a-teal); background:var(--a-card); font:700 12px inherit; cursor:pointer; }
+.adm-inline-file-preview > header button { display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:6px 11px; border:1px solid var(--a-line); border-radius:9px; color:var(--a-teal); background:var(--a-card); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
 .adm-inline-file-preview iframe { width:100%; min-height:0; flex:1; border:0; background:#fff; }
 .adm-spin { animation:adm-spin 1s linear infinite; }
 @keyframes adm-spin { to { transform:rotate(360deg); } }
@@ -265,7 +265,9 @@
   .adm-section-row > .adm-user-actions { grid-column:2; grid-row:2; justify-content:flex-start; }
 }
 @media (max-width:560px) {
-  .adm-top { padding:0 12px; gap:8px; } .adm-back span,.adm-crumb { font-size:11px; } .adm-back { display:none; }
+  .adm-top { padding:0 12px; gap:8px; } .adm-crumb { font-size:11px; }
+  .adm-back { display:inline-flex; flex:0 0 36px; width:36px; height:36px; justify-content:center; border:1px solid var(--a-line); border-radius:9px; }
+  .adm-back span { display:none; }
   .adm-notification { display:grid; grid-template-columns:38px minmax(0,1fr); }
   .adm-notification-icon { grid-column:1; grid-row:1; }
   .adm-notification-copy { grid-column:2; grid-row:1; }
