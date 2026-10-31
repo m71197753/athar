@@ -97,6 +97,10 @@ export function CustomSectionPage({ slug }: { slug: string }) {
     const searchableText = `${course.title} ${course.description} ${(course.skills ?? []).join(" ")} ${(course.units ?? []).map(unit => `${unit.title} ${unit.description}`).join(" ")} ${course.materials.map(material => `${material.title} ${material.body}`).join(" ")}`.toLocaleLowerCase("ar");
     return matchesFilter && (!normalizedSearch || searchableText.includes(normalizedSearch));
   });
+  const highlightedCourse = courses.find(course => !isCourseCompleted(course.id, course.title)) ?? courses[0];
+  const highlightedCourseCompleted = highlightedCourse
+    ? isCourseCompleted(highlightedCourse.id, highlightedCourse.title)
+    : false;
   const recordCompletion = (courseId: string) => {
     setCompletionError("");
     setCompletionNotice("");
@@ -207,46 +211,66 @@ export function CustomSectionPage({ slug }: { slug: string }) {
         : null}
       {completionError && <p className="custom-course-feedback error" role="alert" data-testid="course-completion-error">{completionError}</p>}
       {completionNotice && <p className="custom-course-feedback success" role="status" data-testid="course-completion-success">{completionNotice}</p>}
-      <div className="custom-course-tools">
-        <label className="custom-course-search">
-          <Search size={17} aria-hidden="true"/>
-          <input
-            type="search"
-            value={courseSearch}
-            onChange={event => setCourseSearch(event.target.value)}
-            placeholder="ابحث في دوراتك وموادها"
-            aria-label="ابحث في دوراتك وموادها"
-            data-testid="course-search"
-          />
-          {courseSearch && <button type="button" onClick={() => setCourseSearch("")} aria-label="مسح البحث" data-testid="clear-course-search"><X size={15}/></button>}
-        </label>
-        <div className="custom-course-filters" role="group" aria-label="تصفية الدورات">
-          {([
-            ["all", "الكل"],
-            ["incomplete", "غير مكتملة"],
-            ["completed", "مكتملة"],
-          ] as [CourseFilter, string][]).map(([value, label]) => (
+      <div className="custom-course-browse-layout">
+        <aside className="custom-course-sidebar" aria-label="استكشاف الدورات">
+          {highlightedCourse && <article className="custom-course-next-card" data-testid="course-next-step">
+            <span className="custom-course-next-eyebrow"><BookOpen size={14} aria-hidden="true"/> خطوتك التالية</span>
+            <h3>{highlightedCourseCompleted ? "راجع ما تعلمته" : "ابدأ التعلّم الآن"}</h3>
+            <p>{highlightedCourse.title}</p>
             <button
-              key={value}
               type="button"
-              className={activeFilter === value ? "is-active" : ""}
-              aria-pressed={activeFilter === value}
-              disabled={value !== "all" && !completionKnown}
-              onClick={() => setCourseFilter(value)}
-              data-testid={`course-filter-${value}`}
-            >{label}</button>
-          ))}
-        </div>
-      </div>
-      <div className="custom-course-count" aria-live="polite">
-        <span>{visibleCourses.length.toLocaleString("ar")} من {courses.length.toLocaleString("ar")} دورة</span>
-        {courseSearch && <span>نتائج البحث عن «{courseSearch}»</span>}
-      </div>
-      {visibleCourses.length > 0 ? <div className="custom-course-list">{visibleCourses.map(course => {
+              onClick={() => openCourse(highlightedCourse.id)}
+              aria-label={`${highlightedCourseCompleted ? "راجع" : "ابدأ"} دورة ${highlightedCourse.title}`}
+            >
+              {highlightedCourseCompleted ? "مراجعة الدورة" : "تابع الدورة"} <ChevronLeft size={16} aria-hidden="true"/>
+            </button>
+          </article>}
+          <section className="custom-course-discovery" aria-labelledby="custom-course-discovery-title">
+            <span className="custom-course-discovery-kicker">ابحث واكتشف</span>
+            <h3 id="custom-course-discovery-title">دورات تناسب مسارك</h3>
+            <div className="custom-course-tools">
+              <label className="custom-course-search">
+                <Search size={17} aria-hidden="true"/>
+                <input
+                  type="search"
+                  value={courseSearch}
+                  onChange={event => setCourseSearch(event.target.value)}
+                  placeholder="ابحث في دوراتك وموادها"
+                  aria-label="ابحث في دوراتك وموادها"
+                  data-testid="course-search"
+                />
+                {courseSearch && <button type="button" onClick={() => setCourseSearch("")} aria-label="مسح البحث" data-testid="clear-course-search"><X size={15}/></button>}
+              </label>
+              <div className="custom-course-filters" role="group" aria-label="تصفية الدورات">
+                {([
+                  ["all", "الكل"],
+                  ["incomplete", "غير مكتملة"],
+                  ["completed", "مكتملة"],
+                ] as [CourseFilter, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={activeFilter === value ? "is-active" : ""}
+                    aria-pressed={activeFilter === value}
+                    disabled={value !== "all" && !completionKnown}
+                    onClick={() => setCourseFilter(value)}
+                    data-testid={`course-filter-${value}`}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+          </section>
+        </aside>
+        <div className="custom-course-results">
+          <div className="custom-course-count" aria-live="polite">
+            <span>{visibleCourses.length.toLocaleString("ar")} من {courses.length.toLocaleString("ar")} دورة</span>
+            {courseSearch && <span>نتائج البحث عن «{courseSearch}»</span>}
+          </div>
+          {visibleCourses.length > 0 ? <div className="custom-course-list">{visibleCourses.map(course => {
         const completed = isCourseCompleted(course.id, course.title);
         const pending = completeCourse.isPending && completeCourse.variables?.courseId === course.id;
         const courseIndex = courses.findIndex(item => item.id === course.id);
-        const cardAccents = [accent.color, "#0F766E", "#B45309", "#2563EB", "#BE185D"];
+        const cardAccents = [accent.color, "#167D78", "#A77A37"];
         const courseAccent = cardAccents[courseIndex % cardAccents.length];
         const materialCount = course.materials.length;
         const materialCountLabel = materialCount === 1
@@ -292,12 +316,14 @@ export function CustomSectionPage({ slug }: { slug: string }) {
                   onClick={() => recordCompletion(course.id)}>{pending ? <><LoaderCircle size={16} className="custom-course-spinner"/> جارٍ التسجيل…</> : <><CheckCircle2 size={16}/> سجّل إكمال الدورة</>}</button>}
           </footer>
         </article>;
-      })}</div> : <section className="custom-course-empty" role="status" data-testid="course-empty-state">
-        <span className="custom-course-empty-icon"><Search size={20}/></span>
-        <h3>لا توجد دورات هنا</h3>
-        <p>{courseSearch ? "جرّب عبارة بحث أخرى أو غيّر التصفية." : "لا توجد دورات مطابقة لهذا الاختيار."}</p>
-        <button type="button" onClick={() => { setCourseSearch(""); setCourseFilter("all"); }}>عرض كل الدورات</button>
-      </section>}
+          })}</div> : <section className="custom-course-empty" role="status" data-testid="course-empty-state">
+            <span className="custom-course-empty-icon"><Search size={20}/></span>
+            <h3>لا توجد دورات هنا</h3>
+            <p>{courseSearch ? "جرّب عبارة بحث أخرى أو غيّر التصفية." : "لا توجد دورات مطابقة لهذا الاختيار."}</p>
+            <button type="button" onClick={() => { setCourseSearch(""); setCourseFilter("all"); }}>عرض كل الدورات</button>
+          </section>}
+        </div>
+      </div>
       <footer className="custom-course-page-foot" aria-label="شعار أثر"><span/>كل تجربة تصنع فرقًا<span/></footer>
     </section>}
   </main>;
