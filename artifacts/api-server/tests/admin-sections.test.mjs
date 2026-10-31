@@ -172,6 +172,17 @@ function loadAdminRouter() {
           ALL_MODULES: [], enabledModules: async () => [], platformAppearance: async () => ({}),
           platformModuleSettings: async () => [],
         },
+        '../lib/section-media-cleanup': {
+          cleanupSectionMedia: async () => ({}),
+          previewSectionMediaCleanup: async () => ({}),
+        },
+        '../lib/section-media-cleanup-audit': { recordSectionMediaCleanupAudit: async () => 'audit-id' },
+        '../lib/achievement-evidence-audit': {
+          achievementEvidenceAuditEntry: (actorId, target, action) => ({ actorId, target, action }),
+        },
+        '../lib/section-media-cleanup-notifications': {
+          notifyAdminsOfSectionMediaCleanupIssue: async () => {},
+        },
         '../lib/ad-storage': {
           assetFile: () => ({ createReadStream: () => ({ on() { return this; }, pipe() {} }) }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),

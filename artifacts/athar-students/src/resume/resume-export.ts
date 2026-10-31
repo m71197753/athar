@@ -1,7 +1,7 @@
 import type { ResumeData } from "./resume-ats";
 import type { StudentResumeContent, StudentResumeTemplate } from "@workspace/api-client-react";
-import { DEFAULT_RESUME_APPEARANCE } from "./resume-appearance";
-import { getResumeTextSegments } from "./resume-inline-formatting";
+import { DEFAULT_RESUME_APPEARANCE } from "./resume-appearance.ts";
+import { getResumeTextSegments } from "./resume-inline-formatting.ts";
 import type { Paragraph as ParagraphType } from "docx";
 
 const ink = "203239";
