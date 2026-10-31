@@ -9,6 +9,7 @@
 export interface SectionMediaCleanupPreview {
   retentionDays: number;
   expiredUploads: number;
+  unlinkedAssets: number;
   orphanFiles: number;
   reclaimableBytes: number;
 }

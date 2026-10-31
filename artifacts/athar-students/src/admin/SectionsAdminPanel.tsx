@@ -70,7 +70,7 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const cleanupPreview = usePreviewSectionMediaCleanup({ query: { enabled: cleanupOpen, staleTime: 0 } });
   const cleanup = useCleanupSectionMedia();
-  const [cleanupResult, setCleanupResult] = useState<{ expiredUploads: number; deletedFiles: number; reclaimedBytes: number } | null>(null);
+  const [cleanupResult, setCleanupResult] = useState<{ expiredUploads: number; removedAssets: number; deletedFiles: number; reclaimedBytes: number } | null>(null);
   const create = useCreateAdminSection();
   const update = useUpdateAdminSection();
   const remove = useDeleteAdminSection();
@@ -206,9 +206,9 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
   };
   const runCleanup = () => {
     const preview = cleanupPreview.data;
-    if (!preview || cleanup.isPending || preview.expiredUploads + preview.orphanFiles === 0) return;
+    if (!preview || cleanup.isPending || preview.expiredUploads + preview.unlinkedAssets + preview.orphanFiles === 0) return;
     const confirmed = window.confirm(
-      `سيُحذف نهائيًا ${preview.orphanFiles} ملفًا و${preview.expiredUploads} سجل رفع غير مكتمل، بشرط مرور ${preview.retentionDays} يومًا على الأقل وعدم ارتباط الملفات بمحتوى محفوظ. المساحة المتوقّع استعادتها: ${formatStorageSize(preview.reclaimableBytes)}. لا يمكن استرجاع الملفات المحذوفة. هل تريد المتابعة؟`,
+      `سيُحذف نهائيًا ${preview.orphanFiles} ملفًا و${preview.unlinkedAssets} مرفقًا محفوظًا غير مرتبط بمحتوى و${preview.expiredUploads} سجل رفع غير مكتمل، بعد مرور ${preview.retentionDays} يومًا على الأقل. المرفقات المرتبطة بمحتوى محفوظ لن تُحذف. المساحة المتوقّع استعادتها: ${formatStorageSize(preview.reclaimableBytes)}. لا يمكن استرجاع الملفات المحذوفة. هل تريد المتابعة؟`,
     );
     if (!confirmed) return;
     cleanup.mutate(undefined, {
@@ -237,16 +237,17 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       {cleanupPreview.isError && <p className="adm-form-error" role="alert">تعذّر فحص الملفات. أعد المحاولة.</p>}
       {cleanupPreview.data && <div>
         <p>ملفات غير مرتبطة أقدم من {cleanupPreview.data.retentionDays} يومًا: <b>{cleanupPreview.data.orphanFiles}</b></p>
+        <p>مرفقات محفوظة غير مرتبطة بمحتوى: <b>{cleanupPreview.data.unlinkedAssets}</b></p>
         <p>عمليات رفع غير مكتملة قديمة: <b>{cleanupPreview.data.expiredUploads}</b></p>
         <p>المساحة المتوقع استعادتها: <b>{formatStorageSize(cleanupPreview.data.reclaimableBytes)}</b></p>
-        {cleanupPreview.data.expiredUploads + cleanupPreview.data.orphanFiles === 0
+        {cleanupPreview.data.expiredUploads + cleanupPreview.data.unlinkedAssets + cleanupPreview.data.orphanFiles === 0
           ? <p role="status">لا توجد ملفات قديمة مؤهلة للحذف.</p>
           : <button type="button" className="button button-primary button-compact" disabled={cleanup.isPending} onClick={runCleanup} data-testid="button-confirm-section-media-cleanup">
             {cleanup.isPending ? "جارٍ تنظيف الملفات…" : "احذف الملفات القديمة"}
           </button>}
       </div>}
       {cleanup.isError && <p className="adm-form-error" role="alert">تعذّر إكمال التنظيف. أعد الفحص ثم حاول مرة أخرى.</p>}
-      {cleanupResult && <p role="status">اكتمل التنظيف: حُذف {cleanupResult.deletedFiles} ملف و{cleanupResult.expiredUploads} سجل رفع غير مكتمل، واستُعيدت {formatStorageSize(cleanupResult.reclaimedBytes)}.</p>}
+      {cleanupResult && <p role="status">اكتمل التنظيف: حُذف {cleanupResult.deletedFiles} ملف و{cleanupResult.removedAssets} مرفق غير مرتبط و{cleanupResult.expiredUploads} سجل رفع غير مكتمل، واستُعيدت {formatStorageSize(cleanupResult.reclaimedBytes)}.</p>}
     </aside>}
     {rowError && <p className="adm-form-error" role="alert">{rowError}</p>}
     {editing && previewing && <SectionDraftPreview form={editing.form} onClose={() => setPreviewing(false)}/>}

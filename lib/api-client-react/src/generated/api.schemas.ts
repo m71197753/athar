@@ -601,6 +601,7 @@ export interface SectionMediaUploadResult {
 export interface SectionMediaCleanupPreview {
   retentionDays: number;
   expiredUploads: number;
+  unlinkedAssets: number;
   orphanFiles: number;
   reclaimableBytes: number;
 }
@@ -608,6 +609,7 @@ export interface SectionMediaCleanupPreview {
 export interface SectionMediaCleanupResult {
   retentionDays: number;
   expiredUploads: number;
+  removedAssets: number;
   deletedFiles: number;
   reclaimedBytes: number;
 }

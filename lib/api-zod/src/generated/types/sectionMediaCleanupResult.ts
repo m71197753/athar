@@ -9,6 +9,7 @@
 export interface SectionMediaCleanupResult {
   retentionDays: number;
   expiredUploads: number;
+  removedAssets: number;
   deletedFiles: number;
   reclaimedBytes: number;
 }

@@ -25,7 +25,7 @@ test("only old section-media paths with no database owner are treated as orphan 
   const knownReadyPath = `bucket/private/section-assets/${id("b")}-confirmed-${id("c")}`;
   const result = plan(
     [row(id("d"), knownReadyPath, "ready")],
-    new Set(),
+    new Set([id("d")]),
     [object(candidatePath), object(knownReadyPath), object(`bucket/private/ad-assets/${id("e")}`), object(`bucket/private/section-assets/${id("f")}`, recentTime)],
     now,
   );
@@ -59,6 +59,21 @@ test("saved lesson references protect the published copy but not its unused sour
   assert.equal(result.expiredUploads.length, 0);
   assert.deepEqual(Array.from(result.candidates, item => item.objectPath), [uploadPath]);
   assert.ok(!result.candidates.some(item => item.objectPath === copyPath));
+});
+
+test("old ready assets are eligible only after their content reference is gone", () => {
+  const assetId = id("a");
+  const readyPath = `bucket/private/section-assets/${id("b")}-confirmed-${id("c")}`;
+  const referenced = plan(
+    [row(assetId, readyPath, "ready")], new Set([assetId]), [object(readyPath)], now,
+  );
+  const unlinked = plan(
+    [row(assetId, readyPath, "ready")], new Set(), [object(readyPath)], now,
+  );
+  assert.equal(referenced.unlinkedAssets.length, 0);
+  assert.equal(referenced.candidates.length, 0);
+  assert.equal(unlinked.unlinkedAssets.length, 1);
+  assert.equal(unlinked.candidates[0].objectPath, readyPath);
 });
 
 test("expired upload rows without an object can be removed, while unknown filenames are ignored", () => {

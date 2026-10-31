@@ -1739,6 +1739,7 @@ export const RequestSectionMediaUploadResponse = zod.object({
 export const PreviewSectionMediaCleanupResponse = zod.object({
   "retentionDays": zod.number().int(),
   "expiredUploads": zod.number().int(),
+  "unlinkedAssets": zod.number().int(),
   "orphanFiles": zod.number().int(),
   "reclaimableBytes": zod.number().int()
 })
@@ -1747,6 +1748,7 @@ export const PreviewSectionMediaCleanupResponse = zod.object({
 export const CleanupSectionMediaResponse = zod.object({
   "retentionDays": zod.number().int(),
   "expiredUploads": zod.number().int(),
+  "removedAssets": zod.number().int(),
   "deletedFiles": zod.number().int(),
   "reclaimedBytes": zod.number().int()
 })

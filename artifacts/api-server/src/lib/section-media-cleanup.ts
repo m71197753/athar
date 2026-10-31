@@ -1,4 +1,4 @@
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, inArray, lt } from "drizzle-orm";
 import {
   db, platformContentTable, platformMediaAssetsTable, platformSectionsTable, platformSettingsTable,
 } from "@workspace/db";
