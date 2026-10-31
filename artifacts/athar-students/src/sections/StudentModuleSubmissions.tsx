@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock3, Download, FileText, LoaderCircle, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
 import {
@@ -90,6 +90,20 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [queuedVideoUrls, setQueuedVideoUrls] = useState<Map<File, string>>(() => new Map());
+
+  useEffect(() => {
+    const previewUrls = new Map<File, string>();
+    for (const file of files) {
+      if (getSupportedMime(file).startsWith("video/")) {
+        previewUrls.set(file, URL.createObjectURL(file));
+      }
+    }
+    setQueuedVideoUrls(previewUrls);
+    return () => {
+      for (const previewUrl of previewUrls.values()) URL.revokeObjectURL(previewUrl);
+    };
+  }, [files]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -196,7 +210,19 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
         <span><strong>اختر ملفات أو فيديوهات</strong><small>يمكنك تحديد أكثر من ملف في المرة نفسها</small></span>
       </label>
       {files.length > 0 && <ul className="student-submissions-selection" aria-label="الملفات المختارة">
-        {files.map((file, index) => <li key={`${file.name}-${index}`}><FileText size={15}/><span>{file.name}</span><small>{formatBytes(file.size)}</small></li>)}
+        {files.map((file, index) => <li key={`${file.name}-${index}`}>
+          <div className="student-submissions-selection-file">
+            <FileText size={15} aria-hidden="true"/><span>{file.name}</span><small>{formatBytes(file.size)}</small>
+          </div>
+          {queuedVideoUrls.get(file) && <video
+            className="student-submissions-video"
+            src={queuedVideoUrls.get(file)}
+            controls
+            playsInline
+            preload="metadata"
+            aria-label={`معاينة الفيديو ${file.name}`}
+          />}
+        </li>)}
       </ul>}
       <label className="student-submissions-note">
         <span>ملاحظة للإدارة (اختياري)</span>
@@ -234,6 +260,14 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
                   <span className={`student-submission-status ${status.className}`}><StatusIcon size={13}/>{status.label}</span>
                   {item.reviewNote && <p className="student-submission-review-note">ملاحظة الإدارة: {item.reviewNote}</p>}
                   {item.note && <p>{item.note}</p>}
+                  {item.mime?.startsWith("video/") && item.downloadUrl && <video
+                    className="student-submissions-video"
+                    src={item.downloadUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    aria-label={`تشغيل ${item.originalName}`}
+                  />}
                 </div>
                 <div className="student-submission-actions">
                   {item.downloadUrl && <button type="button" onClick={() => void download(item.id, item.originalName)} disabled={downloadingId === item.id} aria-label={`تنزيل ${item.originalName}`}><Download size={15}/></button>}

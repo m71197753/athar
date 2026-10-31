@@ -36,9 +36,11 @@
 .student-submissions-picker strong { font-size: 11px; }
 .student-submissions-picker small { margin-top: 3px; color: var(--muted, #607387); font-size: 9px; }
 .student-submissions-selection { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.student-submissions-selection li { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 6px 9px; border-radius: 8px; color: var(--ink, #24384b); background: var(--canvas, #f5f8fa); font-size: 10px; }
-.student-submissions-selection li span { min-width: 0; overflow-wrap: anywhere; }
-.student-submissions-selection li small { margin-inline-start: auto; flex: 0 0 auto; color: var(--muted, #607387); }
+.student-submissions-selection li { display: grid; gap: 8px; min-width: 0; padding: 8px 9px; border-radius: 8px; color: var(--ink, #24384b); background: var(--canvas, #f5f8fa); font-size: 10px; }
+.student-submissions-selection-file { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.student-submissions-selection-file span { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.student-submissions-selection-file small { margin-inline-start: auto; flex: 0 0 auto; color: var(--muted, #607387); }
+.student-submissions-video { display: block; width: min(100%, 640px); max-height: 360px; aspect-ratio: 16 / 9; margin-top: 7px; border: 1px solid color-mix(in srgb, var(--submission-ink) 15%, transparent); border-radius: 11px; background: #0b1120; object-fit: contain; }
 .student-submissions-note span { display: block; margin-bottom: 5px; font-size: 10px; font-weight: 700; }
 .student-submissions-note textarea { width: 100%; min-height: 58px; padding: 9px 10px; border: 1px solid var(--line, #d6e0e5); border-radius: 9px; color: inherit; background: var(--surface, #fff); font: inherit; font-size: 11px; resize: vertical; }
 .student-submissions-progress { display: grid; gap: 5px; color: var(--muted, #607387); font-size: 10px; }
@@ -77,6 +79,7 @@
   .student-submission-card { flex-wrap: wrap; }
   .student-submission-actions { margin-inline-start: auto; }
   .student-submissions-submit { width: 100%; justify-content: center; }
+  .student-submissions-video { max-height: 240px; }
 }
 @media (prefers-reduced-motion: reduce) { .student-submissions-spin { animation: none; } }
 .student-module-submissions :is(.student-submissions-heading p, .student-submissions-size-note, .student-submissions-picker small, .student-submission-copy small, .student-submission-copy p, .student-submissions-progress, .student-submissions-empty, .student-submissions-list-heading span) { color: var(--submission-muted); }
