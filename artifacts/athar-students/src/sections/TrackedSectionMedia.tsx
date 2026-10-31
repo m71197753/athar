@@ -286,8 +286,6 @@ function TrackedMediaSession({
     {mediaType === "video" && <video
       ref={element => { playerRef.current = element; }}
       src={versionedVideoStreamUrl(url)}
-      autoPlay
-      muted
       controls
       playsInline
       preload="metadata"
