@@ -75,6 +75,7 @@ import {
 } from "@workspace/db";
 import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { createAssetReadUrl } from "../lib/ad-storage";
 import {
   academyExcerpt,
   academySearchTerms,
@@ -989,14 +990,16 @@ router.get("/academy/course-files/:fileId/download", requireAuth, async (req, re
     )).limit(1);
   if (!file) return void res.status(404).json({ error: "File not found" });
   if (isAcademyVideoMime(file.file.mime)) {
-    streamVideoDownload(
-      res,
-      req.header("range"),
-      file.file.objectPath,
-      file.file.originalName,
-      file.file.mime,
-      file.file.size,
-    );
+    try {
+      const signedUrl = await createAssetReadUrl(file.file.objectPath, 24 * 60 * 60 * 1000);
+      res.redirect(302, signedUrl);
+    } catch (error) {
+      req.log?.warn({
+        fileId: file.file.id,
+        errorName: error instanceof Error ? error.name : "AssetReadUrlError",
+      }, "Unable to create direct academy video URL");
+      res.status(503).json({ error: "Video is temporarily unavailable" });
+    }
     return;
   }
   streamDownload(res, file.file.objectPath, file.file.originalName);
@@ -1351,58 +1354,6 @@ function streamDownload(
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(name)}`);
   streamAcademyAsset(path)
-    .on("error", () => {
-      if (!res.headersSent) res.status(404).json({ error: "File not found" });
-      else res.destroy();
-    })
-    .pipe(res);
-}
-
-function streamVideoDownload(
-  res: Response,
-  rangeHeader: string | undefined,
-  path: string,
-  name: string,
-  mime: string,
-  size: number,
-) {
-  let start = 0;
-  let end = size - 1;
-  let status = 200;
-  if (rangeHeader) {
-    const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
-    if (!match || (!match[1] && !match[2])) {
-      res.setHeader("Content-Range", `bytes */${size}`);
-      res.status(416).end();
-      return;
-    }
-    if (!match[1]) {
-      const suffix = Number(match[2]);
-      if (!Number.isFinite(suffix) || suffix < 1) {
-        res.setHeader("Content-Range", `bytes */${size}`);
-        res.status(416).end();
-        return;
-      }
-      start = Math.max(0, size - suffix);
-    } else {
-      start = Number(match[1]);
-      if (match[2]) end = Math.min(Number(match[2]), size - 1);
-    }
-    if (start >= size || end < start) {
-      res.setHeader("Content-Range", `bytes */${size}`);
-      res.status(416).end();
-      return;
-    }
-    status = 206;
-  }
-  res.status(status);
-  res.setHeader("Content-Type", mime);
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Accept-Ranges", "bytes");
-  res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(safeFileName(name))}`);
-  res.setHeader("Content-Length", String(end - start + 1));
-  if (status === 206) res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
-  streamAcademyAsset(path, { start, end })
     .on("error", () => {
       if (!res.headersSent) res.status(404).json({ error: "File not found" });
       else res.destroy();
