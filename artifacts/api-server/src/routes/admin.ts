@@ -127,11 +127,10 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
   res.setHeader("Cache-Control", cacheControl);
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
-  let streamRange: { start: number; end: number } | undefined;
+  let start = 0;
+  let end = asset.size - 1;
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-    let start = 0;
-    let end = asset.size - 1;
     if (match && !match[1] && match[2]) {
       const suffixLength = Number(match[2]);
       if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) {
@@ -156,11 +155,10 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
     res.status(206);
     res.setHeader("Content-Range", `bytes ${start}-${end}/${asset.size}`);
     res.setHeader("Content-Length", String(end - start + 1));
-    streamRange = { start, end };
   } else {
     res.setHeader("Content-Length", String(asset.size));
   }
-  const stream = assetFile(asset.objectPath).createReadStream({ ...streamRange, validation: false });
+  const stream = assetFile(asset.objectPath).createReadStream({ start, end, validation: false });
   let clientDisconnected = false;
   stream.on("error", error => {
     if (clientDisconnected) return;

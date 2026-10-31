@@ -357,6 +357,17 @@ test('admin video preview serves suffix byte ranges from the end of the file', a
   });
   assert.equal(confirmed.statusCode, 200);
 
+  const fullPreview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+  });
+  assert.equal(fullPreview.statusCode, 200);
+  assert.equal(fullPreview.headers['Content-Length'], String(size));
+  assert.equal(router.lastStreamOptions.start, 0);
+  assert.equal(router.lastStreamOptions.end, size - 1);
+  assert.equal(router.lastStreamOptions.validation, false);
+  fullPreview.emit('close');
+  assert.equal(router.lastStreamDestroyed, true);
+
   const preview = await call(router, 'GET', '/admin/section-media/:id/preview', {
     params: { id: ticket.body.id },
     headers: { range: 'bytes=-65536' },
