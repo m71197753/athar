@@ -118,6 +118,10 @@ img.adc-media { background:var(--ad-soft); }
 .ads-seg input { accent-color:var(--ad-teal); }
 .ads-seg label:focus-within { outline:2px solid var(--ad-teal); outline-offset:1px; }
 .ads-media-row { display:flex; flex-direction:column; gap:6px; }
+.ads-upload-progress { display:grid; gap:7px; padding:10px; border:1px solid var(--ad-line); border-radius:10px; background:var(--ad-soft); color:var(--ad-ink); }
+.ads-upload-progress > div { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; }
+.ads-upload-progress progress { width:100%; height:8px; accent-color:var(--ad-teal); }
+.ads-upload-progress small { color:var(--ad-muted); overflow-wrap:anywhere; }
 .ads-upload { align-self:flex-start; position:relative; cursor:pointer; }
 .ads-upload:focus-within { outline:2px solid var(--ad-teal); outline-offset:2px; }
 .ads-upload.is-busy { opacity:.6; cursor:progress; }

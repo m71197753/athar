@@ -60,6 +60,10 @@
 .ac-citation { display:block; margin-top:10px; padding:13px; border-inline-start:3px solid var(--ac-teal); border-radius:9px; background:var(--ac-bg); color:var(--ac-ink); line-height:1.9; font-size:12px; }
 .ac-privacy { display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:11px; background:var(--ac-bg); color:var(--ac-muted); font-size:11px; line-height:1.8; }
 .ac-privacy input { margin-top:4px; accent-color:var(--ac-teal); }
+.ac-upload-progress { display:grid; gap:7px; margin:12px 0; padding:12px; border:1px solid var(--ac-line); border-radius:12px; background:var(--ac-card); color:var(--ac-ink); }
+.ac-upload-progress-head { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; }
+.ac-upload-progress progress { width:100%; height:9px; accent-color:var(--ac-teal); }
+.ac-upload-progress small { color:var(--ac-muted); overflow-wrap:anywhere; }
 .ac-answer { padding:16px; border-radius:13px; background:var(--ac-soft); line-height:2; font-size:13px; white-space:pre-wrap; }
 .ac-admin { --ac-admin-gap:12px; }
 .ac-admin-tabs { display:flex; gap:8px; overflow:auto; margin-bottom:16px; padding-bottom:5px; }

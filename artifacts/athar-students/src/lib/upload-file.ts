@@ -15,7 +15,8 @@ export function uploadFile(
     request.open("PUT", url);
     request.setRequestHeader("Content-Type", mime);
     request.upload.onprogress = event => {
-      if (event.lengthComputable) onProgress(Math.min(100, Math.round(event.loaded / event.total * 100)));
+      const total = event.lengthComputable && event.total > 0 ? event.total : file.size;
+      if (total > 0) onProgress(Math.min(99, Math.round(event.loaded / total * 100)));
     };
     request.onload = () => {
       if (request.status >= 200 && request.status < 300) {

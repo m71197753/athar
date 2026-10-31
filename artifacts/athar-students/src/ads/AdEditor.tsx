@@ -4,6 +4,7 @@ import { RequiredMark } from '../components/RequiredMark';
 import { useRequestAdAssetUpload, useConfirmAdAsset } from '@workspace/api-client-react';
 import type { AdInput, AdPlacement, AdCustomer, AdAssetInputMime, AdCreativeInputFormat, AdInputStatus } from '@workspace/api-client-react';
 import { AdCreative } from './AdCreative';
+import { uploadFile } from '../lib/upload-file';
 import {
   PAGES, SLOTS, pageNames, slotNames, formatNames, statusNames, clamp, errText, inlineBox, isFloating, isHttpUrl, isSafeMedia, linkRequired, needsCode, needsMedia, videoEmbed,
 } from './shared';
@@ -73,6 +74,8 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
   const [active, setActive] = useState(0);
   const [localErr, setLocalErr] = useState('');
   const [upload, setUpload] = useState<{ state: 'idle' | 'busy' | 'ok' | 'err'; text: string }>({ state: 'idle', text: '' });
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
+  const [uploadName, setUploadName] = useState('');
   const requestUpload = useRequestAdAssetUpload();
   const confirmAsset = useConfirmAdAsset();
   const set = <K extends keyof AdInput>(k: K, v: AdInput[K]) => { setLocalErr(''); setAd(a => ({ ...a, [k]: v })); };
@@ -82,19 +85,26 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
+    setUploadPercent(null);
+    setUploadName(file.name);
     const allowed = isVideo ? VIDEO_TYPES : IMAGE_TYPES;
     if (!allowed.includes(file.type)) return setUpload({ state: 'err', text: isVideo ? 'الفيديو يجب أن يكون MP4 أو WebM.' : 'الصورة يجب أن تكون JPG أو PNG أو WebP أو GIF.' });
     if (!Number.isSafeInteger(file.size) || file.size < 1) return setUpload({ state: 'err', text: 'اختر ملفًا غير فارغ بحجم صالح.' });
-    setUpload({ state: 'busy', text: 'جارٍ الرفع…' });
+    setUpload({ state: 'busy', text: 'جارٍ تجهيز الرفع…' });
     try {
       const slot = await requestUpload.mutateAsync({ data: { mime: file.type as AdAssetInputMime, size: file.size } });
-      const res = await fetch(slot.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-      if (!res.ok) throw new Error('upload');
+      setUpload({ state: 'busy', text: 'جارٍ رفع الملف…' });
+      setUploadPercent(0);
+      await uploadFile(slot.uploadUrl, file, file.type, setUploadPercent);
+      setUpload({ state: 'busy', text: 'اكتمل النقل، جارٍ حفظ الملف…' });
       const ready = await confirmAsset.mutateAsync({ id: slot.id });
       setAd(a => ({ ...a, mediaUrl: ready.url }));
+      setUploadPercent(null);
+      setUploadName('');
       setUpload({ state: 'ok', text: 'رُفع الملف. سيُحفظ رابطه عند حفظ الإعلان.' });
     } catch (e) {
-      setUpload({ state: 'err', text: e instanceof Error && e.message === 'upload' ? 'فشل رفع الملف إلى التخزين.' : errText(e) });
+      setUploadPercent(null);
+      setUpload({ state: 'err', text: errText(e) });
     }
   };
 
@@ -128,7 +138,7 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
         <fieldset className="ads-group"><legend>المادة الإعلانية</legend>
           <label className="ads-field"><span>العنوان <RequiredMark/></span><input maxLength={160} value={ad.title} onChange={e => set('title', e.target.value)} required/></label>
           <div className="ads-seg" role="radiogroup" aria-label="نوع الإعلان">
-            {(Object.keys(formatNames) as AdCreativeInputFormat[]).map(f => <label key={f} className={ad.format === f ? 'on' : ''}><input type="radio" name="ad-format" checked={ad.format === f} onChange={() => { set('format', f); setUpload({ state: 'idle', text: '' }); }}/>{formatNames[f]}</label>)}
+            {(Object.keys(formatNames) as AdCreativeInputFormat[]).map(f => <label key={f} className={ad.format === f ? 'on' : ''}><input type="radio" name="ad-format" checked={ad.format === f} onChange={() => { set('format', f); setUpload({ state: 'idle', text: '' }); setUploadPercent(null); setUploadName(''); }}/>{formatNames[f]}</label>)}
           </div>
           {needsMedia(ad.format) && <div className="ads-media-row">
             <label className="ads-field"><span>{isVideo ? 'رابط فيديو مباشر أو صفحة فيديو آمنة' : 'رابط الصورة'}</span>
@@ -138,7 +148,12 @@ export function AdEditor({ initial, customers, busy, error, onSave, onCancel }: 
               <input type="file" className="ads-sr" accept={(isVideo ? VIDEO_TYPES : IMAGE_TYPES).join(',')} disabled={upload.state === 'busy'} onChange={e => { void onFile(e.target.files?.[0]); e.target.value = ''; }}/>
             </label>
             <small className="ads-hint">{isVideo ? 'MP4 أو WebM. يظل الحجم خاضعًا للتخزين والاتصال.' : 'JPG/PNG/WebP/GIF. يظل الحجم خاضعًا للتخزين والاتصال.'}</small>
-            {upload.text && <small role="status" className={upload.state === 'err' ? 'ads-err' : upload.state === 'ok' ? 'ads-ok' : 'ads-hint'}>{upload.text}</small>}
+            {upload.state === 'busy' && uploadPercent !== null && <div className="ads-upload-progress" role="status" aria-live="polite" data-testid="status-ad-asset-upload">
+              <div><span>{upload.text}</span><strong>{uploadPercent.toLocaleString('ar')}٪</strong></div>
+              <progress max={100} value={uploadPercent} aria-label="نسبة رفع ملف الإعلان"/>
+              <small dir="auto">{uploadName}</small>
+            </div>}
+            {upload.text && (upload.state !== 'busy' || uploadPercent === null) && <small role="status" className={upload.state === 'err' ? 'ads-err' : upload.state === 'ok' ? 'ads-ok' : 'ads-hint'}>{upload.text}</small>}
           </div>}
           {needsCode(ad.format) && <label className="ads-field"><span>الكود (HTML / CSS / JS)</span>
             <textarea dir="ltr" className="ads-code" rows={8} maxLength={100000} spellCheck={false} value={ad.code} onChange={e => set('code', e.target.value)}/>

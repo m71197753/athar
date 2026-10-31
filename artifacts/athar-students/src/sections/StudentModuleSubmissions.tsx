@@ -86,6 +86,7 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [activeUpload, setActiveUpload] = useState<{ name: string; index: number; total: number } | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -96,9 +97,14 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
     setError("");
     setNotice("");
     setBusy(true);
+    setProgress(0);
+    setActiveUpload(null);
     let completed = 0;
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    let transferredBytes = 0;
     try {
       for (const [index, file] of files.entries()) {
+        setActiveUpload({ name: file.name, index: index + 1, total: files.length });
         const mime = getSupportedMime(file);
         if (!mime) {
           throw new Error(`نوع الملف «${file.name}» غير مدعوم. استخدم PDF أو Word أو صورة أو فيديو MP4/WebM.`);
@@ -114,9 +120,14 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
           },
         });
         await uploadToSignedUrl(file, mime, upload.uploadUrl, value => {
-          setProgress(Math.round(((index + value / 100) / files.length) * 100));
+          const totalProgress = totalBytes > 0
+            ? (transferredBytes + file.size * value / 100) / totalBytes * 100
+            : 0;
+          setProgress(Math.min(100, Math.round(totalProgress)));
         });
         await confirmUpload.mutateAsync({ moduleKey, submissionId: upload.id });
+        transferredBytes += file.size;
+        setProgress(totalBytes > 0 ? Math.min(100, Math.round(transferredBytes / totalBytes * 100)) : 100);
         completed += 1;
       }
       setFiles([]);
@@ -130,6 +141,7 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
     } finally {
       setBusy(false);
       setProgress(0);
+      setActiveUpload(null);
     }
   };
 
@@ -190,8 +202,8 @@ export function StudentModuleSubmissions({ moduleKey }: { moduleKey: ModuleKey }
         <span>ملاحظة للإدارة (اختياري)</span>
         <textarea value={note} maxLength={2000} rows={2} disabled={busy} onChange={event => setNote(event.target.value)} placeholder="اكتب وصفًا مختصرًا للملفات أو الإنجاز"/>
       </label>
-      {busy && <div className="student-submissions-progress" role="status" aria-live="polite">
-        <div><span>جارٍ رفع الملفات</span><strong>{progress.toLocaleString("ar")}٪</strong></div>
+      {busy && <div className="student-submissions-progress" role="status" aria-live="polite" data-testid={`status-module-upload-progress-${moduleKey}`}>
+        <div><span className="student-submissions-progress-name">{activeUpload ? `جارٍ رفع ${activeUpload.name} · الملف ${activeUpload.index.toLocaleString("ar")} من ${activeUpload.total.toLocaleString("ar")}` : "جارٍ تجهيز الملفات"}</span><strong>{progress.toLocaleString("ar")}٪</strong></div>
         <progress max={100} value={progress} aria-label="نسبة رفع الملفات"/>
       </div>}
       {error && <p className="student-submissions-message is-error" role="alert">{error}</p>}
