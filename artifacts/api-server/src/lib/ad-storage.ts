@@ -16,6 +16,37 @@ export function assetFile(path: string) {
   const parts = path.replace(/^\/+/, "").split("/");
   return storage.bucket(parts.shift()!).file(parts.join("/"));
 }
+export async function createAssetReadUrl(path: string, expiresInMs = 2 * 60 * 60 * 1000) {
+  const base = process.env.PRIVATE_OBJECT_DIR;
+  if (!base) throw new Error("App Storage is not configured");
+  if (!Number.isSafeInteger(expiresInMs) || expiresInMs < 60_000 || expiresInMs > 24 * 60 * 60 * 1000) {
+    throw new Error("Invalid asset read URL expiry");
+  }
+  const normalizedBase = base.replace(/^\/+|\/+$/g, "");
+  const normalizedPath = path.replace(/^\/+/, "");
+  if (!normalizedPath.startsWith(`${normalizedBase}/`)) throw new Error("Asset is outside the private object directory");
+  const parts = normalizedPath.split("/");
+  const bucketName = parts.shift();
+  const objectName = parts.join("/");
+  if (!bucketName || !objectName) throw new Error("Invalid asset object path");
+  const response = await fetch(`${sidecar}/object-storage/signed-object-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bucket_name: bucketName,
+      object_name: objectName,
+      method: "GET",
+      expires_at: new Date(Date.now() + expiresInMs).toISOString(),
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error("Could not create an asset read URL");
+  const payload = await response.json() as { signed_url?: unknown };
+  if (typeof payload.signed_url !== "string") throw new Error("Invalid asset read URL response");
+  const signedUrl = new URL(payload.signed_url);
+  if (signedUrl.protocol !== "https:" || !signedUrl.hostname) throw new Error("Invalid asset read URL");
+  return signedUrl.toString();
+}
 export async function createAssetUpload(folder = "ad-assets", expiresInMs = 2 * 60 * 60 * 1000) {
   if (!["ad-assets", "section-assets"].includes(folder)) throw new Error("Invalid asset folder");
   const base = process.env.PRIVATE_OBJECT_DIR;

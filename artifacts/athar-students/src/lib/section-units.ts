@@ -24,7 +24,7 @@ export const adminPreviewMediaUrl = (url: string) => {
 
 /** New query versions bypass cached partial responses after media streaming changes. */
 export const versionedVideoStreamUrl = (url: string) =>
-  url ? `${url}${url.includes("?") ? "&" : "?"}mediaRevision=2` : "";
+  url ? `${url}${url.includes("?") ? "&" : "?"}mediaRevision=3` : "";
 
 export function safeSectionLink(value: string): string | undefined {
   try {

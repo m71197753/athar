@@ -146,6 +146,7 @@ function loadAdminRouter() {
   let lastStreamOptions;
   let lastStreamDestroyed = false;
   let lastStream;
+  let lastReadRequest;
   let uuid = 0;
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL('../src/routes/admin.ts', import.meta.url), 'utf8'), {
@@ -204,6 +205,10 @@ function loadAdminRouter() {
             delete: async () => {},
           }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),
+          createAssetReadUrl: async (objectPath, expiresInMs) => {
+            lastReadRequest = { objectPath, expiresInMs };
+            return 'https://storage.example/signed-video';
+          },
           validateUploadedAsset: async (objectPath, _mime, _size, maxBytes) => {
             validationCount += 1;
             validationMaxBytes = maxBytes;
@@ -227,7 +232,8 @@ function loadAdminRouter() {
     get lastStreamOptions() { return lastStreamOptions; },
     get lastStreamDestroyed() { return lastStreamDestroyed; },
     get lastStream() { return lastStream; },
-    reset() { for (const rows of tableRows.values()) rows.length = 0; lastStreamOptions = undefined; lastStreamDestroyed = false; lastStream = undefined; },
+    get lastReadRequest() { return lastReadRequest; },
+    reset() { for (const rows of tableRows.values()) rows.length = 0; lastStreamOptions = undefined; lastStreamDestroyed = false; lastStream = undefined; lastReadRequest = undefined; },
   };
 }
 
@@ -239,6 +245,7 @@ function response() {
     setHeader(key, value) { this.headers[key] = value; },
     getHeader(key) { return this.headers[key]; },
     removeHeader(key) { delete this.headers[key]; },
+    redirect(status, url) { this.statusCode = status; this.redirectUrl = url; return this; },
     once(event, listener) { this.listeners.set(event, listener); return this; },
     emit(event) { this.listeners.get(event)?.(); },
     destroy() { this.destroyed = true; },
@@ -345,7 +352,7 @@ test('large section video uploads have no application-level size limit', async (
   assert.equal(router.uploadCount, 1);
 });
 
-test('admin video preview serves suffix byte ranges from the end of the file', async () => {
+test('admin video preview redirects to a short-lived direct App Storage URL', async () => {
   const router = loadAdminRouter();
   router.reset();
   const size = 2 * 1024 * 1024;
@@ -360,34 +367,53 @@ test('admin video preview serves suffix byte ranges from the end of the file', a
   const fullPreview = await call(router, 'GET', '/admin/section-media/:id/preview', {
     params: { id: ticket.body.id },
   });
-  assert.equal(fullPreview.statusCode, 200);
-  assert.equal(fullPreview.headers['Content-Length'], String(size));
-  assert.equal(router.lastStreamOptions.start, 0);
-  assert.equal(router.lastStreamOptions.end, size - 1);
-  assert.equal(router.lastStreamOptions.validation, false);
-  fullPreview.emit('close');
-  assert.equal(router.lastStreamDestroyed, true);
+  assert.equal(fullPreview.statusCode, 302);
+  assert.equal(fullPreview.redirectUrl, 'https://storage.example/signed-video');
+  assert.equal(fullPreview.headers['Cache-Control'], 'private, no-store');
+  assert.deepEqual(router.lastReadRequest, { objectPath: '/objects/section-assets/test', expiresInMs: 60 * 60 * 1000 });
+  assert.equal(router.lastStreamOptions, undefined);
 
-  const preview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+  const rangePreview = await call(router, 'GET', '/admin/section-media/:id/preview', {
     params: { id: ticket.body.id },
     headers: { range: 'bytes=-65536' },
   });
-  assert.equal(preview.statusCode, 206);
-  assert.equal(preview.headers['Accept-Ranges'], 'bytes');
-  assert.equal(preview.headers['Content-Range'], `bytes ${size - 65536}-${size - 1}/${size}`);
-  assert.equal(preview.headers['Content-Length'], '65536');
-  assert.equal(router.lastStreamOptions.start, size - 65536);
-  assert.equal(router.lastStreamOptions.end, size - 1);
-  assert.equal(router.lastStreamOptions.validation, false);
-  preview.emit('close');
-  assert.equal(router.lastStreamDestroyed, true);
+  assert.equal(rangePreview.statusCode, 302);
+  assert.equal(rangePreview.redirectUrl, 'https://storage.example/signed-video');
+});
+
+test('published section videos redirect directly to App Storage without caching the signed URL', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 1024 },
+  });
+  const confirmed = await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  await call(router, 'POST', '/admin/sections', {
+    body: {
+      kind: 'content_page', title: 'درس فيديو', description: 'محتوى منشور',
+      blocks: [{ type: 'media', mediaType: 'video', title: 'الدرس', body: '', url: confirmed.body.url }],
+      courses: [], published: true, sortOrder: 1,
+    },
+  });
+
+  const response = await call(router, 'GET', '/platform/section-media/:id', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=0-63' },
+  });
+  assert.equal(response.statusCode, 302);
+  assert.equal(response.redirectUrl, 'https://storage.example/signed-video');
+  assert.equal(response.headers['Cache-Control'], 'private, no-store');
+  assert.equal(router.lastReadRequest.objectPath, '/objects/section-assets/test');
+  assert.equal(router.lastReadRequest.expiresInMs, 24 * 60 * 60 * 1000);
 });
 
 test('section media stream errors stop the response without leaving range headers', async () => {
   const router = loadAdminRouter();
   router.reset();
   const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
-    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 1024 },
+    body: { originalName: 'lesson.pdf', mime: 'application/pdf', size: 1024 },
   });
   await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
     params: { id: ticket.body.id },

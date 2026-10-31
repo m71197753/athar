@@ -21,7 +21,7 @@ import {
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
-import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
+import { assetFile, createAssetReadUrl, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
 import { recordSectionMediaCleanupAudit } from "../lib/section-media-cleanup-audit";
 import { achievementEvidenceAuditEntry } from "../lib/achievement-evidence-audit";
@@ -127,6 +127,21 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
   res.setHeader("Cache-Control", cacheControl);
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
+  if (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/")) {
+    try {
+      const expiresInMs = adminPreview ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+      const signedUrl = await createAssetReadUrl(asset.objectPath, expiresInMs);
+      res.setHeader("Cache-Control", "private, no-store");
+      res.redirect(302, signedUrl);
+    } catch (error) {
+      req.log?.warn({
+        assetId: id,
+        errorName: error instanceof Error ? error.name : "AssetReadUrlError",
+      }, "Unable to create direct section media URL");
+      res.status(503).json({ error: "Section media is temporarily unavailable" });
+    }
+    return;
+  }
   let start = 0;
   let end = asset.size - 1;
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
