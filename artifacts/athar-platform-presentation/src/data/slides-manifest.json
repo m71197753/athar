@@ -1,0 +1,98 @@
+[
+  {
+    "id": "c950681d-4805-4e29-8b18-5280257f9eff",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide01Cover.tsx",
+    "title": "أثر | من التعلّم إلى الإنجاز",
+    "description": "منصة تجمع التعلّم والإنجازات والاستعداد المهني",
+    "speakerNotes": ""
+  },
+  {
+    "id": "9d58fa4c-50d9-4095-be59-7d64c04dcaf6",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide02Problem.tsx",
+    "title": "المشكلة: رحلة الطالب متفرقة",
+    "description": "التحديات التي يعالجها أثر",
+    "speakerNotes": ""
+  },
+  {
+    "id": "77ad1210-12ef-43de-9afa-1209d0583e12",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide03Solution.tsx",
+    "title": "الحل: مساحة واحدة باسم أثر",
+    "description": "المساحة الموحدة للطالب",
+    "speakerNotes": ""
+  },
+  {
+    "id": "c9d187ff-62c2-4e11-a3c8-f63d032681dc",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide04Steps.tsx",
+    "title": "خطوات الحل داخل أثر",
+    "description": "رحلة الطالب من الملف الشخصي إلى الخطوة المهنية",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e615280f-af7c-48d9-a3b5-0accc039e6d8",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide05Learning.tsx",
+    "title": "تعلّم منظّم ودورات تفاعلية",
+    "description": "الدورات والوحدات والدروس والتقدم",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a0b9677f-d69c-4a10-83fd-bde7955689ac",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide06Languages.tsx",
+    "title": "تعلّم اللغات بالممارسة",
+    "description": "المفردات والاستماع والمحادثة",
+    "speakerNotes": ""
+  },
+  {
+    "id": "35ff20e0-09f6-4ea1-9cc8-ed7223a928a3",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide07Achievements.tsx",
+    "title": "إنجازات موثّقة وخصوصية واضحة",
+    "description": "توثيق الأدلة ومراجعتها بأمان",
+    "speakerNotes": ""
+  },
+  {
+    "id": "ccce0beb-b142-4423-832a-e83ef67dcf93",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide08Resume.tsx",
+    "title": "سيرة ذاتية تناسب هدفك",
+    "description": "قوالب ATS ومهنية قابلة للتخصيص",
+    "speakerNotes": ""
+  },
+  {
+    "id": "df539117-3654-4554-800f-193a1e04bc74",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide09Career.tsx",
+    "title": "خطة مهنية بخطوات قابلة للتنفيذ",
+    "description": "الأهداف والمهام والتذكيرات",
+    "speakerNotes": ""
+  },
+  {
+    "id": "597f8b86-fd66-4add-b67b-2295fc58117c",
+    "position": 10,
+    "filepath": "src/pages/slides/Slide10Office.tsx",
+    "title": "مستندات وجداول داخل المنصة",
+    "description": "محرر المستندات والجداول",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a5ec7722-30a7-4aed-b410-40dc6ada4030",
+    "position": 11,
+    "filepath": "src/pages/slides/Slide11Admin.tsx",
+    "title": "إدارة تدعم تجربة آمنة ومنظمة",
+    "description": "إدارة الأقسام والمحتوى ومراجعة الأدلة",
+    "speakerNotes": ""
+  },
+  {
+    "id": "889c1df0-b2b2-4ce2-8f64-68e35316484d",
+    "position": 12,
+    "filepath": "src/pages/slides/Slide12Thanks.tsx",
+    "title": "شكرًا لكم",
+    "description": "أثر | تعلّم، وثّق، وانطلق",
+    "speakerNotes": ""
+  }
+]

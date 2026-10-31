@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/athar-platform-presentation/"
+title = "أثر | من التعلّم إلى الإنجاز"
+description = "عرض تعريفي من 12 شريحة عن فكرة وخصائص منصة أثر."
+version = "1.0.0"
+id = "artifacts/athar-platform-presentation"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/athar-platform-presentation/" ]
+localPort = 24943
+
+[services.development]
+run = "pnpm --filter @workspace/athar-platform-presentation run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/athar-platform-presentation", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/athar-platform-presentation/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24943"
+BASE_PATH = "/athar-platform-presentation/"
