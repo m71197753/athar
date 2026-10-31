@@ -11,21 +11,24 @@ export function selectSectionMediaCleanupCandidates(
   now = Date.now(),
 ) {
   const cutoff = now - SECTION_MEDIA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-  const expired = assets.filter(asset =>
-    asset.status === "uploading" && asset.createdAt.getTime() < cutoff &&
+  const oldUnlinked = assets.filter(asset =>
+    (asset.status === "uploading" || asset.status === "ready") &&
+    asset.createdAt.getTime() < cutoff &&
     !referencedIds.has(asset.id.toLowerCase()));
-  const expiredPaths = new Set(expired.map(asset => asset.objectPath));
-  const readyPaths = new Set(assets.filter(asset => asset.status === "ready").map(asset => asset.objectPath));
+  const oldUploads = oldUnlinked.filter(asset => asset.status === "uploading");
+  const eligiblePaths = new Set(oldUnlinked.map(asset => asset.objectPath));
   const candidates = objects.filter(object => {
     const match = objectId.exec(object.objectPath);
-    if (!match || readyPaths.has(object.objectPath)) return false;
-    const upload = assets.find(asset => asset.objectPath === object.objectPath && asset.status === "uploading");
-    if (upload && !expiredPaths.has(upload.objectPath)) return false;
+    if (!match) return false;
+    const owner = assets.find(asset => asset.objectPath === object.objectPath);
+    if (owner && !eligiblePaths.has(owner.objectPath)) return false;
     const updatedAt = Date.parse(object.timeCreated ?? object.updated ?? "");
     return Number.isFinite(updatedAt) && updatedAt < cutoff;
   });
   const candidatePaths = new Set(candidates.map(object => object.objectPath));
-  const expiredUploads = expired.filter(asset =>
+  const expiredUploads = oldUploads.filter(asset =>
     !objects.some(object => object.objectPath === asset.objectPath) || candidatePaths.has(asset.objectPath));
-  return { expiredUploads, candidates };
+  const unlinkedAssets = oldUnlinked.filter(asset => asset.status === "ready" &&
+    (!objects.some(object => object.objectPath === asset.objectPath) || candidatePaths.has(asset.objectPath)));
+  return { expiredUploads, unlinkedAssets, candidates };
 }
