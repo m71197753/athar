@@ -222,12 +222,12 @@ function response() {
     end() { this.ended = true; },
   };
 }
-const call = async (router, method, path, { body = {}, params = {}, userId = 'admin-user' } = {}) => {
+const call = async (router, method, path, { body = {}, params = {}, headers = {}, userId = 'admin-user' } = {}) => {
   const handler = router.routes.get(`${method} ${path}`);
   assert.equal(typeof handler, 'function', `Missing route ${method} ${path}`);
   const res = response();
   res.locals = { userId, role: 'admin' };
-  await handler({ body, params, path, query: {}, headers: {}, get: () => undefined }, res);
+  await handler({ body, params, path, query: {}, headers, get: name => headers[name.toLowerCase()] }, res);
   return res;
 };
 
@@ -320,6 +320,28 @@ test('large section video uploads have no application-level size limit', async (
   });
   assert.equal(result.statusCode, 201);
   assert.equal(router.uploadCount, 1);
+});
+
+test('admin video preview serves suffix byte ranges from the end of the file', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const size = 2 * 1024 * 1024;
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size },
+  });
+  const confirmed = await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  assert.equal(confirmed.statusCode, 200);
+
+  const preview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=-65536' },
+  });
+  assert.equal(preview.statusCode, 206);
+  assert.equal(preview.headers['Accept-Ranges'], 'bytes');
+  assert.equal(preview.headers['Content-Range'], `bytes ${size - 65536}-${size - 1}/${size}`);
+  assert.equal(preview.headers['Content-Length'], '65536');
 });
 
 test('section audio formats are accepted by the upload flow', async () => {

@@ -129,9 +129,25 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
   res.setHeader("Accept-Ranges", "bytes");
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-    const start = match?.[1] ? Number(match[1]) : 0;
-    const end = match?.[2] ? Math.min(Number(match[2]), asset.size - 1) : asset.size - 1;
-    if (!match || start < 0 || end < start || start >= asset.size) {
+    let start = 0;
+    let end = asset.size - 1;
+    if (match && !match[1] && match[2]) {
+      const suffixLength = Number(match[2]);
+      if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) {
+        res.setHeader("Content-Range", `bytes */${asset.size}`);
+        res.status(416).end();
+        return;
+      }
+      start = Math.max(0, asset.size - suffixLength);
+    } else if (match?.[1]) {
+      start = Number(match[1]);
+      if (match[2]) end = Math.min(Number(match[2]), asset.size - 1);
+    } else {
+      res.setHeader("Content-Range", `bytes */${asset.size}`);
+      res.status(416).end();
+      return;
+    }
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= asset.size) {
       res.setHeader("Content-Range", `bytes */${asset.size}`);
       res.status(416).end();
       return;
