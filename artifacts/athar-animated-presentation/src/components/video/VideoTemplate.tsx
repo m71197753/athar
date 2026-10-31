@@ -36,7 +36,7 @@ export default function VideoTemplate({ durations = SCENE_DURATIONS, loop = true
   const lastKey = useRef<string | null>(null);
   useEffect(() => {
     const a = audioRef.current; if (!a) return;
-    a.volume = 0.5;
+    a.volume = 0.35;
     if (paused) { a.pause(); return; }
     if (lastKey.current !== currentSceneKey) {
       lastKey.current = currentSceneKey;
@@ -47,12 +47,12 @@ export default function VideoTemplate({ durations = SCENE_DURATIONS, loop = true
   }, [currentSceneKey, baseSceneKey, muted, paused]);
   return (
     <VideoPausedContext.Provider value={paused}>
-      <VideoCanvas aspectRatio={VIDEO_ASPECT_RATIO} style={{ backgroundColor: '#191c45' }}>
-        <motion.div className="absolute inset-0" animate={{ scale: 1 + (sceneIndex % 3) * 0.012, rotate: ((sceneIndex % 4) - 1.5) * 0.4 }} transition={{ duration: 1.2, ease: 'easeOut' }}>
+      <VideoCanvas aspectRatio={VIDEO_ASPECT_RATIO} style={{ backgroundColor: '#14213d' }}>
+        <motion.div className="absolute inset-0" >
           <AnimatePresence mode="sync">{Scene && <Scene key={currentSceneKey} />}</AnimatePresence>
         </motion.div>
-        <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: '0.8vmin', background: 'rgba(25,28,69,.25)', zIndex: 30 }}>
-          <motion.div animate={{ scaleX: (sceneIndex + 1) / 12 }} transition={{ duration: 0.8 }} style={{ height: '100%', background: '#e9a23b', transformOrigin: 'right' }} />
+        <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: '0.8vmin', background: 'rgba(20,33,61,.2)', zIndex: 30 }}>
+          <motion.div animate={{ scaleX: (sceneIndex + 1) / 12 }} transition={{ duration: 0.8 }} style={{ height: '100%', background: '#b8893a', transformOrigin: 'right' }} />
         </div>
         <audio ref={audioRef} src={`${import.meta.env.BASE_URL}audio/bg_music.mp3`} preload="auto" autoPlay muted={muted} />
       </VideoCanvas>

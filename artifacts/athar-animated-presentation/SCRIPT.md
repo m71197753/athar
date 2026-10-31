@@ -1,18 +1,33 @@
-# أثر — العرض المتحرك (16:9, 70.0 s, 12 shots)
+# أثر — عرض رسمي للمناقشة (16:9, 70.0 s, 12 scenes)
 
-Treatment — Promise: a student's scattered journey becomes one trail (أثر = trace). Identity: ink indigo #191C45, warm paper #F3ECDF, saffron #E9A23B, coral #E0603F, sage #2E7A70; display Reem Kufi, body IBM Plex Sans Arabic. Hero: the "trace" — a saffron path line + drifting blobs that persist across every cut; AI illustrations framed in organic blob masks. Motion: aperture-blob reveals, masked line unmasks per word, global camera push/rotate per scene. Arc: fragmented problem → assembling solution → rhythmic feature tour alternating fields → warm lockup. Payoff: final shot inverts to indigo with oversized logo and both partner logos.
+Revision 2 (user: "مش حلو خلص" → "عرض رسمي للمناقشة"). All copy is the exact approved text from athar-platform-presentation.
+
+## Treatment
+- Promise: a formal, defense-ready walkthrough of the Athar platform.
+- Identity: navy #14213D, warm paper #F6F3EC, single gold accent #B8893A. Display Noto Kufi Arabic 700 (rev 3, replaced Amiri per "الخطوط مش حلوه"), body Tajawal.
+- Hero: each AI illustration in a rounded rectangle with a gold offset outline; text column on the right.
+- Motion: calm 0.6 s cross-fades between scenes; title unmasks upward (0.8 s); gold rule draws right→left; numbered points slide in one at a time; slow 1.00→1.05 image push across each scene. No camera tilt, no blobs.
+- Arc: formal cover → problem/solution → methodology timeline → feature sections alternating paper/navy → navy thanks lockup.
+
+## Persistent frame (scenes 2–11)
+Header: Athar mark + section name (right), "NN / ١٢" in gold (left), hairline rule. Footer: "إعداد: محمد الجرايحي محمد الإمام · إشراف: Taha Mahmoud Metwally Nour El-Dein" (right), Replit + Nordpoints logos (left). Gold vertical strip at right edge. Gold progress line at bottom of canvas (all scenes).
+
+## Shots
+| # | Time (s) | Field | Content & choreography |
+|---|---|---|---|
+|1|0.0–6.0|paper|Cover (no header/footer frame). Image left (0.5 s fade/scale). Logo 0.2 s; "عرض مشروع للمناقشة" 0.5; title "أثر \| من التعلّم إلى الإنجاز" 0.7; rule 1.4; subtitle 1.7; إعداد/إشراف table 2.4; logos 3.4.|
+|2|6.0–12.0|paper|المشكلة: title 0.3, rule 0.8, 3 numbered points at 1.3/2.4/3.5.|
+|3|12.0–16.8|navy|الحل: 3 points at 1.1/1.85/2.6.|
+|4|16.8–24.0|paper|منهجية الاستخدام: "خطوات الحل داخل أثر"; gold timeline draws 1.0–5.4; circles ١–٤ pop at 1.2/2.4/3.6/4.8 with step text + "الخطوة N".|
+|5|24.0–28.8|paper|٠٥ تعلّم منظّم ودورات تفاعلية (3 points)|
+|6|28.8–33.6|navy|٠٦ تعلّم اللغات بالممارسة (3)|
+|7|33.6–39.6|paper|٠٧ إنجازات موثّقة وخصوصية واضحة (3)|
+|8|39.6–45.6|paper|٠٨ سيرة ذاتية تناسب هدفك (4)|
+|9|45.6–51.6|navy|٠٩ خطة مهنية بخطوات قابلة للتنفيذ (4)|
+|10|51.6–58.2|paper|١٠ مستندات وجداول داخل المنصة (4)|
+|11|58.2–64.5|navy|١١ إدارة تدعم تجربة آمنة ومنظمة (3)|
+|12|64.5–70.0|navy|Thanks lockup: logo 0.3, "شكرًا لكم" 0.6, rule 1.2, tagline 1.4, credits 2.0, logos 2.8; fades back to cover on loop.|
+Feature scenes 5–11: title 0.3, rule 0.8, points every 0.8 s from 1.2 s; section label "مزايا المنصة".
 
 ## Audio spec
-- Music: cinematic uplifting, oud plucks + piano, ~100 BPM, pulse every 1.2 s. Measured onsets used for cuts: 6.0, 12.0, 16.8, 24.0, 28.8, 33.6, 42.6≈, 52.8, 58.25, 64.5. Playback file: bg_music.mp3. No VO/SFX (not requested).
-
-## Timeline
-| # | Time | Shot | Composition | Handoff |
-|---|---|---|---|---|
-|1|0.0–6.0|Cover: logo pops (0.2), title words unmask (0.7/1.0), subtitle (1.8), credits (2.6/3.0), Replit+Nordpoints chips (3.6), art blob scales in left (0.4) and drifts|paper field, text right, art left in blob|blob swells to fill → indigo|
-|2|6.0–12.0|Problem: "المشكلة: رحلة الطالب متفرقة" huge; 3 lines arrive as scattered tilted cards one per 1.1s; image tile tilted|indigo field, cards scattered|cards snap straight, aperture|
-|3|12.0–16.8|Solution: centered circle aperture reveals art, title over; 3 lines settle beneath|paper, centered symmetric|circle becomes step number disc|
-|4|16.8–24.0|Steps 1–4: saffron path draws right→left; numbered discs pop on it every 1.2 s with step text|saffron field, horizontal path|path continues to next|
-|5–11|24.0–64.5|Feature tour (courses, languages, achievements, ATS resume, career, docs/sheets, admin): alternating split sides, full-bleed variant, field colors rotate; image in blob mask scales from 1.25 with blur; title unmasks per word; bullets arrive one per ~0.9 s; final 20% camera push out|alternating|blob morph + camera push|
-|12|64.5–70.0|Thanks: indigo, oversized "شكرًا لكم", logo, tagline, credits, partner logos; art right|indigo inverted lockup|fade to paper → loop to cover|
-
-All on-screen copy is the exact approved text from athar-platform-presentation slides.
+- bg_music.mp3 (70.03 s, instrumental, ~100 BPM, unchanged from v1), volume 0.35. Measured onsets near cuts 6.0, 12.0, 16.8, 24.0, 28.8, 33.6, 58.25, 64.5. No VO/SFX.
