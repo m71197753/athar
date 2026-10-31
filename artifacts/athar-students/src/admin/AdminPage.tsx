@@ -17,6 +17,7 @@ import {
 } from '@workspace/api-client-react';
 import type { AdminNotification, AdminOverviewDetailsKind, AdminUser, AppearanceSettings, ContentEntry, ContentInput, ModuleSetting, PlatformSection, SectionBlock, SectionInput } from '@workspace/api-client-react';
 import { ThemeToggle } from '../components/theme-toggle';
+import { formatSectionMediaCleanupAuditTarget } from '../lib/section-media-cleanup-audit';
 import { NamedColorPicker } from '../components/NamedColorPicker';
 import { RequiredMark } from '../components/RequiredMark';
 import { SectionAppearanceFields } from '../components/SectionAppearanceFields';
@@ -529,7 +530,15 @@ function AuditPanel() {
   const total = Math.max(1, Math.ceil(q.data.total / Math.max(1, q.data.pageSize)));
   return <section aria-labelledby="adm-audit-h"><div className="adm-section-head"><h2 id="adm-audit-h">سجل النشاط الإداري</h2></div>
     {q.data.items.length === 0 ? <Empty title="السجل فارغ" body="ستظهر هنا كل عملية إدارية فور تنفيذها."/> : <>
-      <ol className="adm-audit">{q.data.items.map(a => <li key={a.id}><time>{fmtDate(a.createdAt)}</time><b dir="ltr">{a.action}</b><span>الهدف: <code dir="ltr">{a.target}</code></span><small>المنفّذ: <code dir="ltr">{a.actorId}</code></small></li>)}</ol>
+      <ol className="adm-audit">{q.data.items.map(a => {
+        const isMediaCleanup = a.action === 'section-media.cleanup';
+        return <li key={a.id}>
+          <time>{fmtDate(a.createdAt)}</time>
+          <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : <span dir="ltr">{a.action}</span>}</b>
+          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
+          <small>المنفّذ: <code dir="ltr">{a.actorId}</code></small>
+        </li>;
+      })}</ol>
       <Pager page={page} total={total} count={q.data.total} onPage={setPage} busy={q.isFetching}/></>}
   </section>;
 }

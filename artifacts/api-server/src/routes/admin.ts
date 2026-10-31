@@ -498,7 +498,30 @@ router.get("/admin/section-media/cleanup-preview", async (_req, res) => {
 });
 router.post("/admin/section-media/cleanup", async (_req, res) => {
   res.setHeader("Cache-Control", "private, no-store");
-  res.json(CleanupSectionMediaResponse.parse(await cleanupSectionMedia()));
+  let result: Awaited<ReturnType<typeof cleanupSectionMedia>>;
+  try {
+    result = await cleanupSectionMedia();
+  } catch (error) {
+    await db.insert(adminAuditTable).values({
+      actorId: res.locals.userId,
+      action: "section-media.cleanup",
+      target: JSON.stringify({ status: "failed" }),
+    });
+    throw error;
+  }
+  await db.insert(adminAuditTable).values({
+    actorId: res.locals.userId,
+    action: "section-media.cleanup",
+    target: JSON.stringify({
+      status: result.failedFiles > 0 ? "partial" : "completed",
+      deletedFiles: result.deletedFiles,
+      failedFiles: result.failedFiles,
+      removedAssets: result.removedAssets,
+      expiredUploads: result.expiredUploads,
+      reclaimedBytes: result.reclaimedBytes,
+    }),
+  });
+  res.json(CleanupSectionMediaResponse.parse(result));
 });
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const params = ConfirmSectionMediaUploadParams.safeParse(req.params);

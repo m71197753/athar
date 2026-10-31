@@ -71,7 +71,7 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const cleanupPreview = usePreviewSectionMediaCleanup({ query: { enabled: cleanupOpen, staleTime: 0 } });
   const cleanup = useCleanupSectionMedia();
-  const [cleanupResult, setCleanupResult] = useState<{ expiredUploads: number; removedAssets: number; deletedFiles: number; reclaimedBytes: number } | null>(null);
+  const [cleanupResult, setCleanupResult] = useState<{ expiredUploads: number; removedAssets: number; deletedFiles: number; failedFiles: number; reclaimedBytes: number } | null>(null);
   const create = useCreateAdminSection();
   const update = useUpdateAdminSection();
   const remove = useDeleteAdminSection();
@@ -216,7 +216,9 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       onSuccess: result => {
         setCleanupResult(result);
         void queryClient.invalidateQueries({ queryKey: getPreviewSectionMediaCleanupQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit"] });
       },
+      onError: () => { void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit"] }); },
     });
   };
 
@@ -248,7 +250,7 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
           </button>}
       </div>}
       {cleanup.isError && <p className="adm-form-error" role="alert">تعذّر إكمال التنظيف. أعد الفحص ثم حاول مرة أخرى.</p>}
-      {cleanupResult && <p role="status">اكتمل التنظيف: حُذف {cleanupResult.deletedFiles} ملف و{cleanupResult.removedAssets} مرفق غير مرتبط و{cleanupResult.expiredUploads} سجل رفع غير مكتمل، واستُعيدت {formatStorageSize(cleanupResult.reclaimedBytes)}.</p>}
+      {cleanupResult && <p role="status">{cleanupResult.failedFiles > 0 ? "اكتمل التنظيف جزئيًا" : "اكتمل التنظيف"}: حُذف {cleanupResult.deletedFiles} ملف، وفشل حذف {cleanupResult.failedFiles} ملف، وأُزيل {cleanupResult.removedAssets} مرفق غير مرتبط و{cleanupResult.expiredUploads} سجل رفع غير مكتمل، واستُعيدت {formatStorageSize(cleanupResult.reclaimedBytes)}. راجع «سجل النشاط الإداري» للتفاصيل.</p>}
     </aside>}
     {rowError && <p className="adm-form-error" role="alert">{rowError}</p>}
     {editing && previewing && <SectionDraftPreview form={editing.form} onClose={() => setPreviewing(false)}/>}

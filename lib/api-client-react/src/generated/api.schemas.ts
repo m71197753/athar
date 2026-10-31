@@ -611,6 +611,7 @@ export interface SectionMediaCleanupResult {
   expiredUploads: number;
   removedAssets: number;
   deletedFiles: number;
+  failedFiles: number;
   reclaimedBytes: number;
 }
 

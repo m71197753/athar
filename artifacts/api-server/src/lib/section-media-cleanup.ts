@@ -68,7 +68,7 @@ export async function previewSectionMediaCleanup() {
 
 export async function cleanupSectionMedia() {
   const { expiredUploads, unlinkedAssets, candidates } = await oldObjects();
-  let deletedFiles = 0, reclaimedBytes = 0;
+  let deletedFiles = 0, failedFiles = 0, reclaimedBytes = 0;
   const removedPaths = new Set<string>();
   for (const candidate of candidates) {
     try {
@@ -78,8 +78,8 @@ export async function cleanupSectionMedia() {
       reclaimedBytes += candidate.size;
     } catch (error) {
       // Do not remove the corresponding DB record if the object could not be deleted.
-      if ((error as { code?: number }).code !== 404) throw error;
-      removedPaths.add(candidate.objectPath);
+      if ((error as { code?: number }).code === 404) removedPaths.add(candidate.objectPath);
+      else failedFiles++;
     }
   }
   const removedAssets = unlinkedAssets.filter(asset => !asset.objectPath ||
@@ -100,6 +100,6 @@ export async function cleanupSectionMedia() {
     retentionDays: SECTION_MEDIA_RETENTION_DAYS,
     expiredUploads: removedUploads.length,
     removedAssets: removedAssets.length,
-    deletedFiles, reclaimedBytes,
+    deletedFiles, failedFiles, reclaimedBytes,
   };
 }

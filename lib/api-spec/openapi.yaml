@@ -3304,12 +3304,13 @@ components:
     SectionMediaCleanupResult:
       type: object
       additionalProperties: false
-      required: [retentionDays, expiredUploads, removedAssets, deletedFiles, reclaimedBytes]
+      required: [retentionDays, expiredUploads, removedAssets, deletedFiles, failedFiles, reclaimedBytes]
       properties:
         retentionDays: { type: integer }
         expiredUploads: { type: integer }
         removedAssets: { type: integer }
         deletedFiles: { type: integer }
+        failedFiles: { type: integer }
         reclaimedBytes: { type: integer }
     ContentInput:
       type: object

@@ -1750,6 +1750,7 @@ export const CleanupSectionMediaResponse = zod.object({
   "expiredUploads": zod.number().int(),
   "removedAssets": zod.number().int(),
   "deletedFiles": zod.number().int(),
+  "failedFiles": zod.number().int(),
   "reclaimedBytes": zod.number().int()
 })
 
