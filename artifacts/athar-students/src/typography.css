@@ -54,7 +54,7 @@ body {
 #root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .resume-tip, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) {
   border-color: var(--athar-card-line);
 }
-#root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) :is(p, span, strong, b, li, label) {
+#root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) {
   color: var(--athar-card-ink);
 }
 #root :is(.panel, .metric-card, .achievement-card, .learning-card, .dashboard-feature-card, .dashboard-start, .profile-progress-card, .assistant-main, .assistant-aside, .state-panel, .ac-card, .ac-panel, .adm-module-editor, .adm-section-block, .adm-section-row, .adm-editor, .adm-appearance-preview-card, .adm-published) :is(h1, h2, h3, h4) {
