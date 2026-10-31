@@ -431,12 +431,13 @@ function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType
       : block.type === "media" ? Boolean(block.mediaType && ["image", "audio", "video", "file"].includes(block.mediaType) && sectionMediaIdFromUrl(block.url))
         : false);
 }
-function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; units?: Array<{ id: string; title: string; description: string }>; materials: Array<{ type: string; url: string; mediaType?: string; unitId?: string }> }>) {
+function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; units?: Array<{ id: string; title: string; description: string }>; materials: Array<{ id?: string; type: string; url: string; mediaType?: string; unitId?: string }> }>) {
   const ids = new Set<string>();
   return courses.length <= 20 && courses.every(course => {
+    const lessonIds = course.materials.flatMap(block => block.id ? [block.id] : []);
     const idIsUniqueUuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(course.id) && !ids.has(course.id);
     ids.add(course.id);
-    return idIsUniqueUuid && course.title.trim().length >= 2 &&
+    return idIsUniqueUuid && new Set(lessonIds).size === lessonIds.length && course.title.trim().length >= 2 &&
       (course.skills ?? []).length <= 20 &&
       (course.skills ?? []).every(skill => skill.trim().length > 0 && skill.trim().length <= 60) &&
       course.materials.length >= 1 && course.materials.length <= 20 &&
@@ -461,7 +462,7 @@ function normalizeSection(input: ReturnType<typeof CreateAdminSectionBody.parse>
       units: course.units?.map(unit => ({ ...unit, title: unit.title.trim(), description: unit.description.trim() })),
       skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
       materials: course.materials.map(block => ({
-        ...block, title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),
+        ...block, id: block.id ?? randomUUID(), title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),
       })),
     })),
   };

@@ -601,6 +601,36 @@ paths:
               schema: { $ref: "#/components/schemas/LearningItem" }
         "401": { description: Sign-in required }
         "404": { description: Published course not found }
+  /sections/{slug}/courses/{courseId}/position:
+    get:
+      operationId: getCoursePosition
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 120 } }
+        - { name: courseId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Private last selected lesson, not a completion record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CoursePosition" }
+        "404": { description: Published course not found }
+    put:
+      operationId: saveCoursePosition
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 120 } }
+        - { name: courseId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CoursePositionInput" }
+      responses:
+        "200":
+          description: Last selected lesson saved for the authenticated student
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CoursePosition" }
+        "409": { description: Lesson changed or cannot be uniquely identified }
   /sections/{slug}/media-progress:
     get:
       operationId: getSectionMediaProgress
@@ -3277,11 +3307,27 @@ components:
           items: { $ref: "#/components/schemas/ModuleSetting" }
         appearance: { $ref: "#/components/schemas/AppearanceSettings" }
         sections: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
+    CoursePositionInput:
+      type: object
+      additionalProperties: false
+      required: [lesson]
+      properties:
+        lesson: { $ref: "#/components/schemas/SectionBlock" }
+    CoursePosition:
+      type: object
+      additionalProperties: false
+      required: [lesson]
+      properties:
+        lesson:
+          oneOf:
+            - { $ref: "#/components/schemas/SectionBlock" }
+            - { type: "null" }
     SectionBlock:
       type: object
       additionalProperties: false
       required: [type, title, body, url]
       properties:
+        id: { type: string, format: uuid }
         type: { type: string, enum: [text, link, media] }
         mediaType: { type: string, enum: [image, audio, video, file] }
         title: { type: string, minLength: 1, maxLength: 100 }

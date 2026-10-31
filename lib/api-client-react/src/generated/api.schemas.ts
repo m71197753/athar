@@ -336,6 +336,7 @@ export const SectionBlockMediaType = {
 } as const;
 
 export interface SectionBlock {
+  id?: string;
   type: SectionBlockType;
   mediaType?: SectionBlockMediaType;
   /**
@@ -711,6 +712,14 @@ export interface PlatformContent {
   moduleSettings: ModuleSetting[];
   appearance: AppearanceSettings;
   sections: PlatformSection[];
+}
+
+export interface CoursePositionInput {
+  lesson: SectionBlock;
+}
+
+export interface CoursePosition {
+  lesson: SectionBlock | null;
 }
 
 export interface AdminSectionList {

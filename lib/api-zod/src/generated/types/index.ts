@@ -180,6 +180,8 @@ export * from './classifiedAd';
 export * from './contentEntry';
 export * from './contentInput';
 export * from './contentInputKind';
+export * from './coursePosition';
+export * from './coursePositionInput';
 export * from './dashboardSummary';
 export * from './getAdminOverviewDetailsParams';
 export * from './getAdStatisticsDays';

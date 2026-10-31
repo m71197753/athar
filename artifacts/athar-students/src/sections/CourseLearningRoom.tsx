@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useUser } from "@clerk/react";
 import { ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Download, ExternalLink, FileText, FolderOpen, Headphones, Image as ImageIcon, Link2, LoaderCircle, PlayCircle } from "lucide-react";
 import type { SectionBlock, SectionCourse, SectionMediaProgress } from "@workspace/api-client-react";
 import { TrackedSectionMedia } from "./TrackedSectionMedia";
 import { groupCourseMaterials } from "../lib/section-units";
+import { useCoursePosition } from "./useCoursePosition";
 import "./course-learning-room.css";
 
 const sectionMediaId = (url: string) => /^\/api\/platform\/section-media\/([a-f0-9-]{36})$/i.exec(url)?.[1];
@@ -50,6 +52,12 @@ function lessonKind(block: SectionBlock) {
 }
 
 export function CourseLearningRoom(props: CourseLearningRoomProps) {
+  const { user } = useUser();
+  return user ? <CourseLearningSession key={`${user.id}:${props.sectionSlug}:${props.course.id}`} {...props} userId={user.id}/> :
+    <section className="clr-empty" role="status">جارٍ التحقق من حسابك…</section>;
+}
+
+function CourseLearningSession(props: CourseLearningRoomProps & { userId: string }) {
   const { sectionSlug, sectionTitle, course, courseNumber, completed, completionPending, completionDisabled, completionKnown,
     onComplete, onBack, progressRows, progressReady, progressError, onRetryProgress } = props;
   const contextKey = `course:${course.id}`;
@@ -66,8 +74,9 @@ export function CourseLearningRoom(props: CourseLearningRoomProps) {
   }, [course]);
   const loose = useMemo(() => lessons.filter(l => !groups.some(g => g.lessons.some(x => x.index === l.index))), [lessons, groups]);
 
-  const [activeIndex, setActiveIndex] = useState(() => lessons[0]?.index ?? 0);
-  const position = Math.max(0, lessons.findIndex(l => l.index === activeIndex));
+  const lessonPosition = useCoursePosition(props.userId, sectionSlug, course, lessons[0]?.block);
+  const activeIndex = lessonPosition.index;
+  const position = lessons.findIndex(l => l.index === activeIndex);
   const active = lessons[position];
   const prev = lessons[position - 1];
   const next = lessons[position + 1];
@@ -133,7 +142,7 @@ export function CourseLearningRoom(props: CourseLearningRoomProps) {
     const started = mediaId ? startedMedia.has(mediaId) : false;
     return <li key={lesson.index}>
       <button type="button" className={`clr-lesson ${isActive ? "is-active" : ""}`} aria-current={isActive ? "true" : undefined}
-        onClick={() => setActiveIndex(lesson.index)} data-testid={`button-lesson-${course.id}-${lesson.index}`}>
+        onClick={() => lessonPosition.choose(lesson.block)} data-testid={`button-lesson-${course.id}-${lesson.index}`}>
         <span className="clr-lesson-num">{n.toLocaleString("ar")}</span>
         <span className="clr-lesson-copy"><b>{lesson.block.title}</b><small>{lessonIcon(lesson.block)} {lessonKind(lesson.block)}{started ? " · بدأت الاستماع/المشاهدة" : ""}</small></span>
       </button>
@@ -170,17 +179,32 @@ export function CourseLearningRoom(props: CourseLearningRoomProps) {
             {active.block.type === "media" && active.block.body && <p>{active.block.body}</p>}
           </div>
           <nav className="clr-pager" aria-label="التنقل بين الدروس">
-            <button type="button" disabled={!prev} onClick={() => prev && setActiveIndex(prev.index)} data-testid="button-previous-lesson">
+            <button type="button" disabled={!prev} onClick={() => prev && lessonPosition.choose(prev.block)} data-testid="button-previous-lesson">
               <ChevronRight size={17}/><span><small>السابق</small><b>{prev?.block.title ?? "لا يوجد"}</b></span>
             </button>
-            <button type="button" disabled={!next} onClick={() => next && setActiveIndex(next.index)} data-testid="button-next-lesson">
+            <button type="button" disabled={!next} onClick={() => next && lessonPosition.choose(next.block)} data-testid="button-next-lesson">
               <span><small>التالي</small><b>{next?.block.title ?? "نهاية الدورة"}</b></span><ChevronLeft size={17}/>
             </button>
           </nav>
-        </> : <div className="clr-stage clr-empty" role="status">لا توجد مواد منشورة في هذه الدورة بعد.</div>}
+        </> : <div className="clr-stage clr-empty" role="status" data-testid="course-selection-state">
+          {lessonPosition.loading ? "جارٍ استعادة آخر محاضرة…"
+            : lessonPosition.loadError ? "تعذّر تحميل آخر محاضرة. أعد المحاولة أو اختر درسًا من القائمة."
+              : lessons.length ? "المحاضرة السابقة حُذفت أو تغيّرت؛ اختر محاضرة من القائمة للاستمرار."
+                : "لا توجد مواد منشورة في هذه الدورة بعد."}
+        </div>}
       </div>
 
       <aside className="clr-side" aria-label="محتوى الدورة">
+        <div className="clr-stats" role={lessonPosition.loadError || lessonPosition.saveState === "error" ? "alert" : "status"} data-testid="course-position-status">
+          <p className="clr-note">{lessonPosition.loadError ? "تعذّر تحميل آخر محاضرة محفوظة."
+            : lessonPosition.saveState === "error" ? "لم يُحفظ اختيار المحاضرة. يمكنك متابعة التعلّم وإعادة محاولة الحفظ."
+              : lessonPosition.saveState === "saving" ? "جارٍ حفظ آخر محاضرة…"
+                : lessonPosition.missing ? "لم ننتقل إلى درس آخر تلقائيًا؛ اختر المحاضرة التي تريدها."
+                  : lessonPosition.loading ? "جارٍ استعادة اختيارك…"
+                    : "يُحفظ اختيار المحاضرة في حسابك؛ وموضع الفيديو محفوظ للمقاطع المرفوعة داخل أثر."}</p>
+          {lessonPosition.loadError && <button type="button" className="clr-retry" onClick={lessonPosition.retryLoad}>إعادة تحميل الاختيار</button>}
+          {lessonPosition.saveState === "error" && active && <button type="button" className="clr-retry" onClick={lessonPosition.retrySave}>إعادة حفظ المحاضرة</button>}
+        </div>
         <div className="clr-stats" data-testid="course-study-stats">
           <div><Clock3 size={16} aria-hidden="true"/><span><small>وقت الدراسة المسجّل</small>
             <b data-testid="text-study-time">{progressError ? "تعذّر التحميل" : !progressReady ? "جارٍ التحميل…" : formatDuration(studySeconds)}</b></span></div>

@@ -4,7 +4,9 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -79,6 +81,16 @@ export const sectionMediaProgressTable = pgTable(
     ),
   ],
 );
+
+export const coursePositionsTable = pgTable("course_positions", {
+  userId: text("user_id").notNull(),
+  sectionSlug: text("section_slug").notNull(),
+  courseId: uuid("course_id").notNull(),
+  lesson: jsonb("lesson").$type<{
+    id?: string; type: string; title: string; body: string; url: string; mediaType?: string; unitId?: string;
+  }>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, table => [primaryKey({ name: "course_positions_pkey", columns: [table.userId, table.sectionSlug, table.courseId] })]);
 
 export const academyProgressTable = pgTable(
   "academy_progress",
