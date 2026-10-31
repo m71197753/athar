@@ -23,6 +23,7 @@ import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings
 import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
 import { recordSectionMediaCleanupAudit } from "../lib/section-media-cleanup-audit";
+import { notifyAdminsOfSectionMediaCleanupIssue } from "../lib/section-media-cleanup-notifications";
 import { MAX_COURSE_MATERIALS, validCourseMaterials, validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
@@ -503,10 +504,18 @@ router.post("/admin/section-media/cleanup", async (_req, res) => {
   try {
     result = await cleanupSectionMedia();
   } catch (error) {
-    await recordSectionMediaCleanupAudit(res.locals.userId);
+    const auditId = await recordSectionMediaCleanupAudit(res.locals.userId);
+    try { await notifyAdminsOfSectionMediaCleanupIssue(auditId); } catch {
+      _req.log.error("Could not notify administrators about section media cleanup failure");
+    }
     throw error;
   }
-  await recordSectionMediaCleanupAudit(res.locals.userId, result);
+  const auditId = await recordSectionMediaCleanupAudit(res.locals.userId, result);
+  if (result.failedFiles > 0) {
+    try { await notifyAdminsOfSectionMediaCleanupIssue(auditId, result); } catch {
+      _req.log.error("Could not notify administrators about partial section media cleanup");
+    }
+  }
   res.json(CleanupSectionMediaResponse.parse(result));
 });
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {

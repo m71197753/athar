@@ -26,5 +26,8 @@ export function sectionMediaCleanupAuditEntry(actorId: string, result?: SectionM
 }
 
 export async function recordSectionMediaCleanupAudit(actorId: string, result?: SectionMediaCleanupSummary) {
-  await db.insert(adminAuditTable).values(sectionMediaCleanupAuditEntry(actorId, result));
+  const [entry] = await db.insert(adminAuditTable)
+    .values(sectionMediaCleanupAuditEntry(actorId, result))
+    .returning({ id: adminAuditTable.id });
+  return entry.id;
 }

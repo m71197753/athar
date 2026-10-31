@@ -1,6 +1,7 @@
 import { pool } from "@workspace/db";
 import { cleanupSectionMedia } from "./lib/section-media-cleanup";
 import { recordSectionMediaCleanupAudit } from "./lib/section-media-cleanup-audit";
+import { notifyAdminsOfSectionMediaCleanupIssue } from "./lib/section-media-cleanup-notifications";
 
 const actorId = "system:scheduled-section-media-cleanup";
 
@@ -9,11 +10,19 @@ try {
   try {
     result = await cleanupSectionMedia();
   } catch {
-    try { await recordSectionMediaCleanupAudit(actorId); } catch { /* keep the original task failure */ }
+    try {
+      const auditId = await recordSectionMediaCleanupAudit(actorId);
+      await notifyAdminsOfSectionMediaCleanupIssue(auditId);
+    } catch { /* keep the original task failure */ }
     throw new Error("Scheduled section media cleanup failed");
   }
 
-  await recordSectionMediaCleanupAudit(actorId, result);
+  const auditId = await recordSectionMediaCleanupAudit(actorId, result);
+  if (result.failedFiles > 0) {
+    try { await notifyAdminsOfSectionMediaCleanupIssue(auditId, result); } catch {
+      console.error("Could not notify administrators about partial section media cleanup");
+    }
+  }
   const summary = {
     deletedFiles: result.deletedFiles,
     failedFiles: result.failedFiles,
