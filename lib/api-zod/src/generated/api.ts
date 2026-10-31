@@ -648,7 +648,7 @@ export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleM
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax = 20;
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax = 100;
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax = 60;
 
@@ -660,7 +660,7 @@ export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemBo
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsMax = 20;
+export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsMax = 100;
 
 export const getPlatformContentResponseSectionsItemOneCoursesMax = 20;
 
@@ -1793,7 +1793,7 @@ export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMax =
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax = 20;
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax = 100;
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax = 60;
 
@@ -1805,7 +1805,7 @@ export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemBodyMa
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsMax = 20;
+export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsMax = 100;
 
 export const listAdminSectionsResponseItemsItemOneCoursesMax = 20;
 
@@ -1885,7 +1885,7 @@ export const createAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
 
 export const createAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
 
-export const createAdminSectionBodyCoursesItemUnitsMax = 20;
+export const createAdminSectionBodyCoursesItemUnitsMax = 100;
 
 export const createAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
@@ -1897,7 +1897,7 @@ export const createAdminSectionBodyCoursesItemMaterialsItemBodyMax = 2000;
 
 export const createAdminSectionBodyCoursesItemMaterialsItemUrlMax = 2048;
 
-export const createAdminSectionBodyCoursesItemMaterialsMax = 20;
+export const createAdminSectionBodyCoursesItemMaterialsMax = 100;
 
 export const createAdminSectionBodyCoursesMax = 20;
 
@@ -1969,7 +1969,7 @@ export const createAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
 
 export const createAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const createAdminSectionResponseOneCoursesItemUnitsMax = 20;
+export const createAdminSectionResponseOneCoursesItemUnitsMax = 100;
 
 export const createAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -1981,7 +1981,7 @@ export const createAdminSectionResponseOneCoursesItemMaterialsItemBodyMax = 2000
 
 export const createAdminSectionResponseOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const createAdminSectionResponseOneCoursesItemMaterialsMax = 20;
+export const createAdminSectionResponseOneCoursesItemMaterialsMax = 100;
 
 export const createAdminSectionResponseOneCoursesMax = 20;
 
@@ -2063,7 +2063,7 @@ export const updateAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
 
 export const updateAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
 
-export const updateAdminSectionBodyCoursesItemUnitsMax = 20;
+export const updateAdminSectionBodyCoursesItemUnitsMax = 100;
 
 export const updateAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
@@ -2075,7 +2075,7 @@ export const updateAdminSectionBodyCoursesItemMaterialsItemBodyMax = 2000;
 
 export const updateAdminSectionBodyCoursesItemMaterialsItemUrlMax = 2048;
 
-export const updateAdminSectionBodyCoursesItemMaterialsMax = 20;
+export const updateAdminSectionBodyCoursesItemMaterialsMax = 100;
 
 export const updateAdminSectionBodyCoursesMax = 20;
 
@@ -2147,7 +2147,7 @@ export const updateAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
 
 export const updateAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const updateAdminSectionResponseOneCoursesItemUnitsMax = 20;
+export const updateAdminSectionResponseOneCoursesItemUnitsMax = 100;
 
 export const updateAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -2159,7 +2159,7 @@ export const updateAdminSectionResponseOneCoursesItemMaterialsItemBodyMax = 2000
 
 export const updateAdminSectionResponseOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const updateAdminSectionResponseOneCoursesItemMaterialsMax = 20;
+export const updateAdminSectionResponseOneCoursesItemMaterialsMax = 100;
 
 export const updateAdminSectionResponseOneCoursesMax = 20;
 

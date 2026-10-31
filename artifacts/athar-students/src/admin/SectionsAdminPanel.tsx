@@ -14,6 +14,7 @@ import "./section-builder.css";
 import { RequiredMark } from "../components/RequiredMark";
 import { SectionAppearanceFields } from "../components/SectionAppearanceFields";
 import { getSectionAccent, getSectionIcon } from "../lib/section-appearance";
+import { MAX_COURSE_MATERIALS, MAX_COURSE_UNITS } from "../lib/course-limits";
 
 const blankSection = (): SectionInput => ({
   kind: "content_page", title: "", description: "",
@@ -165,15 +166,15 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
     }
     if ((form.courses?.length ?? 0) > 20) return setFormError("يمكن إضافة 20 دورة كحد أقصى للقسم.");
     if ((form.courses ?? []).some(course => course.title.length < 2 || course.title.length > 120 ||
-      course.description.length > 600 || course.materials.length < 1 || course.materials.length > 20 ||
+      course.description.length > 600 || course.materials.length < 1 || course.materials.length > MAX_COURSE_MATERIALS ||
       (course.skills ?? []).length > 20 || (course.skills ?? []).some(skill => !skill.trim() || skill.trim().length > 60) ||
       course.materials.some(block => !block.title || (block.type === "text" && !block.body) ||
         (block.type === "link" && !validUrl(block.url)) || (block.type === "text" && block.url) ||
         (block.type === "media" && (!validMediaUrl(block.url) || !block.mediaType))))) {
-      return setFormError("أكمل عنوان كل دورة وأضف من مادة واحدة إلى 20 مادة صالحة لكل دورة.");
+      return setFormError(`أكمل عنوان كل دورة وأضف من مادة واحدة إلى ${MAX_COURSE_MATERIALS.toLocaleString("ar")} مادة صالحة لكل دورة.`);
     }
-    if ((form.courses ?? []).some(course => (course.units ?? []).length > 20 || (course.units ?? []).some(unit => unit.title.length < 2 || unit.title.length > 120 || unit.description.length > 600))) {
-      return setFormError("اكتب عنوانًا واضحًا (حرفان على الأقل) لكل وحدة، و20 وحدة كحد أقصى لكل دورة.");
+    if ((form.courses ?? []).some(course => (course.units ?? []).length > MAX_COURSE_UNITS || (course.units ?? []).some(unit => unit.title.length < 2 || unit.title.length > 120 || unit.description.length > 600))) {
+      return setFormError(`اكتب عنوانًا واضحًا (حرفان على الأقل) لكل وحدة، و${MAX_COURSE_UNITS.toLocaleString("ar")} وحدة كحد أقصى لكل دورة.`);
     }
     if ((form.courses ?? []).some(course => course.materials.some(block => block.unitId && !(course.units ?? []).some(unit => unit.id === block.unitId)))) {
       return setFormError("بعض الدروس مرتبطة بوحدة غير موجودة. انقلها إلى وحدة أو اجعلها بدون وحدة.");

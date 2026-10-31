@@ -22,7 +22,7 @@ import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
 import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
-import { validCourseUnits } from "../lib/section-course-units";
+import { MAX_COURSE_MATERIALS, validCourseMaterials, validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
 const PAGE_SIZE = 20;
@@ -442,7 +442,7 @@ function validSectionCourses(courses: Array<{ id: string; title: string; skills?
     return idIsUniqueUuid && new Set(lessonIds).size === lessonIds.length && course.title.trim().length >= 2 &&
       (course.skills ?? []).length <= 20 &&
       (course.skills ?? []).every(skill => skill.trim().length > 0 && skill.trim().length <= 60) &&
-      course.materials.length >= 1 && course.materials.length <= 20 &&
+      validCourseMaterials(course.materials) &&
       validCourseUnits(course) && validSectionBlocks(course.materials, true);
   });
 }

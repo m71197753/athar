@@ -3392,7 +3392,7 @@ components:
         description: { type: string, maxLength: 600 }
         units:
           type: array
-          maxItems: 20
+          maxItems: 100
           items: { $ref: "#/components/schemas/SectionCourseUnit" }
         skills:
           type: array
@@ -3401,7 +3401,7 @@ components:
         materials:
           type: array
           minItems: 1
-          maxItems: 20
+          maxItems: 100
           items: { $ref: "#/components/schemas/SectionBlock" }
     SectionInput:
       type: object
