@@ -27,3 +27,21 @@ test("resume positions can move backwards and are bounded independently of study
   assert.equal(resumePosition(-1, 300), 0);
   assert.equal(resumePosition(Number.NaN, 300), 0);
 });
+
+test("short playback samples and the tail before pausing are retained", () => {
+  assert.equal(playbackSeconds(0.02, 0.02, 1), 0.02);
+  assert.equal(playbackSeconds(0.4, 0.4, 1), 0.4);
+  assert.equal(playbackSeconds(0.4, 0.8, 2), 0.4);
+});
+
+test("buffering, seeking, invalid samples and long background gaps do not add time", () => {
+  for (const advanced of [0, -20, 30, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.equal(playbackSeconds(1, advanced, 1), 0);
+  }
+  for (const rate of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.equal(playbackSeconds(1, 1, rate), 0);
+  }
+  assert.equal(playbackSeconds(60, 60, 1), 0);
+  assert.equal(playbackSeconds(1, 0.25, 1), 0.25);
+  assert.equal(playbackSeconds(1, 4, 4), 1);
+});

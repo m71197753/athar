@@ -90,7 +90,7 @@
 .ac-lesson-video { width:min(100%,420px); max-height:260px; border-radius:12px; background:#101c20; }
 .ac-video-player { width:100%; min-width:0; flex:0 0 100%; }
 .ac-row:has(> .ac-video-player) { flex-wrap:wrap; }
-.ac-video-player video { width:100%; max-height:420px; }
+.ac-video-player video { width:100%; aspect-ratio:16/9; max-height:80vh; object-fit:contain; }
 .ac-community-status { padding:4px 7px; border-radius:99px; color:var(--ac-muted); background:var(--ac-bg); font-size:8px; white-space:nowrap; }
 .ac-community-status.status-approved { color:var(--ac-teal); background:var(--ac-soft); }
 .ac-community-status.status-rejected { color:#a63e37; background:color-mix(in srgb,#a63e37 9%,var(--ac-card)); }
