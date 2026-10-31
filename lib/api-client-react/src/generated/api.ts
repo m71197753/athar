@@ -177,6 +177,8 @@ import type {
   ResumeWritingSuggestion,
   SearchAcademyParams,
   SectionInput,
+  SectionMediaCleanupPreview,
+  SectionMediaCleanupResult,
   SectionMediaProgress,
   SectionMediaProgressInput,
   SectionMediaUploadInput,
@@ -3433,6 +3435,169 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRequestSectionMediaUploadMutationOptions(options), queryClient);
+    }
+
+export const getPreviewSectionMediaCleanupUrl = () => {
+
+
+
+
+  return `/api/admin/section-media/cleanup-preview`
+}
+
+export const previewSectionMediaCleanup = async ( options?: Parameters<typeof customFetch>[1]): Promise<SectionMediaCleanupPreview> => {
+
+  return customFetch<SectionMediaCleanupPreview>(getPreviewSectionMediaCleanupUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewSectionMediaCleanupQueryKey = () => {
+    return [
+    `/api/admin/section-media/cleanup-preview`
+    ] as const;
+    }
+
+
+export const getPreviewSectionMediaCleanupQueryOptions = <TData = Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewSectionMediaCleanupQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewSectionMediaCleanup>>> = ({ signal }) => previewSectionMediaCleanup({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreviewSectionMediaCleanupQueryResult = NonNullable<Awaited<ReturnType<typeof previewSectionMediaCleanup>>>
+export type PreviewSectionMediaCleanupQueryError = ErrorType<void>
+
+
+export function usePreviewSectionMediaCleanup<TData = Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewSectionMediaCleanup>>,
+          TError,
+          Awaited<ReturnType<typeof previewSectionMediaCleanup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewSectionMediaCleanup<TData = Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewSectionMediaCleanup>>,
+          TError,
+          Awaited<ReturnType<typeof previewSectionMediaCleanup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewSectionMediaCleanup<TData = Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePreviewSectionMediaCleanup<TData = Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewSectionMediaCleanup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreviewSectionMediaCleanupQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCleanupSectionMediaUrl = () => {
+
+
+
+
+  return `/api/admin/section-media/cleanup`
+}
+
+export const cleanupSectionMedia = async ( options?: Parameters<typeof customFetch>[1]): Promise<SectionMediaCleanupResult> => {
+
+  return customFetch<SectionMediaCleanupResult>(getCleanupSectionMediaUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCleanupSectionMediaMutationKey = () => ['cleanupSectionMedia'] as const;
+
+export const getCleanupSectionMediaMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cleanupSectionMedia>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cleanupSectionMedia>>, TError,void, TContext> => {
+
+const mutationKey = getCleanupSectionMediaMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cleanupSectionMedia>>, void> = () => {
+
+
+          return  cleanupSectionMedia(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CleanupSectionMediaMutationResult = NonNullable<Awaited<ReturnType<typeof cleanupSectionMedia>>>
+
+    export type CleanupSectionMediaMutationError = ErrorType<void>
+
+
+    export const useCleanupSectionMedia = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cleanupSectionMedia>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cleanupSectionMedia>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCleanupSectionMediaMutationOptions(options), queryClient);
     }
 
 export const getConfirmSectionMediaUploadUrl = (id: string,) => {

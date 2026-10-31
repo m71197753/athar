@@ -315,6 +315,8 @@ export * from './sectionCourseUnit';
 export * from './sectionIconKey';
 export * from './sectionInput';
 export * from './sectionInputKind';
+export * from './sectionMediaCleanupPreview';
+export * from './sectionMediaCleanupResult';
 export * from './sectionMediaProgress';
 export * from './sectionMediaProgressInput';
 export * from './sectionMediaUploadInput';

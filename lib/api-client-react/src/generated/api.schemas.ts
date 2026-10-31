@@ -598,6 +598,20 @@ export interface SectionMediaUploadResult {
   url: string;
 }
 
+export interface SectionMediaCleanupPreview {
+  retentionDays: number;
+  expiredUploads: number;
+  orphanFiles: number;
+  reclaimableBytes: number;
+}
+
+export interface SectionMediaCleanupResult {
+  retentionDays: number;
+  expiredUploads: number;
+  deletedFiles: number;
+  reclaimedBytes: number;
+}
+
 export type ContentInputKind = typeof ContentInputKind[keyof typeof ContentInputKind];
 
 

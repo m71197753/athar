@@ -1,10 +1,10 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, BookOpen, Eye, ExternalLink, FileText, Layers3, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Eye, ExternalLink, FileText, Layers3, Pencil, Plus, RefreshCw, Settings2, Trash2, X } from "lucide-react";
 import { Link } from "wouter";
 import {
-  getGetPlatformContentQueryKey, getListAdminSectionsQueryKey,
-  useCreateAdminSection, useDeleteAdminSection, useListAdminSections, useUpdateAdminSection,
+  getGetPlatformContentQueryKey, getListAdminSectionsQueryKey, getPreviewSectionMediaCleanupQueryKey,
+  useCleanupSectionMedia, useCreateAdminSection, useDeleteAdminSection, useListAdminSections, usePreviewSectionMediaCleanup, useUpdateAdminSection,
 } from "@workspace/api-client-react";
 import type { PlatformSection, SectionBlock, SectionCourse, SectionInput } from "@workspace/api-client-react";
 import { SectionContentBlockEditor } from "./SectionContentBlockEditor";
@@ -57,10 +57,20 @@ function errorText(error: unknown) {
   return "تعذّر إكمال العملية. حاول مرة أخرى.";
 }
 const formatDate = (value: string) => new Date(value).toLocaleDateString("ar", { year: "numeric", month: "short", day: "numeric" });
+const formatStorageSize = (bytes: number) => {
+  if (!bytes) return "0 بايت";
+  const units = ["بايت", "ك.ب", "م.ب", "ج.ب"];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 1 }).format(bytes / 1024 ** index)} ${units[index]}`;
+};
 
 export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSettings: () => void }) {
   const queryClient = useQueryClient();
   const query = useListAdminSections({ query: { queryKey: getListAdminSectionsQueryKey() } });
+  const [cleanupOpen, setCleanupOpen] = useState(false);
+  const cleanupPreview = usePreviewSectionMediaCleanup({ query: { enabled: cleanupOpen, staleTime: 0 } });
+  const cleanup = useCleanupSectionMedia();
+  const [cleanupResult, setCleanupResult] = useState<{ expiredUploads: number; deletedFiles: number; reclaimedBytes: number } | null>(null);
   const create = useCreateAdminSection();
   const update = useUpdateAdminSection();
   const remove = useDeleteAdminSection();
@@ -194,15 +204,50 @@ export function SectionsAdminPanel({ onOpenModuleSettings }: { onOpenModuleSetti
       onError: error => setDeleteError(errorText(error)),
     });
   };
+  const runCleanup = () => {
+    const preview = cleanupPreview.data;
+    if (!preview || cleanup.isPending || preview.expiredUploads + preview.orphanFiles === 0) return;
+    const confirmed = window.confirm(
+      `سيُحذف نهائيًا ${preview.orphanFiles} ملفًا و${preview.expiredUploads} سجل رفع غير مكتمل، بشرط مرور ${preview.retentionDays} يومًا على الأقل وعدم ارتباط الملفات بمحتوى محفوظ. المساحة المتوقّع استعادتها: ${formatStorageSize(preview.reclaimableBytes)}. لا يمكن استرجاع الملفات المحذوفة. هل تريد المتابعة؟`,
+    );
+    if (!confirmed) return;
+    cleanup.mutate(undefined, {
+      onSuccess: result => {
+        setCleanupResult(result);
+        void queryClient.invalidateQueries({ queryKey: getPreviewSectionMediaCleanupQueryKey() });
+      },
+    });
+  };
 
   return <section className="adm-sections-panel" aria-labelledby="adm-sections-title">
     <div className="adm-section-head">
       <div><h2 id="adm-sections-title">إدارة الأقسام ومحتواها</h2><p className="adm-note">أنشئ صفحات ووحدات، أو أضف محتوى للأقسام الأساسية، ثم انشر التغييرات للطلاب.</p></div>
       <div className="adm-user-actions">
+        <button type="button" className="button button-outline button-compact" data-testid="button-section-media-cleanup" disabled={Boolean(editing)} onClick={() => { setCleanupOpen(open => !open); setCleanupResult(null); }}><RefreshCw size={15}/> تنظيف المرفقات القديمة</button>
         <button type="button" className="button button-outline button-compact" disabled={Boolean(editing)} onClick={onOpenModuleSettings}><Settings2 size={15}/> الأقسام الأساسية</button>
         <button type="button" className="button button-primary button-compact" onClick={() => openEditor({ form: blankSection() })}><Plus size={15}/> قسم جديد</button>
       </div>
     </div>
+    {cleanupOpen && <aside className="adm-editor" aria-label="تنظيف مرفقات الأقسام" aria-live="polite">
+      <div className="adm-section-editor-title">
+        <div><h3>تنظيف آمن للتخزين</h3><p className="adm-note">نفحص مرفقات الأقسام غير المكتملة والملفات غير المرتبطة التي مرّ عليها 30 يومًا. المرفقات المستخدمة لا تُحذف.</p></div>
+        <button type="button" className="icon-button" aria-label="إغلاق تنظيف المرفقات" onClick={() => setCleanupOpen(false)}><X size={17}/></button>
+      </div>
+      {cleanupPreview.isPending && <p role="status">جارٍ فحص الملفات القديمة…</p>}
+      {cleanupPreview.isError && <p className="adm-form-error" role="alert">تعذّر فحص الملفات. أعد المحاولة.</p>}
+      {cleanupPreview.data && <div>
+        <p>ملفات غير مرتبطة أقدم من {cleanupPreview.data.retentionDays} يومًا: <b>{cleanupPreview.data.orphanFiles}</b></p>
+        <p>عمليات رفع غير مكتملة قديمة: <b>{cleanupPreview.data.expiredUploads}</b></p>
+        <p>المساحة المتوقع استعادتها: <b>{formatStorageSize(cleanupPreview.data.reclaimableBytes)}</b></p>
+        {cleanupPreview.data.expiredUploads + cleanupPreview.data.orphanFiles === 0
+          ? <p role="status">لا توجد ملفات قديمة مؤهلة للحذف.</p>
+          : <button type="button" className="button button-primary button-compact" disabled={cleanup.isPending} onClick={runCleanup} data-testid="button-confirm-section-media-cleanup">
+            {cleanup.isPending ? "جارٍ تنظيف الملفات…" : "احذف الملفات القديمة"}
+          </button>}
+      </div>}
+      {cleanup.isError && <p className="adm-form-error" role="alert">تعذّر إكمال التنظيف. أعد الفحص ثم حاول مرة أخرى.</p>}
+      {cleanupResult && <p role="status">اكتمل التنظيف: حُذف {cleanupResult.deletedFiles} ملف و{cleanupResult.expiredUploads} سجل رفع غير مكتمل، واستُعيدت {formatStorageSize(cleanupResult.reclaimedBytes)}.</p>}
+    </aside>}
     {rowError && <p className="adm-form-error" role="alert">{rowError}</p>}
     {editing && previewing && <SectionDraftPreview form={editing.form} onClose={() => setPreviewing(false)}/>}
     {editing && <form hidden={previewing} className="adm-editor adm-section-editor" onSubmit={submit} aria-label={editing.id ? "تعديل قسم" : "إنشاء قسم"}>

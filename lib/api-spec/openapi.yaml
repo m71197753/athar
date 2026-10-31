@@ -508,6 +508,26 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/SectionMediaUploadRequest" }
         "400": { description: Unsupported file or size }
+  /admin/section-media/cleanup-preview:
+    get:
+      operationId: previewSectionMediaCleanup
+      responses:
+        "200":
+          description: Count old unattached section uploads without exposing storage paths
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaCleanupPreview" }
+        "403": { description: Admin access required }
+  /admin/section-media/cleanup:
+    post:
+      operationId: cleanupSectionMedia
+      responses:
+        "200":
+          description: Remove eligible old unlinked section uploads
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaCleanupResult" }
+        "403": { description: Admin access required }
   /admin/section-media/uploads/{id}/confirm:
     post:
       operationId: confirmSectionMediaUpload
@@ -3271,6 +3291,24 @@ components:
       required: [url]
       properties:
         url: { type: string }
+    SectionMediaCleanupPreview:
+      type: object
+      additionalProperties: false
+      required: [retentionDays, expiredUploads, orphanFiles, reclaimableBytes]
+      properties:
+        retentionDays: { type: integer }
+        expiredUploads: { type: integer }
+        orphanFiles: { type: integer }
+        reclaimableBytes: { type: integer }
+    SectionMediaCleanupResult:
+      type: object
+      additionalProperties: false
+      required: [retentionDays, expiredUploads, deletedFiles, reclaimedBytes]
+      properties:
+        retentionDays: { type: integer }
+        expiredUploads: { type: integer }
+        deletedFiles: { type: integer }
+        reclaimedBytes: { type: integer }
     ContentInput:
       type: object
       additionalProperties: false

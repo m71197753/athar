@@ -15,11 +15,13 @@ import {
   GetAdminOverviewDetailsQueryParams, GetAdminOverviewDetailsResponse,
   RequestSectionMediaUploadBody, RequestSectionMediaUploadResponse,
   ConfirmSectionMediaUploadParams, ConfirmSectionMediaUploadResponse,
+  PreviewSectionMediaCleanupResponse, CleanupSectionMediaResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
 import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
+import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
 import { validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
@@ -490,6 +492,14 @@ router.post("/admin/section-media/uploads", async (req, res) => {
   res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json(RequestSectionMediaUploadResponse.parse({ id: asset.id, uploadUrl, resumable }));
 });
+router.get("/admin/section-media/cleanup-preview", async (_req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(PreviewSectionMediaCleanupResponse.parse(await previewSectionMediaCleanup()));
+});
+router.post("/admin/section-media/cleanup", async (_req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(CleanupSectionMediaResponse.parse(await cleanupSectionMedia()));
+});
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const params = ConfirmSectionMediaUploadParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid upload identifier" }); return; }
@@ -505,8 +515,16 @@ router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   if (asset.status !== "uploading") { res.status(409).json({ error: "Upload is not pending" }); return; }
   const confirmedPath = await validateUploadedAsset(asset.objectPath, asset.mime, asset.size, null);
   if (!confirmedPath) { res.status(400).json({ error: "Uploaded file failed type or size verification" }); return; }
-  await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
-    .where(eq(platformMediaAssetsTable.id, asset.id));
+  const [confirmed] = await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
+    .where(and(eq(platformMediaAssetsTable.id, asset.id), eq(platformMediaAssetsTable.status, "uploading")))
+    .returning({ id: platformMediaAssetsTable.id });
+  if (!confirmed) {
+    await assetFile(confirmedPath).delete({ ignoreNotFound: true }).catch(() => {});
+    res.status(409).json({ error: "Upload expired or was removed. Please upload the file again." }); return;
+  }
+  await assetFile(asset.objectPath).delete({ ignoreNotFound: true }).catch(() => {
+    req.log.warn({ assetId: asset.id }, "Could not remove confirmed upload source");
+  });
   await db.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "section-media.upload-confirm", target: asset.id });
   res.json(ConfirmSectionMediaUploadResponse.parse({ url: sectionMediaUrl(asset.id) }));
 });

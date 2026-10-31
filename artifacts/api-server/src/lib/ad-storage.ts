@@ -42,6 +42,16 @@ export async function createResumableSectionUpload(mime: string, origin?: string
   });
   return { objectPath, uploadUrl };
 }
+export async function listSectionAssetObjects() {
+  const base = process.env.PRIVATE_OBJECT_DIR;
+  if (!base) throw new Error("App Storage is not configured");
+  const parts = base.replace(/^\/+|\/+$/g, "").split("/");
+  const bucketName = parts.shift();
+  if (!bucketName || parts.length === 0) throw new Error("App Storage private path is invalid");
+  const bucket = storage.bucket(bucketName);
+  const [files] = await bucket.getFiles({ prefix: `${parts.join("/")}/section-assets/`, autoPaginate: true });
+  return files.map(file => ({ objectPath: `${bucketName}/${file.name}`, file }));
+}
 export async function validateUploadedAsset(path: string, mime: string, expectedSize: number, maxBytes: number | null = null) {
   if (!Number.isSafeInteger(expectedSize) || expectedSize < 1) return null;
   const file = assetFile(path);

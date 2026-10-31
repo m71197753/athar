@@ -1736,6 +1736,22 @@ export const RequestSectionMediaUploadResponse = zod.object({
 })
 
 
+export const PreviewSectionMediaCleanupResponse = zod.object({
+  "retentionDays": zod.number().int(),
+  "expiredUploads": zod.number().int(),
+  "orphanFiles": zod.number().int(),
+  "reclaimableBytes": zod.number().int()
+})
+
+
+export const CleanupSectionMediaResponse = zod.object({
+  "retentionDays": zod.number().int(),
+  "expiredUploads": zod.number().int(),
+  "deletedFiles": zod.number().int(),
+  "reclaimedBytes": zod.number().int()
+})
+
+
 export const ConfirmSectionMediaUploadParams = zod.object({
   "id": zod.coerce.string().uuid()
 })
