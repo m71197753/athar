@@ -534,10 +534,16 @@ function AuditPanel() {
     {q.data.items.length === 0 ? <Empty title="السجل فارغ" body="ستظهر هنا كل عملية إدارية فور تنفيذها."/> : <>
       <ol className="adm-audit">{q.data.items.map(a => {
         const isMediaCleanup = a.action === 'section-media.cleanup';
+        const evidenceActionLabels: Record<string, string> = {
+          'achievement_evidence.view': 'مراجعة دليل إنجاز',
+          'achievement_evidence.preview': 'معاينة مرفق إنجاز',
+          'achievement_evidence.download': 'تنزيل مرفق إنجاز',
+        };
+        const evidenceAction = evidenceActionLabels[a.action];
         return <li key={a.id}>
           <time>{fmtDate(a.createdAt)}</time>
-          <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : <span dir="ltr">{a.action}</span>}</b>
-          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
+          <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : evidenceAction ?? <span dir="ltr">{a.action}</span>}</b>
+          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : evidenceAction ? <>المرفق: <code dir="ltr">{a.target}</code></> : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
           <small>المنفّذ: {a.actorId === 'system:scheduled-section-media-cleanup' ? 'التنظيف الدوري' : <code dir="ltr">{a.actorId}</code>}</small>
         </li>;
       })}</ol>

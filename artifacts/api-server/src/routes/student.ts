@@ -49,6 +49,7 @@ import {
   validateAcademyUpload,
 } from "../lib/academy-storage";
 import { canReadAchievementEvidence, ownsAchievement } from "../lib/achievement-access";
+import { recordAchievementEvidenceAccess } from "../lib/achievement-evidence-audit";
 
 const router: IRouter = Router();
 const categories = [
@@ -557,7 +558,10 @@ router.post(
 );
 
 router.get(
-  "/achievements/:id/attachments/:attachmentId/download",
+  [
+    "/achievements/:id/attachments/:attachmentId/download",
+    "/achievements/:id/attachments/:attachmentId/preview",
+  ],
   requireAuth,
   async (req, res): Promise<void> => {
     const params = DownloadAchievementAttachmentParams.safeParse(req.params);
@@ -583,6 +587,21 @@ router.get(
     if (!attachment?.objectPath || !attachment.mime || !attachment.originalName) {
       res.status(404).json({ error: "Attachment not found" });
       return;
+    }
+
+    const accessMode = req.path.replace(/\/+$/, "").endsWith("/preview") ? "preview" : "download";
+    if (String(res.locals.role ?? "") === "admin") {
+      try {
+        await recordAchievementEvidenceAccess(
+          userId,
+          attachment.id,
+          accessMode === "preview" ? "achievement_evidence.preview" : "achievement_evidence.download",
+        );
+      } catch (error) {
+        req.log.error({ err: error, attachmentId: attachment.id }, "Unable to record administrator evidence file access");
+        res.status(503).json({ error: "تعذّر تسجيل الوصول إلى الملف، لم يتم عرضه." });
+        return;
+      }
     }
 
     if (isAcademyVideoMime(attachment.mime) && attachment.size) {

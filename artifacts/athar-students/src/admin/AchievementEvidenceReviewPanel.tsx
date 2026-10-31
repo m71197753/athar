@@ -19,6 +19,18 @@ const safeDownloadUrl = (value: string) => {
   }
   return null;
 };
+const accessUrl = (value: string, access: 'preview' | 'download') => {
+  const safe = safeDownloadUrl(value);
+  if (!safe) return null;
+  try {
+    const url = new URL(safe, window.location.origin);
+    if (!url.pathname.endsWith('/download')) return null;
+    if (access === 'preview') url.pathname = `${url.pathname.slice(0, -'download'.length)}preview`;
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return null;
+  }
+};
 const formatDate = (value: string) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'تاريخ غير متاح' : date.toLocaleString('ar', { dateStyle: 'medium', timeStyle: 'short' });
@@ -37,7 +49,10 @@ const isVideo = (item: AdminAchievementEvidenceItem) => ['video/mp4', 'video/web
 
 function EvidenceCard({ item, onPreview }: { item: AdminAchievementEvidenceItem; onPreview: (item: AdminAchievementEvidenceItem) => void }) {
   const pending = isPending(item);
-  const downloadUrl = !pending && item.downloadUrl ? safeDownloadUrl(item.downloadUrl) : null;
+  const rawDownloadUrl = !pending ? item.downloadUrl : null;
+  const downloadUrl = rawDownloadUrl ? accessUrl(rawDownloadUrl, 'download') : null;
+  const previewable = isImage(item) || isVideo(item) || ['application/pdf', 'text/plain'].includes(item.mime?.toLowerCase() ?? '');
+  const previewUrl = rawDownloadUrl && previewable ? accessUrl(rawDownloadUrl, 'preview') : null;
   const file = Boolean(item.mime || item.originalName || item.downloadUrl);
   const link = !file && item.url && isHttpUrl(item.url) ? item.url : null;
   const size = formatSize(item.size);
@@ -69,9 +84,11 @@ function EvidenceCard({ item, onPreview }: { item: AdminAchievementEvidenceItem;
         {pending ? <span className="adm-evidence-pending-note">لن يتاح الملف قبل اكتمال الرفع</span>
           : downloadUrl && (isImage(item) || isVideo(item))
             ? <div className="adm-evidence-actions"><button type="button" className="button button-outline button-compact" onClick={() => onPreview(item)} aria-label={`معاينة ${item.originalName || item.title}`} data-testid={`button-preview-evidence-${item.id}`}>معاينة</button><a className="button button-outline button-compact adm-evidence-open" href={downloadUrl} download={item.originalName || undefined} aria-label={`تنزيل ${item.originalName || item.title}`} data-testid={`link-download-evidence-${item.id}`}><Download size={14}/> تنزيل</a></div>
-            : downloadUrl
-              ? <div className="adm-evidence-actions"><a className="button button-outline button-compact adm-evidence-open" href={downloadUrl} target="_blank" rel="noopener noreferrer" aria-label={`فتح ${item.originalName || item.title}`} data-testid={`link-open-evidence-${item.id}`}><ExternalLink size={14}/> فتح الملف</a><a className="button button-outline button-compact adm-evidence-open" href={downloadUrl} download={item.originalName || undefined} aria-label={`تنزيل ${item.originalName || item.title}`} data-testid={`link-download-evidence-${item.id}`}><Download size={14}/> تنزيل</a></div>
-              : <span className="adm-evidence-pending-note">الملف غير متاح حالياً</span>}
+            : downloadUrl && previewUrl
+              ? <div className="adm-evidence-actions"><a className="button button-outline button-compact adm-evidence-open" href={previewUrl} target="_blank" rel="noopener noreferrer" aria-label={`فتح ${item.originalName || item.title}`} data-testid={`link-open-evidence-${item.id}`}><ExternalLink size={14}/> فتح الملف</a><a className="button button-outline button-compact adm-evidence-open" href={downloadUrl} download={item.originalName || undefined} aria-label={`تنزيل ${item.originalName || item.title}`} data-testid={`link-download-evidence-${item.id}`}><Download size={14}/> تنزيل</a></div>
+              : downloadUrl
+                ? <div className="adm-evidence-actions"><a className="button button-outline button-compact adm-evidence-open" href={downloadUrl} download={item.originalName || undefined} aria-label={`تنزيل ${item.originalName || item.title}`} data-testid={`link-download-evidence-${item.id}`}><Download size={14}/> تنزيل</a></div>
+                : <span className="adm-evidence-pending-note">الملف غير متاح حالياً</span>}
       </div>}
       {!item.content && !link && !file && <p className="adm-evidence-no-content">لا يتوفر محتوى إضافي لهذا الدليل.</p>}
     </div>
@@ -79,13 +96,14 @@ function EvidenceCard({ item, onPreview }: { item: AdminAchievementEvidenceItem;
 }
 
 function PreviewDialog({ item, onClose }: { item: AdminAchievementEvidenceItem; onClose: () => void }) {
-  const src = item.downloadUrl ? safeDownloadUrl(item.downloadUrl) : null;
+  const src = item.downloadUrl ? accessUrl(item.downloadUrl, 'preview') : null;
+  const downloadUrl = item.downloadUrl ? accessUrl(item.downloadUrl, 'download') : null;
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [onClose]);
-  if (!src) return null;
+  if (!src || !downloadUrl) return null;
   const close = () => onClose();
   return <div className="adm-evidence-preview-scrim" onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
     <section className="adm-evidence-preview" role="dialog" aria-modal="true" aria-labelledby="adm-evidence-preview-title" dir="rtl">
@@ -96,7 +114,7 @@ function PreviewDialog({ item, onClose }: { item: AdminAchievementEvidenceItem; 
           : isVideo(item) ? <video src={src} controls playsInline preload="metadata" aria-label={`معاينة الفيديو: ${item.originalName || item.title}`}>يتعذر تشغيل هذا الفيديو في المتصفح.</video>
             : <p>نوع الملف غير مدعوم للمعاينة.</p>}
       </div>
-      <footer><a href={src} target="_blank" rel="noopener noreferrer" className="button button-outline button-compact"><ExternalLink size={14}/> فتح الملف</a><a href={src} download={item.originalName || undefined} className="button button-outline button-compact"><Download size={14}/> تنزيل</a></footer>
+      <footer><a href={src} target="_blank" rel="noopener noreferrer" className="button button-outline button-compact"><ExternalLink size={14}/> فتح الملف</a><a href={downloadUrl} download={item.originalName || undefined} className="button button-outline button-compact"><Download size={14}/> تنزيل</a></footer>
     </section>
   </div>;
 }

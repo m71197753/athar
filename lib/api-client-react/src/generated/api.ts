@@ -7110,7 +7110,7 @@ export const getDownloadAchievementAttachmentUrl = (id: string,
 }
 
 /**
- * @summary Stream private achievement evidence to its owner
+ * @summary Stream private achievement evidence to its owner or an administrator
  */
 export const downloadAchievementAttachment = async (id: string,
     attachmentId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
@@ -7187,7 +7187,7 @@ export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<type
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Stream private achievement evidence to its owner
+ * @summary Stream private achievement evidence to its owner or an administrator
  */
 
 export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<typeof downloadAchievementAttachment>>, TError = ErrorType<void>>(
@@ -7197,6 +7197,115 @@ export function useDownloadAchievementAttachment<TData = Awaited<ReturnType<type
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadAchievementAttachmentQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPreviewAchievementAttachmentUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/achievements/${id}/attachments/${attachmentId}/preview`
+}
+
+/**
+ * @summary Preview private achievement evidence for its owner or an administrator
+ */
+export const previewAchievementAttachment = async (id: string,
+    attachmentId: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getPreviewAchievementAttachmentUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewAchievementAttachmentQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/achievements/${id}/attachments/${attachmentId}/preview`
+    ] as const;
+    }
+
+
+export const getPreviewAchievementAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof previewAchievementAttachment>>, TError = ErrorType<void>>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewAchievementAttachmentQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewAchievementAttachment>>> = ({ signal }) => previewAchievementAttachment(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreviewAchievementAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof previewAchievementAttachment>>>
+export type PreviewAchievementAttachmentQueryError = ErrorType<void>
+
+
+export function usePreviewAchievementAttachment<TData = Awaited<ReturnType<typeof previewAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewAchievementAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof previewAchievementAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewAchievementAttachment<TData = Awaited<ReturnType<typeof previewAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewAchievementAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof previewAchievementAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewAchievementAttachment<TData = Awaited<ReturnType<typeof previewAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Preview private achievement evidence for its owner or an administrator
+ */
+
+export function usePreviewAchievementAttachment<TData = Awaited<ReturnType<typeof previewAchievementAttachment>>, TError = ErrorType<void>>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewAchievementAttachment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreviewAchievementAttachmentQueryOptions(id,attachmentId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

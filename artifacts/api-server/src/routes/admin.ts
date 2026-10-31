@@ -24,6 +24,7 @@ import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings
 import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
 import { recordSectionMediaCleanupAudit } from "../lib/section-media-cleanup-audit";
+import { achievementEvidenceAuditEntry } from "../lib/achievement-evidence-audit";
 import { notifyAdminsOfSectionMediaCleanupIssue } from "../lib/section-media-cleanup-notifications";
 import { MAX_COURSE_MATERIALS, validCourseMaterials, validCourseUnits } from "../lib/section-course-units";
 
@@ -204,6 +205,22 @@ router.get("/admin/achievement-evidence", async (req, res): Promise<void> => {
       .offset((page - 1) * PAGE_SIZE),
     filteredCount,
   ]);
+
+  if (rows.length) {
+    try {
+      await db.insert(adminAuditTable).values(rows.map(row =>
+        achievementEvidenceAuditEntry(
+          res.locals.userId as string,
+          row.id,
+          "achievement_evidence.view",
+        ),
+      ));
+    } catch (error) {
+      req.log.error({ err: error }, "Unable to record administrator evidence review");
+      res.status(503).json({ error: "تعذّر تسجيل مراجعة الأدلة، لم يتم عرضها." });
+      return;
+    }
+  }
 
   res.setHeader("Cache-Control", "private, no-store");
   res.json(ListAdminAchievementEvidenceResponse.parse({

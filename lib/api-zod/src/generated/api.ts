@@ -4031,7 +4031,7 @@ export const ConfirmAchievementAttachmentUploadResponse = zod.object({
 
 
 /**
- * @summary Stream private achievement evidence to its owner
+ * @summary Stream private achievement evidence to its owner or an administrator
  */
 export const DownloadAchievementAttachmentParams = zod.object({
   "id": zod.coerce.string().uuid(),
@@ -4043,6 +4043,21 @@ export const DownloadAchievementAttachmentHeader = zod.object({
 })
 
 export const DownloadAchievementAttachmentResponse = zod.unknown()
+
+
+/**
+ * @summary Preview private achievement evidence for its owner or an administrator
+ */
+export const PreviewAchievementAttachmentParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "attachmentId": zod.coerce.string().uuid()
+})
+
+export const PreviewAchievementAttachmentHeader = zod.object({
+  "Range": zod.string().optional()
+})
+
+export const PreviewAchievementAttachmentResponse = zod.unknown()
 
 
 /**

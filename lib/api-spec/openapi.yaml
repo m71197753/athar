@@ -1260,9 +1260,43 @@ paths:
           content:
             application/octet-stream:
               schema: { type: string, format: binary }
+        "503": { description: "The access audit could not be recorded, so content was not served" }
         "401": { description: Authentication required }
         "404": { description: Attachment not found }
         "416": { description: Invalid byte range }
+  /achievements/{id}/attachments/{attachmentId}/preview:
+    get:
+      operationId: previewAchievementAttachment
+      tags: [student]
+      summary: Preview private achievement evidence for its owner or an administrator
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Range
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Private attachment content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+        "416": { description: Invalid byte range }
+        "503": { description: "Access audit unavailable, private content not served" }
   /achievements/{id}/attachments/{attachmentId}:
     delete:
       operationId: deleteAchievementAttachment
