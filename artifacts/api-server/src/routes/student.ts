@@ -48,6 +48,7 @@ import {
   streamAcademyAsset,
   validateAcademyUpload,
 } from "../lib/academy-storage";
+import { ownsAchievement } from "../lib/achievement-access";
 
 const router: IRouter = Router();
 const categories = [
@@ -85,15 +86,6 @@ function toAchievementAttachment(row: typeof achievementAttachmentsTable.$inferS
       : null,
     createdAt: row.createdAt.toISOString(),
   };
-}
-
-async function ownsAchievement(achievementId: string, userId: string): Promise<boolean> {
-  const [row] = await db
-    .select({ id: achievementsTable.id })
-    .from(achievementsTable)
-    .where(and(eq(achievementsTable.id, achievementId), eq(achievementsTable.userId, userId)))
-    .limit(1);
-  return Boolean(row);
 }
 
 function streamAchievementVideo(
