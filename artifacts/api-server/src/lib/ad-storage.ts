@@ -32,6 +32,16 @@ export async function createAssetUpload(folder = "ad-assets", expiresInMs = 2 * 
   const { signed_url } = await response.json() as { signed_url: string };
   return { objectPath, uploadUrl: String(signed_url) };
 }
+export async function createResumableSectionUpload(mime: string, origin?: string) {
+  const base = process.env.PRIVATE_OBJECT_DIR;
+  if (!base) throw new Error("App Storage is not configured");
+  const objectPath = `${base.replace(/\/$/, "")}/section-assets/${randomUUID()}`;
+  const [uploadUrl] = await assetFile(objectPath).createResumableUpload({
+    metadata: { contentType: mime },
+    ...(origin ? { origin } : {}),
+  });
+  return { objectPath, uploadUrl };
+}
 export async function validateUploadedAsset(path: string, mime: string, expectedSize: number, maxBytes: number | null = null) {
   if (!Number.isSafeInteger(expectedSize) || expectedSize < 1) return null;
   const file = assetFile(path);

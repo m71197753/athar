@@ -1719,12 +1719,14 @@ export const requestSectionMediaUploadBodyOriginalNameMax = 240;
 export const RequestSectionMediaUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestSectionMediaUploadBodyOriginalNameMax),
   "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/webm', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']),
-  "size": zod.number().int().min(1)
+  "size": zod.number().int().min(1),
+  "resumable": zod.boolean().optional().describe('Request a resumable direct-to-storage upload session')
 })
 
 export const RequestSectionMediaUploadResponse = zod.object({
   "id": zod.string().uuid(),
-  "uploadUrl": zod.string().url()
+  "uploadUrl": zod.string().url(),
+  "resumable": zod.boolean().optional()
 })
 
 

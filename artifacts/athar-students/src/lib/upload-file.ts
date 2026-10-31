@@ -1,10 +1,15 @@
+import { uploadResumableFile, type UploadOptions } from "./resumable-upload";
+export { UploadSessionExpiredError } from "./resumable-upload";
+
 /** Direct-to-storage upload; only metadata passes through the app server. */
 export function uploadFile(
   url: string,
   file: File,
   mime: string,
   onProgress: (percentage: number) => void,
+  options: UploadOptions = {},
 ): Promise<void> {
+  if (options.resumable) return uploadResumableFile(url, file, mime, onProgress, options);
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open("PUT", url);

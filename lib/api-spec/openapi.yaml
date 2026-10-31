@@ -3226,6 +3226,7 @@ components:
           type: string
           enum: [image/jpeg, image/png, image/webp, image/gif, audio/mpeg, audio/mp4, audio/wav, audio/ogg, audio/webm, video/mp4, video/webm, application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain]
         size: { type: integer, minimum: 1 }
+        resumable: { type: boolean, description: Request a resumable direct-to-storage upload session }
     SectionMediaUploadRequest:
       type: object
       additionalProperties: false
@@ -3233,6 +3234,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         uploadUrl: { type: string, format: uri }
+        resumable: { type: boolean }
     SectionMediaUploadResult:
       type: object
       additionalProperties: false

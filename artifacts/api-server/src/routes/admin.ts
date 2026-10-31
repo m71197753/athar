@@ -19,7 +19,7 @@ import {
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
-import { assetFile, createAssetUpload, validateUploadedAsset } from "../lib/ad-storage";
+import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
@@ -478,12 +478,16 @@ router.post("/admin/section-media/uploads", async (req, res) => {
   }
   const mime = input.data.mime;
   const originalName = input.data.originalName.replace(/[\u0000-\u001f\u007f/\\]/g, " ").trim().slice(0, 240) || "attachment";
-  const { objectPath, uploadUrl } = await createAssetUpload("section-assets", 2 * 60 * 60 * 1000);
+  const resumable = input.data.resumable === true;
+  const { objectPath, uploadUrl } = resumable
+    ? await createResumableSectionUpload(mime, req.get("origin"))
+    : await createAssetUpload("section-assets", 2 * 60 * 60 * 1000);
   const [asset] = await db.insert(platformMediaAssetsTable).values({
     ownerId: res.locals.userId, originalName, mime, size: input.data.size, objectPath, status: "uploading",
   }).returning();
   await db.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "section-media.upload-request", target: asset.id });
-  res.status(201).json(RequestSectionMediaUploadResponse.parse({ id: asset.id, uploadUrl }));
+  res.setHeader("Cache-Control", "private, no-store");
+  res.status(201).json(RequestSectionMediaUploadResponse.parse({ id: asset.id, uploadUrl, resumable }));
 });
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const params = ConfirmSectionMediaUploadParams.safeParse(req.params);
@@ -491,9 +495,13 @@ router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const [asset] = await db.select().from(platformMediaAssetsTable).where(and(
     eq(platformMediaAssetsTable.id, params.data.id),
     eq(platformMediaAssetsTable.ownerId, res.locals.userId),
-    eq(platformMediaAssetsTable.status, "uploading"),
   ));
   if (!asset) { res.status(404).json({ error: "Upload not found" }); return; }
+  if (asset.status === "ready") {
+    res.json(ConfirmSectionMediaUploadResponse.parse({ url: sectionMediaUrl(asset.id) }));
+    return;
+  }
+  if (asset.status !== "uploading") { res.status(409).json({ error: "Upload is not pending" }); return; }
   const confirmedPath = await validateUploadedAsset(asset.objectPath, asset.mime, asset.size, null);
   if (!confirmedPath) { res.status(400).json({ error: "Uploaded file failed type or size verification" }); return; }
   await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
