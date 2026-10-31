@@ -70,3 +70,10 @@ mtime_ms = 1793293054923
 storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/a5b34a29-289b-41ab-82dc-b3228e2a0d12/6b1b3940-bb27-4381-be33-d5f09eecd658"
 storage_version_token = "1793293081286247"
 content_type = "text/plain"
+
+[[outputs]]
+id = "eW1flNBZWOaUqridU_Zmm"
+uri = "file://artifacts/athar-animated-presentation/public/audio/bg_music.mp3"
+type = "audio"
+title = "background music"
+description = "Generated music: Cinematic uplifting modern instrumental for an Arabic education platform presentation film. Soft oud-like plucks, warm piano, light percussion and strings, 100 BPM, hopeful and confi…"
