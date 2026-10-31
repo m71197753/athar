@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { CheckCircle2, Download, ExternalLink, EyeOff, FolderOpen, X } from "lucide-react";
 import type { SectionBlock, SectionInput } from "@workspace/api-client-react";
 import { getSectionAccent, getSectionIcon } from "../lib/section-appearance";
-import { adminPreviewMediaUrl, groupCourseMaterials, safeSectionLink, type IndexedLesson } from "../lib/section-units";
+import { adminPreviewMediaUrl, groupCourseMaterials, safeSectionLink, versionedVideoStreamUrl, type IndexedLesson } from "../lib/section-units";
 import "../sections/custom-sections.css";
 import "./section-builder.css";
 
@@ -18,7 +18,7 @@ function PreviewBlock({ block, heading }: { block: SectionBlock; heading: "h3" |
       <H>{title}</H>{block.body && <p>{block.body}</p>}
       {!src ? <p className="sb-ph sb-ph-box">لم يُرفع ملف بعد</p>
         : block.mediaType === "image" ? <img src={src} alt={block.title} loading="lazy"/>
-        : block.mediaType === "video" ? <video src={src} controls playsInline preload="metadata"/>
+        : block.mediaType === "video" ? <video src={versionedVideoStreamUrl(src)} controls playsInline preload="metadata"/>
         : block.mediaType === "audio" ? <audio src={src} controls preload="metadata"/>
         : <div className="tracked-section-document"><iframe src={`${src}?preview=1`} title={`معاينة ${block.title}`} loading="lazy"/><a href={src} target="_blank" rel="noopener noreferrer"><Download size={16}/> فتح الملف</a></div>}
     </section>;

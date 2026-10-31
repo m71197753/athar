@@ -4,7 +4,7 @@ import { RequiredMark } from "../components/RequiredMark";
 import { useConfirmSectionMediaUpload, useRequestSectionMediaUpload } from "@workspace/api-client-react";
 import type { SectionBlock, SectionMediaUploadInput, SectionMediaUploadRequest } from "@workspace/api-client-react";
 import { uploadFile, UploadSessionExpiredError } from "../lib/upload-file";
-import { adminPreviewMediaUrl } from "../lib/section-units";
+import { adminPreviewMediaUrl, versionedVideoStreamUrl } from "../lib/section-units";
 
 const acceptedMimeTypes = new Set<SectionMediaUploadInput["mime"]>([
   "image/jpeg", "image/png", "image/webp", "image/gif",
@@ -152,7 +152,7 @@ export function SectionContentBlockEditor({
       <small className="adm-upload-status">الرفع يدعم الاستكمال عند انقطاع الإنترنت. اترك الصفحة مفتوحة؛ إغلاقها أو تحديثها يتطلب إعادة اختيار الملف وبدء رفع جديد.</small>
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
       {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
-      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
+      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={versionedVideoStreamUrl(adminPreviewMediaUrl(block.url))} controls preload="metadata"/>}
        {block.url && block.mediaType === "file" && <button className="adm-media-file-link" type="button" onClick={() => setFilePreviewOpen(true)}><FileText size={16}/> معاينة داخل أثر</button>}
        {filePreviewOpen && block.url && block.mediaType === "file" && <div className="adm-inline-file-preview-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setFilePreviewOpen(false); }}>
          <section className="adm-inline-file-preview" role="dialog" aria-modal="true" aria-label={`معاينة ${block.title}`}>

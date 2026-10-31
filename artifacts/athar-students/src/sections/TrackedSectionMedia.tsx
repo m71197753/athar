@@ -9,6 +9,7 @@ import {
 import type { SectionMediaProgress } from "@workspace/api-client-react";
 import "./tracked-section-media.css";
 import { playbackSeconds, resumePosition } from "./media-playback";
+import { versionedVideoStreamUrl } from "../lib/section-units";
 
 type TrackedSectionMediaProps = {
   sectionSlug: string;
@@ -284,7 +285,7 @@ function TrackedMediaSession({
   return <div className="tracked-section-media" data-testid={`tracked-media-${mediaAssetId}`}>
     {mediaType === "video" && <video
       ref={element => { playerRef.current = element; }}
-      src={url}
+      src={versionedVideoStreamUrl(url)}
       controls
       playsInline
       preload="metadata"

@@ -22,6 +22,10 @@ export const adminPreviewMediaUrl = (url: string) => {
   return id ? `/api/admin/section-media/${id}/preview` : "";
 };
 
+/** New query versions bypass cached partial responses after media streaming changes. */
+export const versionedVideoStreamUrl = (url: string) =>
+  url ? `${url}${url.includes("?") ? "&" : "?"}mediaRevision=2` : "";
+
 export function safeSectionLink(value: string): string | undefined {
   try {
     const url = new URL(value);
