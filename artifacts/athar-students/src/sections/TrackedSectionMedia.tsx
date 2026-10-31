@@ -30,6 +30,13 @@ function formatTime(seconds: number) {
   return minutes ? `${minutes.toLocaleString("ar")} د ${remainder.toLocaleString("ar")} ث` : `${remainder.toLocaleString("ar")} ث`;
 }
 
+function playbackErrorMessage(code: number, mediaType: "audio" | "video" | "file") {
+  const mediaName = mediaType === "audio" ? "الصوت" : "الفيديو";
+  if (code === 2) return `تعذّر تحميل ${mediaName}. تحقق من اتصال الإنترنت ثم أعد المحاولة.`;
+  if (code === 3 || code === 4) return "المتصفح لم يتمكن من تشغيل صيغة الملف أو ترميزه. جرّب تنزيله أو رفعه بصيغة متوافقة.";
+  return `تعذّر تشغيل ${mediaName}. أعد المحاولة أو نزّل الملف لمشاهدته على جهازك.`;
+}
+
 export function TrackedSectionMedia(props: TrackedSectionMediaProps) {
   // A replacement/reordered lesson must never inherit another file's counters.
   return <TrackedMediaSession
@@ -63,6 +70,7 @@ function TrackedMediaSession({
   const [watchedSeconds, setWatchedSeconds] = useState(savedProgress?.watchedSeconds ?? 0);
   const [durationSeconds, setDurationSeconds] = useState(savedProgress?.durationSeconds ?? 0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackError, setPlaybackError] = useState<number | null>(null);
 
   useEffect(() => {
     if (savedProgress) {
@@ -235,6 +243,13 @@ function TrackedMediaSession({
   };
 
   const playerEvents = {
+    onError: (event: SyntheticEvent<HTMLMediaElement>) => {
+      const player = event.currentTarget;
+      trackingRef.current = false;
+      setIsPlaying(false);
+      setPlaybackError(player.error?.code ?? 0);
+    },
+    onCanPlay: () => setPlaybackError(null),
     onPlay: (event: SyntheticEvent<HTMLMediaElement>) => {
       applyResumePosition();
       const player = event.currentTarget;
@@ -261,11 +276,16 @@ function TrackedMediaSession({
     : mediaType === "video" ? <Video size={16} aria-hidden="true"/>
       : <FileText size={16} aria-hidden="true"/>;
 
+  const retryPlayback = () => {
+    setPlaybackError(null);
+    playerRef.current?.load();
+  };
+
   return <div className="tracked-section-media" data-testid={`tracked-media-${mediaAssetId}`}>
     {mediaType === "video" && <video
       ref={element => { playerRef.current = element; }}
       src={url}
-      controls={progressReady}
+      controls
       playsInline
       preload="metadata"
       aria-label={`مشاهدة ${title}`}
@@ -274,7 +294,7 @@ function TrackedMediaSession({
     {mediaType === "audio" && <audio
       ref={element => { playerRef.current = element; }}
       src={url}
-      controls={progressReady}
+      controls
       preload="metadata"
       aria-label={`الاستماع إلى ${title}`}
       {...playerEvents}
@@ -287,6 +307,11 @@ function TrackedMediaSession({
       {!progressReady && mediaType !== "file" && (progressError
         ? <span>تعذّر تحميل موضعك السابق. {onRetryProgress && <button type="button" onClick={onRetryProgress}>إعادة المحاولة</button>}</span>
         : <span>جارٍ تحميل موضع التشغيل…</span>)}
+      {playbackError !== null && mediaType !== "file" && <span className="tracked-section-media-error" role="alert">
+        {playbackErrorMessage(playbackError, mediaType)}
+        <button type="button" onClick={retryPlayback}>إعادة المحاولة</button>
+        <a href={url} download>تنزيل {mediaType === "audio" ? "الصوت" : "الفيديو"}</a>
+      </span>}
       <span className="tracked-section-media-kind">{mediaIcon}{mediaType === "audio" ? "استماع" : mediaType === "video" ? "مشاهدة" : "مرفق"}</span>
       {mediaType !== "file" && <span>وقت التعلّم المسجل: {formatTime(watchedSeconds)}{durationSeconds > 0 ? ` من ${formatTime(durationSeconds)}` : ""}</span>}
       {resumedAt > 0 && <span data-testid={`media-resumed-${mediaAssetId}`}>استُعيد موضعك عند {formatTime(resumedAt)}</span>}
