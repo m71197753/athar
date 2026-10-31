@@ -9,7 +9,7 @@ export const PAPER = '#f6f3ec';
 export const GOLD = '#b8893a';
 export const MUTED = '#4b5468';
 
-export function Title({ text, delay = 0.3, color = NAVY, size = 5.6 }: { text: string; delay?: number; color?: string; size?: number }) {
+export function Title({ text, delay = 0.3, color = NAVY, size = 6.2 }: { text: string; delay?: number; color?: string; size?: number }) {
   return (
     <div style={{ overflow: 'hidden', marginBlock: '-0.25em' }}>
       <motion.h1 className="disp" initial={{ y: '105%' }} animate={{ y: 0 }} transition={{ delay, duration: 0.8, ease: EASE }}
@@ -26,9 +26,9 @@ export function Rule({ delay = 0.8, width = '18%' }: { delay?: number; width?: s
 export function Line({ children, delay, color = NAVY, n }: { children: ReactNode; delay: number; color?: string; n?: number }) {
   return (
     <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay, duration: 0.6, ease: EASE }}
-      style={{ display: 'flex', alignItems: 'baseline', gap: '1.8vmin', fontSize: '3.1vmin', fontWeight: 500, color, lineHeight: 1.5,
-        paddingBlock: '1.3vmin', borderBottom: '0.15vmin solid rgba(20,33,61,.12)' }}>
-      <span style={{ color: GOLD, fontWeight: 600, fontSize: '2.4vmin', minWidth: '3vmin' }}>{n !== undefined ? `٠${'١٢٣٤٥'[n]}` : '•'}</span>
+      style={{ display: 'flex', alignItems: 'baseline', gap: '1.8vmin', fontSize: '3.5vmin', fontWeight: 500, color, lineHeight: 1.5,
+        paddingBlock: '1.1vmin', borderBottom: '0.15vmin solid rgba(20,33,61,.12)' }}>
+      <span style={{ color: GOLD, fontWeight: 600, fontSize: '2.7vmin', minWidth: '3vmin' }}>{n !== undefined ? `٠${'١٢٣٤٥'[n]}` : '•'}</span>
       <span>{children}</span>
     </motion.div>
   );
@@ -54,7 +54,7 @@ export function Frame({ num, section, children, dark = false }: { num: string; s
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6 }}
         style={{ position: 'absolute', top: '5%', right: '6%', left: '6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           borderBottom: `0.15vmin solid ${dark ? 'rgba(246,243,236,.2)' : 'rgba(20,33,61,.15)'}`, paddingBottom: '1.6vmin' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2vmin', color: fg, fontSize: '2.1vmin', fontWeight: 500 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2vmin', color: fg, fontSize: '2.4vmin', fontWeight: 500 }}>
           <img src={IMG('athar-wordmark-3d.png')} style={{ height: '5vmin' }} />
           <span>{section}</span>
         </div>
@@ -62,7 +62,7 @@ export function Frame({ num, section, children, dark = false }: { num: string; s
       </motion.div>
       {children}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }}
-        style={{ position: 'absolute', bottom: '5%', right: '6%', left: '6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: dark ? '#c3c8d4' : MUTED, fontSize: '1.9vmin' }}>
+        style={{ position: 'absolute', bottom: '5%', right: '6%', left: '6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: dark ? '#c3c8d4' : MUTED, fontSize: '2.1vmin' }}>
         <span>إعداد: محمد الجرايحي محمد الإمام · إشراف: Taha Mahmoud Metwally Nour El-Dein</span>
         <Logos height={2.6} dark={dark} />
       </motion.div>

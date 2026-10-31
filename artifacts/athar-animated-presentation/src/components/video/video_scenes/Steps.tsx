@@ -17,8 +17,8 @@ export function Steps() {
             className="disp" style={{ width: '10vmin', height: '10vmin', borderRadius: '50%', background: NAVY, color: '#f6f3ec', border: `0.4vmin solid ${GOLD}`,
               display: 'grid', placeItems: 'center', fontSize: '5vmin' }}>{'١٢٣٤'[i]}</motion.div>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.5 + i * 1.2, duration: 0.6, ease: EASE }}
-            style={{ fontSize: '2.9vmin', fontWeight: 600, color: NAVY, marginTop: '3vmin', lineHeight: 1.5 }}>{s}
-            <span style={{ display: 'block', color: MUTED, fontSize: '1.9vmin', fontWeight: 400, marginTop: '1vmin' }}>الخطوة {'١٢٣٤'[i]}</span></motion.p>
+            style={{ fontSize: '3.2vmin', fontWeight: 600, color: NAVY, marginTop: '3vmin', lineHeight: 1.5 }}>{s}
+            <span style={{ display: 'block', color: MUTED, fontSize: '2.1vmin', fontWeight: 400, marginTop: '1vmin' }}>الخطوة {'١٢٣٤'[i]}</span></motion.p>
         </div>
       ))}
     </Frame>

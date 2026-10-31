@@ -13,7 +13,7 @@ export function Thanks() {
         <motion.img src={IMG('athar-wordmark-3d.png')} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} style={{ height: '11vmin', display: 'block' }} />
         <Title text="شكرًا لكم" delay={0.6} size={12} color="#f6f3ec" />
         <Rule delay={1.2} width="26%" />
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4, duration: 0.7 }} style={{ fontSize: '3.4vmin', color: GOLD, margin: 0 }}>أثر | تعلّم، وثّق، وانطلق</motion.p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4, duration: 0.7 }} style={{ fontSize: '3.8vmin', color: GOLD, margin: 0 }}>أثر | تعلّم، وثّق، وانطلق</motion.p>
         <Credits delay={2} color="#f6f3ec" label="إعداد" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 0.7 }} style={{ marginTop: '4vmin' }}><Logos height={3.4} dark /></motion.div>
       </div>
