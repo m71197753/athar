@@ -13,3 +13,11 @@ export async function ownsAchievement(achievementId: string, userId: string): Pr
     .limit(1);
   return Boolean(row);
 }
+
+export async function canReadAchievementEvidence(
+  achievementId: string,
+  userId: string,
+  role: string,
+): Promise<boolean> {
+  return role === "admin" || ownsAchievement(achievementId, userId);
+}

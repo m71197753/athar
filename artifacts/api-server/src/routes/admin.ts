@@ -1,11 +1,11 @@
 import { Router, type IRouter, type RequestHandler } from "express";
 import { clerkClient } from "@clerk/express";
 import { randomUUID } from "node:crypto";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import mammoth from "mammoth";
 import {
   db, membershipsTable, adminAuditTable, platformContentTable, platformSettingsTable, platformSectionsTable,
-  platformMediaAssetsTable, studentsTable, achievementsTable, learningItemsTable, careerPlansTable, resumeSharesTable,
+  platformMediaAssetsTable, studentsTable, achievementsTable, achievementAttachmentsTable, learningItemsTable, careerPlansTable, resumeSharesTable,
 } from "@workspace/db";
 import {
   CreateAdminContentBody, UpdateAdminContentBody, UpdateAdminUserBody,
@@ -16,6 +16,7 @@ import {
   RequestSectionMediaUploadBody, RequestSectionMediaUploadResponse,
   ConfirmSectionMediaUploadParams, ConfirmSectionMediaUploadResponse,
   PreviewSectionMediaCleanupResponse, CleanupSectionMediaResponse,
+  ListAdminAchievementEvidenceQueryParams, ListAdminAchievementEvidenceResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
@@ -146,6 +147,91 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
 router.get("/platform/section-media/:id", serveSectionMedia);
 router.use("/admin", requireAuth, requireAdmin);
 router.get("/admin/section-media/:id/preview", serveSectionMedia);
+
+router.get("/admin/achievement-evidence", async (req, res): Promise<void> => {
+  const parsed = ListAdminAchievementEvidenceQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: "أدخل رقم صفحة أو عبارة بحث صحيحة." });
+    return;
+  }
+
+  const page = parsed.data.page;
+  const search = parsed.data.search?.trim().replace(/\s+/g, " ");
+  const pattern = search ? `%${search}%` : null;
+  const filter = pattern
+    ? or(
+        ilike(studentsTable.fullName, pattern),
+        ilike(studentsTable.university, pattern),
+        ilike(studentsTable.major, pattern),
+        ilike(achievementsTable.title, pattern),
+        ilike(achievementAttachmentsTable.title, pattern),
+        ilike(achievementAttachmentsTable.originalName, pattern),
+      )
+    : undefined;
+
+  const recordsQuery = db
+    .select({
+      id: achievementAttachmentsTable.id,
+      achievementId: achievementAttachmentsTable.achievementId,
+      studentName: studentsTable.fullName,
+      studentUniversity: studentsTable.university,
+      studentMajor: studentsTable.major,
+      achievementTitle: achievementsTable.title,
+      kind: achievementAttachmentsTable.kind,
+      title: achievementAttachmentsTable.title,
+      content: achievementAttachmentsTable.content,
+      url: achievementAttachmentsTable.url,
+      originalName: achievementAttachmentsTable.originalName,
+      mime: achievementAttachmentsTable.mime,
+      size: achievementAttachmentsTable.size,
+      status: achievementAttachmentsTable.status,
+      createdAt: achievementAttachmentsTable.createdAt,
+    })
+    .from(achievementAttachmentsTable)
+    .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
+    .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId));
+  const countQuery = db
+    .select({ total: count() })
+    .from(achievementAttachmentsTable)
+    .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
+    .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId));
+  const filteredRecords = filter ? recordsQuery.where(filter) : recordsQuery;
+  const filteredCount = filter ? countQuery.where(filter) : countQuery;
+  const [rows, countRows] = await Promise.all([
+    filteredRecords
+      .orderBy(desc(achievementAttachmentsTable.createdAt), desc(achievementAttachmentsTable.id))
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE),
+    filteredCount,
+  ]);
+
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(ListAdminAchievementEvidenceResponse.parse({
+    items: rows.map(row => ({
+      id: row.id,
+      achievementId: row.achievementId,
+      studentName: row.studentName ?? "طالب غير مسجل",
+      studentUniversity: row.studentUniversity ?? "",
+      studentMajor: row.studentMajor ?? "",
+      achievementTitle: row.achievementTitle,
+      kind: row.kind,
+      title: row.title,
+      content: row.content,
+      url: row.url,
+      originalName: row.originalName,
+      mime: row.mime,
+      size: row.size,
+      status: row.status,
+      downloadUrl: row.kind === "file" && row.status === "ready"
+        ? `/api/achievements/${row.achievementId}/attachments/${row.id}/download`
+        : null,
+      createdAt: row.createdAt.toISOString(),
+    })),
+    total: Number(countRows[0]?.total ?? 0),
+    page,
+    pageSize: PAGE_SIZE,
+  }));
+});
 
 router.get("/admin/overview", async (_req, res) => {
   const [accounts, students, achievements, learningItems, careerPlans, activeShares, admins, suspended] = await Promise.all([

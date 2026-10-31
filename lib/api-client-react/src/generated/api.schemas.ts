@@ -555,6 +555,41 @@ export interface AdminOverviewDetails {
   pageSize: number;
 }
 
+export interface AdminAchievementEvidenceItem {
+  id: string;
+  achievementId: string;
+  studentName: string;
+  studentUniversity: string;
+  studentMajor: string;
+  achievementTitle: string;
+  kind: string;
+  title: string;
+  /** @nullable */
+  content: string | null;
+  /** @nullable */
+  url: string | null;
+  /** @nullable */
+  originalName: string | null;
+  /** @nullable */
+  mime: string | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  size: number | null;
+  status: string;
+  /** @nullable */
+  downloadUrl: string | null;
+  createdAt: string;
+}
+
+export interface AdminAchievementEvidencePage {
+  items: AdminAchievementEvidenceItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export type SectionMediaUploadInputMime = typeof SectionMediaUploadInputMime[keyof typeof SectionMediaUploadInputMime];
 
 
@@ -3997,6 +4032,17 @@ page: AdPage;
 
 export type GetAdminOverviewDetailsParams = {
 kind: AdminOverviewDetailsKind;
+/**
+ * @minimum 1
+ */
+page?: number;
+};
+
+export type ListAdminAchievementEvidenceParams = {
+/**
+ * @maxLength 100
+ */
+search?: string;
 /**
  * @minimum 1
  */

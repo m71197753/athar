@@ -259,6 +259,20 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AdminOverviewDetails" }
+  /admin/achievement-evidence:
+    get:
+      operationId: listAdminAchievementEvidence
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated student achievement evidence for active administrators
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAchievementEvidencePage" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
   /admin/users:
     get:
       operationId: listAdminUsers
@@ -1221,7 +1235,7 @@ paths:
     get:
       operationId: downloadAchievementAttachment
       tags: [student]
-      summary: Stream private achievement evidence to its owner
+      summary: Stream private achievement evidence to its owner or an administrator
       parameters:
         - in: path
           name: id
@@ -3263,6 +3277,36 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/AdminOverviewDetailsKind" }
         items: { type: array, items: { $ref: "#/components/schemas/AdminOverviewDetailsItem" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    AdminAchievementEvidenceItem:
+      type: object
+      additionalProperties: false
+      required: [id, achievementId, studentName, studentUniversity, studentMajor, achievementTitle, kind, title, content, url, originalName, mime, size, status, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        achievementId: { type: string, format: uuid }
+        studentName: { type: string }
+        studentUniversity: { type: string }
+        studentMajor: { type: string }
+        achievementTitle: { type: string }
+        kind: { type: string }
+        title: { type: string }
+        content: { type: ["string", "null"] }
+        url: { type: ["string", "null"] }
+        originalName: { type: ["string", "null"] }
+        mime: { type: ["string", "null"] }
+        size: { type: ["integer", "null"], minimum: 1 }
+        status: { type: string }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AdminAchievementEvidencePage:
+      type: object
+      additionalProperties: false
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminAchievementEvidenceItem" } }
         total: { type: integer }
         page: { type: integer }
         pageSize: { type: integer }

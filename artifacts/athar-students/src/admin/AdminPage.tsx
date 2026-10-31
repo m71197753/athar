@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type R
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BadgeCheck, Bell, BookOpen, BriefcaseBusiness, ExternalLink, FileClock, Layers3, LayoutGrid, Link2Off, Megaphone,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BadgeCheck, Bell, BookOpen, BriefcaseBusiness, ExternalLink, FileClock, Layers3, LayoutGrid, Link2Off, Megaphone, Paperclip,
   Languages, Palette, Pencil, Plus, RotateCcw, Search, Settings2, ShieldAlert, ShieldCheck, Trash2, Users, X,
 } from 'lucide-react';
 import {
@@ -31,10 +31,11 @@ import { SectionContentBlockEditor } from './SectionContentBlockEditor';
 import { AdminNotificationsPanel } from './AdminNotificationsPanel';
 import LanguageAdminPanel from './LanguageAdminPanel';
 import { ModuleSubmissionsAdminPanel } from './ModuleSubmissionsAdminPanel';
+import { AchievementEvidenceReviewPanel } from './AchievementEvidenceReviewPanel';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const validSectionMediaUrl = (value: string) => /^\/api\/platform\/section-media\/[a-f0-9-]{36}$/i.test(value);
-type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'module-submissions' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
+type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'module-submissions' | 'evidence-review' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: 'overview', label: 'نظرة عامة', icon: LayoutGrid },
   { id: 'notifications', label: 'الإشعارات', icon: Bell },
@@ -42,6 +43,7 @@ const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: 'content', label: 'المحتوى', icon: Megaphone },
   { id: 'sections', label: 'إدارة الأقسام', icon: Layers3 },
   { id: 'module-submissions', label: 'ملفات الطلاب', icon: ShieldCheck },
+  { id: 'evidence-review', label: 'أدلة الإنجاز', icon: Paperclip },
   { id: 'academy', label: 'المذاكرة', icon: BookOpen },
   { id: 'languages', label: 'تعلم اللغات', icon: Languages },
   { id: 'graduates', label: 'الخريجون', icon: BriefcaseBusiness },
@@ -582,6 +584,7 @@ export default function AdminPage() {
       {tab === 'content' && <ContentPanel/>}
       {tab === 'sections' && <SectionsAdminPanel onOpenModuleSettings={() => setTab('settings')}/>}
       {tab === 'module-submissions' && <ModuleSubmissionsAdminPanel/>}
+      {tab === 'evidence-review' && <AchievementEvidenceReviewPanel/>}
       {tab === 'academy' && <AcademyAdminPanel focusSubmissions={focusSubmissions}/>}
       {tab === 'languages' && <LanguageAdminPanel/>}
       {tab === 'graduates' && <GraduatesAdminPanel/>}

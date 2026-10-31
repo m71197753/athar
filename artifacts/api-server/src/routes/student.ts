@@ -48,7 +48,7 @@ import {
   streamAcademyAsset,
   validateAcademyUpload,
 } from "../lib/academy-storage";
-import { ownsAchievement } from "../lib/achievement-access";
+import { canReadAchievementEvidence, ownsAchievement } from "../lib/achievement-access";
 
 const router: IRouter = Router();
 const categories = [
@@ -566,7 +566,7 @@ router.get(
       return;
     }
     const userId = res.locals.userId as string;
-    if (!(await ownsAchievement(params.data.id, userId))) {
+    if (!(await canReadAchievementEvidence(params.data.id, userId, String(res.locals.role ?? "")))) {
       res.status(404).json({ error: "Attachment not found" });
       return;
     }

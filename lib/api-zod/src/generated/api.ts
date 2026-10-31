@@ -799,6 +799,45 @@ export const GetAdminOverviewDetailsResponse = zod.object({
 })
 
 
+export const listAdminAchievementEvidenceQuerySearchMax = 100;
+
+export const listAdminAchievementEvidenceQueryPageDefault = 1;
+
+
+
+export const ListAdminAchievementEvidenceQueryParams = zod.object({
+  "search": zod.coerce.string().max(listAdminAchievementEvidenceQuerySearchMax).optional(),
+  "page": zod.coerce.number().int().min(1).default(listAdminAchievementEvidenceQueryPageDefault)
+})
+
+
+
+
+export const ListAdminAchievementEvidenceResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "achievementId": zod.string().uuid(),
+  "studentName": zod.string(),
+  "studentUniversity": zod.string(),
+  "studentMajor": zod.string(),
+  "achievementTitle": zod.string(),
+  "kind": zod.string(),
+  "title": zod.string(),
+  "content": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "originalName": zod.string().nullable(),
+  "mime": zod.string().nullable(),
+  "size": zod.number().int().min(1).nullable(),
+  "status": zod.string(),
+  "downloadUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})),
+  "total": zod.number().int(),
+  "page": zod.number().int(),
+  "pageSize": zod.number().int()
+})
+
+
 export const listAdminUsersQuerySearchMax = 100;
 
 export const listAdminUsersQueryPageDefault = 1;

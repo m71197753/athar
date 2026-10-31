@@ -45,7 +45,7 @@ const context = {
       },
 };
 vm.runInNewContext(output, context);
-const { ownsAchievement } = context.exports;
+const { ownsAchievement, canReadAchievementEvidence } = context.exports;
 
 test("an achievement owner can access their evidence", async () => {
   assert.equal(await ownsAchievement(achievementId, ownerId), true);
@@ -57,4 +57,12 @@ test("a different student cannot access the achievement evidence", async () => {
 
 test("an unrelated achievement id is not treated as owned", async () => {
   assert.equal(await ownsAchievement("10be5107-99aa-483d-8a2e-e3483459e2e0", ownerId), false);
+});
+
+test("an active administrator can review evidence through the admin-only surface", async () => {
+  assert.equal(await canReadAchievementEvidence(achievementId, "admin-user", "admin"), true);
+});
+
+test("a different student still cannot review another student's evidence", async () => {
+  assert.equal(await canReadAchievementEvidence(achievementId, otherStudentId, "student"), false);
 });

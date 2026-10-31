@@ -86,6 +86,7 @@ import type {
   AdInput,
   AdStatistics,
   AdminAcademyCourseSubmissionList,
+  AdminAchievementEvidencePage,
   AdminGraduateItem,
   AdminGraduateItemInput,
   AdminGraduateItemList,
@@ -150,6 +151,7 @@ import type {
   LearningItemInput,
   LearningItemUpdate,
   ListAchievementsParams,
+  ListAdminAchievementEvidenceParams,
   ListAdminAuditParams,
   ListAdminLanguageContentParams,
   ListAdminModuleSubmissionsParams,
@@ -1952,6 +1954,108 @@ export function useGetAdminOverviewDetails<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAdminOverviewDetailsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdminAchievementEvidenceUrl = (params?: ListAdminAchievementEvidenceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/achievement-evidence?${stringifiedParams}` : `/api/admin/achievement-evidence`
+}
+
+export const listAdminAchievementEvidence = async (params?: ListAdminAchievementEvidenceParams, options?: Parameters<typeof customFetch>[1]): Promise<AdminAchievementEvidencePage> => {
+
+  return customFetch<AdminAchievementEvidencePage>(getListAdminAchievementEvidenceUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAchievementEvidenceQueryKey = (params?: ListAdminAchievementEvidenceParams,) => {
+    return [
+    `/api/admin/achievement-evidence`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAchievementEvidenceQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError = ErrorType<void>>(params?: ListAdminAchievementEvidenceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAchievementEvidenceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAchievementEvidence>>> = ({ signal }) => listAdminAchievementEvidence(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminAchievementEvidenceQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAchievementEvidence>>>
+export type ListAdminAchievementEvidenceQueryError = ErrorType<void>
+
+
+export function useListAdminAchievementEvidence<TData = Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError = ErrorType<void>>(
+ params: undefined |  ListAdminAchievementEvidenceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminAchievementEvidence>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminAchievementEvidence>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminAchievementEvidence<TData = Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError = ErrorType<void>>(
+ params?: ListAdminAchievementEvidenceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminAchievementEvidence>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminAchievementEvidence>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminAchievementEvidence<TData = Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError = ErrorType<void>>(
+ params?: ListAdminAchievementEvidenceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAdminAchievementEvidence<TData = Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError = ErrorType<void>>(
+ params?: ListAdminAchievementEvidenceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminAchievementEvidence>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminAchievementEvidenceQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
