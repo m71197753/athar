@@ -184,7 +184,10 @@ function loadAdminRouter() {
           notifyAdminsOfSectionMediaCleanupIssue: async () => {},
         },
         '../lib/ad-storage': {
-          assetFile: () => ({ createReadStream: () => ({ on() { return this; }, pipe() {} }) }),
+          assetFile: () => ({
+            createReadStream: () => ({ on() { return this; }, pipe() {} }),
+            delete: async () => {},
+          }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),
           validateUploadedAsset: async (objectPath, _mime, _size, maxBytes) => {
             validationCount += 1;
