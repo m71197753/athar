@@ -2,7 +2,7 @@ export const SECTION_MEDIA_RETENTION_DAYS = 30;
 export type CleanupAsset = { id: string; objectPath: string; status: string; createdAt: Date };
 export type CleanupObject = { objectPath: string; timeCreated?: string; updated?: string; size?: string | number };
 
-const objectId = /(?:^|\/)([a-f0-9-]{36})(?:-confirmed-[a-f0-9-]{36})?$/i;
+const objectId = /(?:^|\/)section-assets\/([a-f0-9-]{36})(?:-confirmed-[a-f0-9-]{36})?$/i;
 
 export function selectSectionMediaCleanupCandidates(
   assets: CleanupAsset[],
@@ -21,7 +21,6 @@ export function selectSectionMediaCleanupCandidates(
     if (!match || readyPaths.has(object.objectPath)) return false;
     const upload = assets.find(asset => asset.objectPath === object.objectPath && asset.status === "uploading");
     if (upload && !expiredPaths.has(upload.objectPath)) return false;
-    if (referencedIds.has(match[1].toLowerCase())) return false;
     const updatedAt = Date.parse(object.timeCreated ?? object.updated ?? "");
     return Number.isFinite(updatedAt) && updatedAt < cutoff;
   });
