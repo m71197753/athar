@@ -2483,7 +2483,10 @@ export const ListAdminAuditResponse = zod.object({
   "actorId": zod.string(),
   "action": zod.string(),
   "target": zod.string(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "evidenceStudentName": zod.string().nullable(),
+  "evidenceAchievementTitle": zod.string().nullable(),
+  "evidenceAttachmentTitle": zod.string().nullable()
 })),
   "total": zod.number().int(),
   "page": zod.number().int(),

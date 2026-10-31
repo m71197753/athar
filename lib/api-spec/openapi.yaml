@@ -3520,13 +3520,16 @@ components:
         items: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
     AuditEntry:
       type: object
-      required: [id, actorId, action, target, createdAt]
+      required: [id, actorId, action, target, createdAt, evidenceStudentName, evidenceAchievementTitle, evidenceAttachmentTitle]
       properties:
         id: { type: string }
         actorId: { type: string }
         action: { type: string }
         target: { type: string }
         createdAt: { type: string }
+        evidenceStudentName: { type: ["string", "null"] }
+        evidenceAchievementTitle: { type: ["string", "null"] }
+        evidenceAttachmentTitle: { type: ["string", "null"] }
     AuditPage:
       type: object
       required: [items, total, page, pageSize]

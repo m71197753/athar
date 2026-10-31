@@ -716,6 +716,40 @@ router.get("/admin/audit", async (req, res) => {
     db.select().from(adminAuditTable).orderBy(desc(adminAuditTable.createdAt), desc(adminAuditTable.id)).limit(PAGE_SIZE).offset((page - 1) * PAGE_SIZE),
     db.select({ total: count() }).from(adminAuditTable),
   ]);
-  res.json({ items: items.map(row => ({ ...row, createdAt: row.createdAt.toISOString() })), total, page, pageSize: PAGE_SIZE });
+  const evidenceAttachmentIds = [...new Set(items
+    .filter(row => row.action.startsWith("achievement_evidence."))
+    .map(row => row.target)
+    .filter(target => /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(target)))];
+  const evidenceDetails = evidenceAttachmentIds.length
+    ? await db
+      .select({
+        attachmentId: achievementAttachmentsTable.id,
+        studentName: studentsTable.fullName,
+        achievementTitle: achievementsTable.title,
+        attachmentTitle: achievementAttachmentsTable.title,
+      })
+      .from(achievementAttachmentsTable)
+      .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
+      .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId))
+      .where(inArray(achievementAttachmentsTable.id, evidenceAttachmentIds))
+    : [];
+  const evidenceByAttachmentId = new Map(evidenceDetails.map(detail => [detail.attachmentId, detail]));
+  res.json({
+    items: items.map(row => {
+      const evidence = row.action.startsWith("achievement_evidence.")
+        ? evidenceByAttachmentId.get(row.target)
+        : undefined;
+      return {
+        ...row,
+        createdAt: row.createdAt.toISOString(),
+        evidenceStudentName: evidence?.studentName ?? null,
+        evidenceAchievementTitle: evidence?.achievementTitle ?? null,
+        evidenceAttachmentTitle: evidence?.attachmentTitle ?? null,
+      };
+    }),
+    total,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 });
 export default router;

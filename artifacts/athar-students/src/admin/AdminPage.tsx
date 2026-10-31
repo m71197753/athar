@@ -540,10 +540,15 @@ function AuditPanel() {
           'achievement_evidence.download': 'تنزيل مرفق إنجاز',
         };
         const evidenceAction = evidenceActionLabels[a.action];
+        const evidenceDetails = [
+          a.evidenceStudentName && `الطالب: ${a.evidenceStudentName}`,
+          a.evidenceAchievementTitle && `الإنجاز: ${a.evidenceAchievementTitle}`,
+          a.evidenceAttachmentTitle && `المرفق: ${a.evidenceAttachmentTitle}`,
+        ].filter(Boolean).join(' · ');
         return <li key={a.id}>
           <time>{fmtDate(a.createdAt)}</time>
           <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : evidenceAction ?? <span dir="ltr">{a.action}</span>}</b>
-          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : evidenceAction ? <>المرفق: <code dir="ltr">{a.target}</code></> : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
+          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : evidenceAction ? evidenceDetails || 'لم يعد المرفق متاحًا' : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
           <small>المنفّذ: {a.actorId === 'system:scheduled-section-media-cleanup' ? 'التنظيف الدوري' : <code dir="ltr">{a.actorId}</code>}</small>
         </li>;
       })}</ol>
