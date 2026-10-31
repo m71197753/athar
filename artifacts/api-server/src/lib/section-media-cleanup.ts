@@ -52,21 +52,22 @@ async function oldObjects() {
       generation: metadataByPath.get(object.objectPath)?.generation,
     };
   });
-  return { expiredUploads: selected.expiredUploads, candidates };
+  return { expiredUploads: selected.expiredUploads, unlinkedAssets: selected.unlinkedAssets, candidates };
 }
 
 export async function previewSectionMediaCleanup() {
-  const { expiredUploads, candidates } = await oldObjects();
+  const { expiredUploads, unlinkedAssets, candidates } = await oldObjects();
   return {
     retentionDays: SECTION_MEDIA_RETENTION_DAYS,
     expiredUploads: expiredUploads.length,
+    unlinkedAssets: unlinkedAssets.length,
     orphanFiles: candidates.length,
     reclaimableBytes: candidates.reduce((sum, file) => sum + file.size, 0),
   };
 }
 
 export async function cleanupSectionMedia() {
-  const { expiredUploads, candidates } = await oldObjects();
+  const { expiredUploads, unlinkedAssets, candidates } = await oldObjects();
   let deletedFiles = 0, reclaimedBytes = 0;
   const removedPaths = new Set<string>();
   for (const candidate of candidates) {
@@ -81,15 +82,24 @@ export async function cleanupSectionMedia() {
       removedPaths.add(candidate.objectPath);
     }
   }
-  const removedIds = expiredUploads.filter(asset => !asset.objectPath ||
+  const removedAssets = unlinkedAssets.filter(asset => !asset.objectPath ||
     !candidates.some(candidate => candidate.objectPath === asset.objectPath) ||
-    removedPaths.has(asset.objectPath)).map(asset => asset.id);
-  if (removedIds.length) {
+    removedPaths.has(asset.objectPath));
+  const removedUploads = expiredUploads.filter(asset => !asset.objectPath ||
+    !candidates.some(candidate => candidate.objectPath === asset.objectPath) ||
+    removedPaths.has(asset.objectPath));
+  const removed = [...removedAssets, ...removedUploads];
+  if (removed.length) {
     await db.delete(platformMediaAssetsTable).where(and(
-      inArray(platformMediaAssetsTable.id, removedIds),
-      eq(platformMediaAssetsTable.status, "uploading"),
+      inArray(platformMediaAssetsTable.id, removed.map(asset => asset.id)),
+      inArray(platformMediaAssetsTable.status, ["uploading", "ready"]),
       lt(platformMediaAssetsTable.createdAt, retentionCutoff()),
     ));
   }
-  return { retentionDays: SECTION_MEDIA_RETENTION_DAYS, expiredUploads: removedIds.length, deletedFiles, reclaimedBytes };
+  return {
+    retentionDays: SECTION_MEDIA_RETENTION_DAYS,
+    expiredUploads: removedUploads.length,
+    removedAssets: removedAssets.length,
+    deletedFiles, reclaimedBytes,
+  };
 }
