@@ -1,5 +1,5 @@
-import nordpointsLogo from '@assets/0_nordpoints-logo_1793462640171.svg';
-import replitMark from '@assets/1_تنزيل_1793462640171.png';
+import nordpointsLogo from '@assets/nordpoints-logo_1793472713140.svg';
+import replitMark from '@assets/تنزيل_1793472713137.png';
 
 const base = import.meta.env.BASE_URL;
 export default function Slide01Cover() {

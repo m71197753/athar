@@ -1,5 +1,6 @@
-import nordpointsLogo from '@assets/0_nordpoints-logo_1793462640171.svg';
-import replitMark from '@assets/1_تنزيل_1793462640171.png';
+import nordpointsLogo from '@assets/nordpoints-logo_1793472713140.svg';
+import replitMark from '@assets/تنزيل_1793472713137.png';
+import closingArtwork from '@assets/generated_images/athar-thanks.png';
 
 const base = import.meta.env.BASE_URL;
 export default function Slide12Thanks() {
@@ -15,7 +16,7 @@ export default function Slide12Thanks() {
           <span className="logo-surface nordpoints-lockup"><img src={nordpointsLogo} crossOrigin="anonymous" alt="Nordpoints"/></span>
         </div>
       </div>
-      <img src={base + "ai-cover.png"} crossOrigin="anonymous" className="closing-art" alt="طالب يستعد لرحلته التعليمية والمهنية" />
+      <img src={closingArtwork} crossOrigin="anonymous" className="closing-art" alt="خريج عربي يستعد للانطلاق إلى مساره المهني" />
     </div>
   </div>;
 }
