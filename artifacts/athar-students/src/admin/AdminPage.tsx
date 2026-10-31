@@ -536,7 +536,7 @@ function AuditPanel() {
           <time>{fmtDate(a.createdAt)}</time>
           <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : <span dir="ltr">{a.action}</span>}</b>
           <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
-          <small>المنفّذ: <code dir="ltr">{a.actorId}</code></small>
+          <small>المنفّذ: {a.actorId === 'system:scheduled-section-media-cleanup' ? 'التنظيف الدوري' : <code dir="ltr">{a.actorId}</code>}</small>
         </li>;
       })}</ol>
       <Pager page={page} total={total} count={q.data.total} onPage={setPage} busy={q.isFetching}/></>}

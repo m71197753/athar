@@ -22,6 +22,7 @@ import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
 import { assetFile, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
 import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
+import { recordSectionMediaCleanupAudit } from "../lib/section-media-cleanup-audit";
 import { MAX_COURSE_MATERIALS, validCourseMaterials, validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
@@ -502,25 +503,10 @@ router.post("/admin/section-media/cleanup", async (_req, res) => {
   try {
     result = await cleanupSectionMedia();
   } catch (error) {
-    await db.insert(adminAuditTable).values({
-      actorId: res.locals.userId,
-      action: "section-media.cleanup",
-      target: JSON.stringify({ status: "failed" }),
-    });
+    await recordSectionMediaCleanupAudit(res.locals.userId);
     throw error;
   }
-  await db.insert(adminAuditTable).values({
-    actorId: res.locals.userId,
-    action: "section-media.cleanup",
-    target: JSON.stringify({
-      status: result.failedFiles > 0 ? "partial" : "completed",
-      deletedFiles: result.deletedFiles,
-      failedFiles: result.failedFiles,
-      removedAssets: result.removedAssets,
-      expiredUploads: result.expiredUploads,
-      reclaimedBytes: result.reclaimedBytes,
-    }),
-  });
+  await recordSectionMediaCleanupAudit(res.locals.userId, result);
   res.json(CleanupSectionMediaResponse.parse(result));
 });
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
