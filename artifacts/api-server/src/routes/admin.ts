@@ -127,6 +127,7 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
   res.setHeader("Cache-Control", cacheControl);
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
+  let streamRange: { start: number; end: number } | undefined;
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
     let start = 0;
@@ -155,11 +156,30 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
     res.status(206);
     res.setHeader("Content-Range", `bytes ${start}-${end}/${asset.size}`);
     res.setHeader("Content-Length", String(end - start + 1));
-    assetFile(asset.objectPath).createReadStream({ start, end }).on("error", () => res.destroy()).pipe(res);
-    return;
+    streamRange = { start, end };
+  } else {
+    res.setHeader("Content-Length", String(asset.size));
   }
-  res.setHeader("Content-Length", String(asset.size));
-  assetFile(asset.objectPath).createReadStream().on("error", () => res.destroy()).pipe(res);
+  const stream = assetFile(asset.objectPath).createReadStream({ ...streamRange, validation: false });
+  let clientDisconnected = false;
+  stream.on("error", error => {
+    if (clientDisconnected) return;
+    req.log?.warn({ errorName: error instanceof Error ? error.name : "StreamError" }, "Section media stream failed");
+    if (!res.headersSent) {
+      res.removeHeader("Content-Range");
+      res.removeHeader("Content-Length");
+      res.status(404).end();
+    } else {
+      res.destroy();
+    }
+  });
+  res.once("close", () => {
+    if (!res.writableFinished) {
+      clientDisconnected = true;
+      stream.destroy();
+    }
+  });
+  stream.pipe(res);
 };
 router.get("/platform/section-media/:id", serveSectionMedia);
 router.use("/admin", requireAuth, requireAdmin);

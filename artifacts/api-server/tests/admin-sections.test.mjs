@@ -143,6 +143,9 @@ function loadAdminRouter() {
   let uploadCount = 0;
   let validationCount = 0;
   let validationMaxBytes;
+  let lastStreamOptions;
+  let lastStreamDestroyed = false;
+  let lastStream;
   let uuid = 0;
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL('../src/routes/admin.ts', import.meta.url), 'utf8'), {
@@ -185,7 +188,19 @@ function loadAdminRouter() {
         },
         '../lib/ad-storage': {
           assetFile: () => ({
-            createReadStream: () => ({ on() { return this; }, pipe() {} }),
+            createReadStream: options => {
+              lastStreamOptions = options;
+              lastStreamDestroyed = false;
+              const listeners = new Map();
+              lastStream = {
+                on() { return this; },
+                pipe() { return this; },
+                emit(event, ...args) { listeners.get(event)?.(...args); },
+                destroy() { lastStreamDestroyed = true; return this; },
+              };
+              lastStream.on = function (event, listener) { listeners.set(event, listener); return this; };
+              return lastStream;
+            },
             delete: async () => {},
           }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),
@@ -209,17 +224,25 @@ function loadAdminRouter() {
     get uploadCount() { return uploadCount; },
     get validationCount() { return validationCount; },
     get validationMaxBytes() { return validationMaxBytes; },
-    reset() { for (const rows of tableRows.values()) rows.length = 0; },
+    get lastStreamOptions() { return lastStreamOptions; },
+    get lastStreamDestroyed() { return lastStreamDestroyed; },
+    get lastStream() { return lastStream; },
+    reset() { for (const rows of tableRows.values()) rows.length = 0; lastStreamOptions = undefined; lastStreamDestroyed = false; lastStream = undefined; },
   };
 }
 
 function response() {
   return {
-    statusCode: 200, body: undefined, headers: {},
+    statusCode: 200, body: undefined, headers: {}, listeners: new Map(), headersSent: false, writableFinished: false,
     status(code) { this.statusCode = code; return this; },
     json(value) { this.body = value; return this; },
     setHeader(key, value) { this.headers[key] = value; },
-    end() { this.ended = true; },
+    getHeader(key) { return this.headers[key]; },
+    removeHeader(key) { delete this.headers[key]; },
+    once(event, listener) { this.listeners.set(event, listener); return this; },
+    emit(event) { this.listeners.get(event)?.(); },
+    destroy() { this.destroyed = true; },
+    end() { this.ended = true; this.writableFinished = true; },
   };
 }
 const call = async (router, method, path, { body = {}, params = {}, headers = {}, userId = 'admin-user' } = {}) => {
@@ -342,6 +365,31 @@ test('admin video preview serves suffix byte ranges from the end of the file', a
   assert.equal(preview.headers['Accept-Ranges'], 'bytes');
   assert.equal(preview.headers['Content-Range'], `bytes ${size - 65536}-${size - 1}/${size}`);
   assert.equal(preview.headers['Content-Length'], '65536');
+  assert.equal(router.lastStreamOptions.start, size - 65536);
+  assert.equal(router.lastStreamOptions.end, size - 1);
+  assert.equal(router.lastStreamOptions.validation, false);
+  preview.emit('close');
+  assert.equal(router.lastStreamDestroyed, true);
+});
+
+test('section media stream errors stop the response without leaving range headers', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 1024 },
+  });
+  await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  const preview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=0-31' },
+  });
+  router.lastStream.emit('error', new Error('storage stream failed'));
+  assert.equal(preview.statusCode, 404);
+  assert.equal(preview.ended, true);
+  assert.equal(preview.headers['Content-Range'], undefined);
+  assert.equal(preview.headers['Content-Length'], undefined);
 });
 
 test('section audio formats are accepted by the upload flow', async () => {
