@@ -12,10 +12,4 @@ export interface AuditEntry {
   action: string;
   target: string;
   createdAt: string;
-  /** @nullable */
-  evidenceStudentName: string | null;
-  /** @nullable */
-  evidenceAchievementTitle: string | null;
-  /** @nullable */
-  evidenceAttachmentTitle: string | null;
 }

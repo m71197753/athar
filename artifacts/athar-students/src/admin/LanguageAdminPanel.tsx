@@ -13,7 +13,6 @@ import type {
 import { Archive, BookOpenText, Check, ChevronLeft, ChevronRight, FileUp, Languages, Pencil, Plus, RotateCcw, Save, Search, X } from 'lucide-react';
 import { parseLanguageContentImportFile, type LanguageImportParseResult } from '@workspace/language-content';
 import { RequiredMark } from '../components/RequiredMark';
-import { NamedColorPicker } from '../components/NamedColorPicker';
 import './LanguageAdminPanel.css';
 
 const languageNames: Record<string, string> = { en: 'الإنجليزية', fr: 'الفرنسية', es: 'الإسبانية', de: 'الألمانية', tr: 'التركية' };
@@ -260,7 +259,7 @@ export default function LanguageAdminPanel() {
             <h4>{currentSettings.page.title}</h4><p>{currentSettings.page.subtitle}</p>
             <div className="lang-admin-preview-progress"><span style={{ width: '62%' }}/></div>
             <small>خطوة جديدة، وتقدم يتراكم</small>
-            <div className="lang-admin-color"><span>لون الإبراز</span><NamedColorPicker label="لون الإبراز" value={currentSettings.page.accentColor} onChange={value => patchPage('accentColor', value.toUpperCase())} testId="admin-language-accent-color"/><code dir="ltr">{currentSettings.page.accentColor}</code></div>
+            <label className="lang-admin-color"><span>لون الإبراز</span><input type="color" value={currentSettings.page.accentColor} onChange={e => patchPage('accentColor', e.target.value.toUpperCase())}/><code dir="ltr">{currentSettings.page.accentColor}</code></label>
           </aside>
           <div className="lang-admin-feature-settings">
             <div className="lang-admin-inline-heading"><div><b>ما يظهر في الصفحة</b><small>اختر العناصر التي يحتاجها الطالب</small></div></div>

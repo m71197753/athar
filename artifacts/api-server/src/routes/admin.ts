@@ -1,11 +1,11 @@
 import { Router, type IRouter, type RequestHandler } from "express";
 import { clerkClient } from "@clerk/express";
 import { randomUUID } from "node:crypto";
-import { and, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import mammoth from "mammoth";
 import {
   db, membershipsTable, adminAuditTable, platformContentTable, platformSettingsTable, platformSectionsTable,
-  platformMediaAssetsTable, studentsTable, achievementsTable, achievementAttachmentsTable, learningItemsTable, careerPlansTable, resumeSharesTable,
+  platformMediaAssetsTable, studentsTable, achievementsTable, learningItemsTable, careerPlansTable, resumeSharesTable,
 } from "@workspace/db";
 import {
   CreateAdminContentBody, UpdateAdminContentBody, UpdateAdminUserBody,
@@ -15,18 +15,12 @@ import {
   GetAdminOverviewDetailsQueryParams, GetAdminOverviewDetailsResponse,
   RequestSectionMediaUploadBody, RequestSectionMediaUploadResponse,
   ConfirmSectionMediaUploadParams, ConfirmSectionMediaUploadResponse,
-  PreviewSectionMediaCleanupResponse, CleanupSectionMediaResponse,
-  ListAdminAchievementEvidenceQueryParams, ListAdminAchievementEvidenceResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { ALL_MODULES, enabledModules, platformAppearance, platformModuleSettings } from "../lib/platform-access";
-import { assetFile, createAssetReadUrl, createAssetUpload, createResumableSectionUpload, validateUploadedAsset } from "../lib/ad-storage";
-import { cleanupSectionMedia, previewSectionMediaCleanup } from "../lib/section-media-cleanup";
-import { recordSectionMediaCleanupAudit } from "../lib/section-media-cleanup-audit";
-import { achievementEvidenceAuditEntry } from "../lib/achievement-evidence-audit";
-import { notifyAdminsOfSectionMediaCleanupIssue } from "../lib/section-media-cleanup-notifications";
-import { MAX_COURSE_MATERIALS, validCourseMaterials, validCourseUnits } from "../lib/section-course-units";
+import { assetFile, createAssetUpload, validateUploadedAsset } from "../lib/ad-storage";
+import { validCourseUnits } from "../lib/section-course-units";
 
 const router: IRouter = Router();
 const PAGE_SIZE = 20;
@@ -127,42 +121,11 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
   res.setHeader("Cache-Control", cacheControl);
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(asset.originalName)}`);
   res.setHeader("Accept-Ranges", "bytes");
-  if (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/")) {
-    try {
-      const expiresInMs = adminPreview ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-      const signedUrl = await createAssetReadUrl(asset.objectPath, expiresInMs);
-      res.setHeader("Cache-Control", "private, no-store");
-      res.redirect(302, signedUrl);
-    } catch (error) {
-      req.log?.warn({
-        assetId: id,
-        errorName: error instanceof Error ? error.name : "AssetReadUrlError",
-      }, "Unable to create direct section media URL");
-      res.status(503).json({ error: "Section media is temporarily unavailable" });
-    }
-    return;
-  }
-  let start = 0;
-  let end = asset.size - 1;
   if (range && (asset.mime.startsWith("video/") || asset.mime.startsWith("audio/"))) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-    if (match && !match[1] && match[2]) {
-      const suffixLength = Number(match[2]);
-      if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) {
-        res.setHeader("Content-Range", `bytes */${asset.size}`);
-        res.status(416).end();
-        return;
-      }
-      start = Math.max(0, asset.size - suffixLength);
-    } else if (match?.[1]) {
-      start = Number(match[1]);
-      if (match[2]) end = Math.min(Number(match[2]), asset.size - 1);
-    } else {
-      res.setHeader("Content-Range", `bytes */${asset.size}`);
-      res.status(416).end();
-      return;
-    }
-    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= asset.size) {
+    const start = match?.[1] ? Number(match[1]) : 0;
+    const end = match?.[2] ? Math.min(Number(match[2]), asset.size - 1) : asset.size - 1;
+    if (!match || start < 0 || end < start || start >= asset.size) {
       res.setHeader("Content-Range", `bytes */${asset.size}`);
       res.status(416).end();
       return;
@@ -170,134 +133,15 @@ const serveSectionMedia: RequestHandler = async (req, res) => {
     res.status(206);
     res.setHeader("Content-Range", `bytes ${start}-${end}/${asset.size}`);
     res.setHeader("Content-Length", String(end - start + 1));
-  } else {
-    res.setHeader("Content-Length", String(asset.size));
+    assetFile(asset.objectPath).createReadStream({ start, end }).on("error", () => res.destroy()).pipe(res);
+    return;
   }
-  const stream = assetFile(asset.objectPath).createReadStream({ start, end, validation: false });
-  let clientDisconnected = false;
-  stream.on("error", error => {
-    if (clientDisconnected) return;
-    req.log?.warn({ errorName: error instanceof Error ? error.name : "StreamError" }, "Section media stream failed");
-    if (!res.headersSent) {
-      res.removeHeader("Content-Range");
-      res.removeHeader("Content-Length");
-      res.status(404).end();
-    } else {
-      res.destroy();
-    }
-  });
-  res.once("close", () => {
-    if (!res.writableFinished) {
-      clientDisconnected = true;
-      stream.destroy();
-    }
-  });
-  stream.pipe(res);
+  res.setHeader("Content-Length", String(asset.size));
+  assetFile(asset.objectPath).createReadStream().on("error", () => res.destroy()).pipe(res);
 };
 router.get("/platform/section-media/:id", serveSectionMedia);
 router.use("/admin", requireAuth, requireAdmin);
 router.get("/admin/section-media/:id/preview", serveSectionMedia);
-
-router.get("/admin/achievement-evidence", async (req, res): Promise<void> => {
-  const parsed = ListAdminAchievementEvidenceQueryParams.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: "أدخل رقم صفحة أو عبارة بحث صحيحة." });
-    return;
-  }
-
-  const page = parsed.data.page;
-  const search = parsed.data.search?.trim().replace(/\s+/g, " ");
-  const pattern = search ? `%${search}%` : null;
-  const filter = pattern
-    ? or(
-        ilike(studentsTable.fullName, pattern),
-        ilike(studentsTable.university, pattern),
-        ilike(studentsTable.major, pattern),
-        ilike(achievementsTable.title, pattern),
-        ilike(achievementAttachmentsTable.title, pattern),
-        ilike(achievementAttachmentsTable.originalName, pattern),
-      )
-    : undefined;
-
-  const recordsQuery = db
-    .select({
-      id: achievementAttachmentsTable.id,
-      achievementId: achievementAttachmentsTable.achievementId,
-      studentName: studentsTable.fullName,
-      studentUniversity: studentsTable.university,
-      studentMajor: studentsTable.major,
-      achievementTitle: achievementsTable.title,
-      kind: achievementAttachmentsTable.kind,
-      title: achievementAttachmentsTable.title,
-      content: achievementAttachmentsTable.content,
-      url: achievementAttachmentsTable.url,
-      originalName: achievementAttachmentsTable.originalName,
-      mime: achievementAttachmentsTable.mime,
-      size: achievementAttachmentsTable.size,
-      status: achievementAttachmentsTable.status,
-      createdAt: achievementAttachmentsTable.createdAt,
-    })
-    .from(achievementAttachmentsTable)
-    .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
-    .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId));
-  const countQuery = db
-    .select({ total: count() })
-    .from(achievementAttachmentsTable)
-    .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
-    .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId));
-  const filteredRecords = filter ? recordsQuery.where(filter) : recordsQuery;
-  const filteredCount = filter ? countQuery.where(filter) : countQuery;
-  const [rows, countRows] = await Promise.all([
-    filteredRecords
-      .orderBy(desc(achievementAttachmentsTable.createdAt), desc(achievementAttachmentsTable.id))
-      .limit(PAGE_SIZE)
-      .offset((page - 1) * PAGE_SIZE),
-    filteredCount,
-  ]);
-
-  if (rows.length) {
-    try {
-      await db.insert(adminAuditTable).values(rows.map(row =>
-        achievementEvidenceAuditEntry(
-          res.locals.userId as string,
-          row.id,
-          "achievement_evidence.view",
-        ),
-      ));
-    } catch (error) {
-      req.log.error({ err: error }, "Unable to record administrator evidence review");
-      res.status(503).json({ error: "تعذّر تسجيل مراجعة الأدلة، لم يتم عرضها." });
-      return;
-    }
-  }
-
-  res.setHeader("Cache-Control", "private, no-store");
-  res.json(ListAdminAchievementEvidenceResponse.parse({
-    items: rows.map(row => ({
-      id: row.id,
-      achievementId: row.achievementId,
-      studentName: row.studentName ?? "طالب غير مسجل",
-      studentUniversity: row.studentUniversity ?? "",
-      studentMajor: row.studentMajor ?? "",
-      achievementTitle: row.achievementTitle,
-      kind: row.kind,
-      title: row.title,
-      content: row.content,
-      url: row.url,
-      originalName: row.originalName,
-      mime: row.mime,
-      size: row.size,
-      status: row.status,
-      downloadUrl: row.kind === "file" && row.status === "ready"
-        ? `/api/achievements/${row.achievementId}/attachments/${row.id}/download`
-        : null,
-      createdAt: row.createdAt.toISOString(),
-    })),
-    total: Number(countRows[0]?.total ?? 0),
-    page,
-    pageSize: PAGE_SIZE,
-  }));
-});
 
 router.get("/admin/overview", async (_req, res) => {
   const [accounts, students, achievements, learningItems, careerPlans, activeShares, admins, suspended] = await Promise.all([
@@ -558,7 +402,7 @@ router.put("/admin/settings", async (req, res) => {
     })),
   }));
   const keys = new Set(moduleSettings.map(module => module.key));
-  if (moduleSettings.length !== ALL_MODULES.length || keys.size !== ALL_MODULES.length || !ALL_MODULES.every(key => keys.has(key)) ||
+  if (keys.size !== ALL_MODULES.length || !ALL_MODULES.every(key => keys.has(key)) ||
       moduleSettings.some(module => module.title.length < 2 || module.blocks.length > 20 ||
         module.blocks.some(block => !block.title || (block.type === "text" ? !block.body || block.url !== "" :
           block.type === "link" ? !validUrl("resource", block.url) :
@@ -569,16 +413,15 @@ router.put("/admin/settings", async (req, res) => {
     res.status(400).json({ error: "An attached media file is missing or does not match its type" }); return;
   }
   const enabled = moduleSettings.filter(module => module.enabled).map(module => module.key);
-  const appearance = { ...await platformAppearance(), ...input.data.appearance };
   await db.transaction(async tx => {
     await tx.insert(platformSettingsTable).values({
-      key: "main", enabledModules: enabled, moduleSettings, appearance,
+      key: "main", enabledModules: enabled, moduleSettings, appearance: input.data.appearance,
     }).onConflictDoUpdate({ target: platformSettingsTable.key, set: {
-      enabledModules: enabled, moduleSettings, appearance,
+      enabledModules: enabled, moduleSettings, appearance: input.data.appearance,
     } });
     await tx.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "settings.save", target: "platform" });
   });
-  res.json({ moduleSettings, appearance });
+  res.json({ moduleSettings, appearance: input.data.appearance });
 });
 
 function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType?: string; unitId?: string }>, allowUnits = false) {
@@ -587,16 +430,15 @@ function validSectionBlocks(blocks: Array<{ type: string; url: string; mediaType
       : block.type === "media" ? Boolean(block.mediaType && ["image", "audio", "video", "file"].includes(block.mediaType) && sectionMediaIdFromUrl(block.url))
         : false);
 }
-function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; units?: Array<{ id: string; title: string; description: string }>; materials: Array<{ id?: string; type: string; url: string; mediaType?: string; unitId?: string }> }>) {
+function validSectionCourses(courses: Array<{ id: string; title: string; skills?: string[]; units?: Array<{ id: string; title: string; description: string }>; materials: Array<{ type: string; url: string; mediaType?: string; unitId?: string }> }>) {
   const ids = new Set<string>();
   return courses.length <= 20 && courses.every(course => {
-    const lessonIds = course.materials.flatMap(block => block.id ? [block.id] : []);
     const idIsUniqueUuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(course.id) && !ids.has(course.id);
     ids.add(course.id);
-    return idIsUniqueUuid && new Set(lessonIds).size === lessonIds.length && course.title.trim().length >= 2 &&
+    return idIsUniqueUuid && course.title.trim().length >= 2 &&
       (course.skills ?? []).length <= 20 &&
       (course.skills ?? []).every(skill => skill.trim().length > 0 && skill.trim().length <= 60) &&
-      validCourseMaterials(course.materials) &&
+      course.materials.length >= 1 && course.materials.length <= 20 &&
       validCourseUnits(course) && validSectionBlocks(course.materials, true);
   });
 }
@@ -618,7 +460,7 @@ function normalizeSection(input: ReturnType<typeof CreateAdminSectionBody.parse>
       units: course.units?.map(unit => ({ ...unit, title: unit.title.trim(), description: unit.description.trim() })),
       skills: [...new Set((course.skills ?? []).map(skill => skill.trim()).filter(Boolean))],
       materials: course.materials.map(block => ({
-        ...block, id: block.id ?? randomUUID(), title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),
+        ...block, title: block.title.trim(), body: block.body.trim(), url: block.url.trim(),
       })),
     })),
   };
@@ -635,40 +477,12 @@ router.post("/admin/section-media/uploads", async (req, res) => {
   }
   const mime = input.data.mime;
   const originalName = input.data.originalName.replace(/[\u0000-\u001f\u007f/\\]/g, " ").trim().slice(0, 240) || "attachment";
-  const resumable = input.data.resumable === true;
-  const { objectPath, uploadUrl } = resumable
-    ? await createResumableSectionUpload(mime, req.get("origin"))
-    : await createAssetUpload("section-assets", 2 * 60 * 60 * 1000);
+  const { objectPath, uploadUrl } = await createAssetUpload("section-assets", 2 * 60 * 60 * 1000);
   const [asset] = await db.insert(platformMediaAssetsTable).values({
     ownerId: res.locals.userId, originalName, mime, size: input.data.size, objectPath, status: "uploading",
   }).returning();
   await db.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "section-media.upload-request", target: asset.id });
-  res.setHeader("Cache-Control", "private, no-store");
-  res.status(201).json(RequestSectionMediaUploadResponse.parse({ id: asset.id, uploadUrl, resumable }));
-});
-router.get("/admin/section-media/cleanup-preview", async (_req, res) => {
-  res.setHeader("Cache-Control", "private, no-store");
-  res.json(PreviewSectionMediaCleanupResponse.parse(await previewSectionMediaCleanup()));
-});
-router.post("/admin/section-media/cleanup", async (_req, res) => {
-  res.setHeader("Cache-Control", "private, no-store");
-  let result: Awaited<ReturnType<typeof cleanupSectionMedia>>;
-  try {
-    result = await cleanupSectionMedia();
-  } catch (error) {
-    const auditId = await recordSectionMediaCleanupAudit(res.locals.userId);
-    try { await notifyAdminsOfSectionMediaCleanupIssue(auditId); } catch {
-      _req.log.error("Could not notify administrators about section media cleanup failure");
-    }
-    throw error;
-  }
-  const auditId = await recordSectionMediaCleanupAudit(res.locals.userId, result);
-  if (result.failedFiles > 0) {
-    try { await notifyAdminsOfSectionMediaCleanupIssue(auditId, result); } catch {
-      _req.log.error("Could not notify administrators about partial section media cleanup");
-    }
-  }
-  res.json(CleanupSectionMediaResponse.parse(result));
+  res.status(201).json(RequestSectionMediaUploadResponse.parse({ id: asset.id, uploadUrl }));
 });
 router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const params = ConfirmSectionMediaUploadParams.safeParse(req.params);
@@ -676,25 +490,13 @@ router.post("/admin/section-media/uploads/:id/confirm", async (req, res) => {
   const [asset] = await db.select().from(platformMediaAssetsTable).where(and(
     eq(platformMediaAssetsTable.id, params.data.id),
     eq(platformMediaAssetsTable.ownerId, res.locals.userId),
+    eq(platformMediaAssetsTable.status, "uploading"),
   ));
   if (!asset) { res.status(404).json({ error: "Upload not found" }); return; }
-  if (asset.status === "ready") {
-    res.json(ConfirmSectionMediaUploadResponse.parse({ url: sectionMediaUrl(asset.id) }));
-    return;
-  }
-  if (asset.status !== "uploading") { res.status(409).json({ error: "Upload is not pending" }); return; }
   const confirmedPath = await validateUploadedAsset(asset.objectPath, asset.mime, asset.size, null);
   if (!confirmedPath) { res.status(400).json({ error: "Uploaded file failed type or size verification" }); return; }
-  const [confirmed] = await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
-    .where(and(eq(platformMediaAssetsTable.id, asset.id), eq(platformMediaAssetsTable.status, "uploading")))
-    .returning({ id: platformMediaAssetsTable.id });
-  if (!confirmed) {
-    await assetFile(confirmedPath).delete({ ignoreNotFound: true }).catch(() => {});
-    res.status(409).json({ error: "Upload expired or was removed. Please upload the file again." }); return;
-  }
-  await assetFile(asset.objectPath).delete({ ignoreNotFound: true }).catch(() => {
-    req.log.warn({ assetId: asset.id }, "Could not remove confirmed upload source");
-  });
+  await db.update(platformMediaAssetsTable).set({ objectPath: confirmedPath, status: "ready" })
+    .where(eq(platformMediaAssetsTable.id, asset.id));
   await db.insert(adminAuditTable).values({ actorId: res.locals.userId, action: "section-media.upload-confirm", target: asset.id });
   res.json(ConfirmSectionMediaUploadResponse.parse({ url: sectionMediaUrl(asset.id) }));
 });
@@ -765,40 +567,6 @@ router.get("/admin/audit", async (req, res) => {
     db.select().from(adminAuditTable).orderBy(desc(adminAuditTable.createdAt), desc(adminAuditTable.id)).limit(PAGE_SIZE).offset((page - 1) * PAGE_SIZE),
     db.select({ total: count() }).from(adminAuditTable),
   ]);
-  const evidenceAttachmentIds = [...new Set(items
-    .filter(row => row.action.startsWith("achievement_evidence."))
-    .map(row => row.target)
-    .filter(target => /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(target)))];
-  const evidenceDetails = evidenceAttachmentIds.length
-    ? await db
-      .select({
-        attachmentId: achievementAttachmentsTable.id,
-        studentName: studentsTable.fullName,
-        achievementTitle: achievementsTable.title,
-        attachmentTitle: achievementAttachmentsTable.title,
-      })
-      .from(achievementAttachmentsTable)
-      .innerJoin(achievementsTable, eq(achievementsTable.id, achievementAttachmentsTable.achievementId))
-      .leftJoin(studentsTable, eq(studentsTable.userId, achievementsTable.userId))
-      .where(inArray(achievementAttachmentsTable.id, evidenceAttachmentIds))
-    : [];
-  const evidenceByAttachmentId = new Map(evidenceDetails.map(detail => [detail.attachmentId, detail]));
-  res.json({
-    items: items.map(row => {
-      const evidence = row.action.startsWith("achievement_evidence.")
-        ? evidenceByAttachmentId.get(row.target)
-        : undefined;
-      return {
-        ...row,
-        createdAt: row.createdAt.toISOString(),
-        evidenceStudentName: evidence?.studentName ?? null,
-        evidenceAchievementTitle: evidence?.achievementTitle ?? null,
-        evidenceAttachmentTitle: evidence?.attachmentTitle ?? null,
-      };
-    }),
-    total,
-    page,
-    pageSize: PAGE_SIZE,
-  });
+  res.json({ items: items.map(row => ({ ...row, createdAt: row.createdAt.toISOString() })), total, page, pageSize: PAGE_SIZE });
 });
 export default router;

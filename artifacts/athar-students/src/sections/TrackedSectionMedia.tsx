@@ -4,12 +4,12 @@ import { Download, FileText, Headphones, Video } from "lucide-react";
 import {
   getGetSectionMediaProgressQueryKey,
   getListLearningItemsQueryKey,
+  useSaveSectionMediaProgress,
   saveSectionMediaProgress,
 } from "@workspace/api-client-react";
 import type { SectionMediaProgress } from "@workspace/api-client-react";
 import "./tracked-section-media.css";
 import { playbackSeconds, resumePosition } from "./media-playback";
-import { versionedVideoStreamUrl } from "../lib/section-units";
 
 type TrackedSectionMediaProps = {
   sectionSlug: string;
@@ -31,34 +31,14 @@ function formatTime(seconds: number) {
   return minutes ? `${minutes.toLocaleString("ar")} د ${remainder.toLocaleString("ar")} ث` : `${remainder.toLocaleString("ar")} ث`;
 }
 
-function playbackErrorMessage(code: number, mediaType: "audio" | "video" | "file") {
-  const mediaName = mediaType === "audio" ? "الصوت" : "الفيديو";
-  if (code === 2) return `تعذّر تحميل ${mediaName}. تحقق من اتصال الإنترنت ثم أعد المحاولة.`;
-  if (code === 3 || code === 4) return "المتصفح لم يتمكن من تشغيل صيغة الملف أو ترميزه. جرّب تنزيله أو رفعه بصيغة متوافقة.";
-  return `تعذّر تشغيل ${mediaName}. أعد المحاولة أو نزّل الملف لمشاهدته على جهازك.`;
-}
-
-export function TrackedSectionMedia(props: TrackedSectionMediaProps) {
-  // A replacement/reordered lesson must never inherit another file's counters.
-  return <TrackedMediaSession
-    key={JSON.stringify([props.sectionSlug, props.contextKey, props.mediaAssetId, props.url])}
-    {...props}
-  />;
-}
-
-function TrackedMediaSession({
+export function TrackedSectionMedia({
   sectionSlug, contextKey, mediaAssetId, mediaType, url, title, savedProgress, progressReady = true,
   progressError = false, onRetryProgress,
 }: TrackedSectionMediaProps) {
   const queryClient = useQueryClient();
-  const [isPending, setIsPending] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const { mutate: saveMutation, isPending, isError } = useSaveSectionMediaProgress();
   const playerRef = useRef<HTMLMediaElement | null>(null);
-  const sampleRef = useRef({ at: 0, position: 0, rate: 1 });
-  const trackingRef = useRef(false);
-  const requestPendingRef = useRef(false);
-  const queuedSaveRef = useRef(false);
-  const saveProgressRef = useRef<() => void>(() => {});
+  const sampleRef = useRef({ at: 0, position: 0 });
   const watchedRef = useRef(savedProgress?.watchedSeconds ?? 0);
   const durationRef = useRef(savedProgress?.durationSeconds ?? 0);
   const lastSentRef = useRef(savedProgress?.watchedSeconds ?? 0);
@@ -71,7 +51,6 @@ function TrackedMediaSession({
   const [watchedSeconds, setWatchedSeconds] = useState(savedProgress?.watchedSeconds ?? 0);
   const [durationSeconds, setDurationSeconds] = useState(savedProgress?.durationSeconds ?? 0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackError, setPlaybackError] = useState<number | null>(null);
 
   useEffect(() => {
     if (savedProgress) {
@@ -98,7 +77,7 @@ function TrackedMediaSession({
       player.currentTime = restored;
       resumePositionRef.current = restored;
       restoredPositionRef.current = restored;
-      sampleRef.current = { at: performance.now(), position: restored, rate: player.playbackRate };
+      sampleRef.current = { at: Date.now(), position: restored };
       setResumedAt(restored);
     }
   }, [progressReady, savedProgress?.resumePositionSeconds]);
@@ -123,27 +102,18 @@ function TrackedMediaSession({
 
   const saveProgress = useCallback(() => {
     if (!progressReady || mediaType === "file" || !resumeAppliedRef.current) return;
-    // Snapshot even when another save is pending, before React detaches the
-    // media ref on navigation.
     const data = progressPayload();
-    if (requestPendingRef.current) {
-      queuedSaveRef.current = true;
-      return;
-    }
     const { watchedSeconds: watched, durationSeconds: duration, resumePositionSeconds: position } = data;
     if (watched <= lastSentRef.current && duration <= lastSentDurationRef.current &&
       position === lastSentPositionRef.current) return;
     lastSentRef.current = Math.max(lastSentRef.current, watched);
     lastSentDurationRef.current = Math.max(lastSentDurationRef.current, duration);
     lastSentPositionRef.current = position;
-    requestPendingRef.current = true;
-    setIsPending(true);
-    setIsError(false);
-    let succeeded = false;
-    // Use the request promise so a queued final position is still saved if
-    // navigation unmounts this player while an earlier request is in flight.
-    void saveSectionMediaProgress(sectionSlug, data).then(saved => {
-        succeeded = true;
+    saveMutation({
+      slug: sectionSlug,
+      data,
+    }, {
+      onSuccess: saved => {
         queryClient.setQueryData<SectionMediaProgress[]>(
           getGetSectionMediaProgressQueryKey(sectionSlug),
           current => [
@@ -156,40 +126,30 @@ function TrackedMediaSession({
         if (contextKey.startsWith("course:")) {
           void queryClient.invalidateQueries({ queryKey: getListLearningItemsQueryKey({ kind: "course" }) });
         }
-      }).catch(() => {
-        setIsError(true);
-        lastSentRef.current = 0; lastSentDurationRef.current = 0; lastSentPositionRef.current = -1;
-      }).finally(() => {
-        setIsPending(false);
-        requestPendingRef.current = false;
-        const queued = queuedSaveRef.current;
-        queuedSaveRef.current = false;
-        // Do not immediately loop on failures. Retry via the next interval,
-        // reconnect, or the explicit retry button.
-        if (succeeded && queued) saveProgressRef.current();
-      });
-  }, [contextKey, mediaAssetId, queryClient, sectionSlug, progressPayload, progressReady, mediaType]);
-  saveProgressRef.current = saveProgress;
+      },
+      onError: () => { lastSentRef.current = 0; lastSentDurationRef.current = 0; lastSentPositionRef.current = -1; },
+    });
+  }, [contextKey, mediaAssetId, queryClient, saveMutation, sectionSlug, progressPayload, progressReady, mediaType]);
 
   const samplePlayback = useCallback(() => {
     const player = playerRef.current;
-    const now = performance.now();
+    const now = Date.now();
     if (player) resumePositionRef.current = player.ended ? 0 : resumePosition(player.currentTime, durationRef.current);
-    if (!player || !trackingRef.current || player.seeking || document.visibilityState === "hidden" && mediaType === "video") {
-      if (player) sampleRef.current = { at: now, position: player.currentTime, rate: player.playbackRate };
+    if (!player || player.paused || player.seeking || document.visibilityState === "hidden" && mediaType === "video") {
+      if (player) sampleRef.current = { at: now, position: player.currentTime };
       return;
     }
     const previous = sampleRef.current;
     const elapsed = Math.max(0, (now - previous.at) / 1000);
     const advanced = player.currentTime - previous.position;
     {
-      const actualPlaybackTime = playbackSeconds(elapsed, advanced, previous.rate);
+      const actualPlaybackTime = playbackSeconds(elapsed, advanced, player.playbackRate);
       if (actualPlaybackTime > 0) {
         watchedRef.current += actualPlaybackTime;
         setWatchedSeconds(Math.floor(watchedRef.current));
       }
     }
-    sampleRef.current = { at: now, position: player.currentTime, rate: player.playbackRate };
+    sampleRef.current = { at: now, position: player.currentTime };
   }, [mediaType]);
 
   useEffect(() => {
@@ -201,26 +161,9 @@ function TrackedMediaSession({
     return () => window.clearInterval(interval);
   }, [isPlaying, samplePlayback, saveProgress]);
 
-  useEffect(() => {
-    const visibilityChanged = () => {
-      if (mediaType === "video" && playerRef.current) {
-        const player = playerRef.current;
-        // Do not credit the hidden interval when returning to this tab.
-        sampleRef.current = { at: performance.now(), position: player.currentTime, rate: player.playbackRate };
-      } else {
-        samplePlayback();
-      }
-      if (document.visibilityState === "hidden") saveProgressRef.current();
-    };
-    const reconnect = () => saveProgressRef.current();
-    document.addEventListener("visibilitychange", visibilityChanged);
-    window.addEventListener("online", reconnect);
-    return () => {
-      document.removeEventListener("visibilitychange", visibilityChanged);
-      window.removeEventListener("online", reconnect);
-      saveProgressRef.current();
-    };
-  }, [samplePlayback, mediaType]);
+  useEffect(() => () => {
+    saveProgress();
+  }, [saveProgress]);
 
   useEffect(() => {
     const flush = () => {
@@ -238,34 +181,25 @@ function TrackedMediaSession({
     const duration = Number.isFinite(player.duration) ? Math.min(86400, Math.floor(player.duration)) : 0;
     durationRef.current = Math.max(durationRef.current, duration);
     setDurationSeconds(durationRef.current);
-    sampleRef.current = { at: performance.now(), position: player.currentTime, rate: player.playbackRate };
+    sampleRef.current = { at: Date.now(), position: player.currentTime };
     applyResumePosition();
     saveProgress();
   };
 
   const playerEvents = {
-    onError: (event: SyntheticEvent<HTMLMediaElement>) => {
-      const player = event.currentTarget;
-      trackingRef.current = false;
-      setIsPlaying(false);
-      setPlaybackError(player.error?.code ?? 0);
-    },
-    onCanPlay: () => setPlaybackError(null),
     onPlay: (event: SyntheticEvent<HTMLMediaElement>) => {
       applyResumePosition();
       const player = event.currentTarget;
-      sampleRef.current = { at: performance.now(), position: player.currentTime, rate: player.playbackRate };
-      trackingRef.current = true;
+      sampleRef.current = { at: Date.now(), position: player.currentTime };
       setIsPlaying(true);
     },
-    onPause: () => { samplePlayback(); trackingRef.current = false; setIsPlaying(false); saveProgress(); },
-    onEnded: () => { samplePlayback(); trackingRef.current = false; resumePositionRef.current = 0; setIsPlaying(false); saveProgress(); },
-    onRateChange: samplePlayback,
+    onPause: () => { samplePlayback(); setIsPlaying(false); saveProgress(); },
+    onEnded: () => { resumePositionRef.current = 0; setIsPlaying(false); saveProgress(); },
     onSeeking: (event: SyntheticEvent<HTMLMediaElement>) => {
-      sampleRef.current = { at: performance.now(), position: event.currentTarget.currentTime, rate: event.currentTarget.playbackRate };
+      sampleRef.current = { at: Date.now(), position: event.currentTarget.currentTime };
     },
     onSeeked: (event: SyntheticEvent<HTMLMediaElement>) => {
-      sampleRef.current = { at: performance.now(), position: event.currentTarget.currentTime, rate: event.currentTarget.playbackRate };
+      sampleRef.current = { at: Date.now(), position: event.currentTarget.currentTime };
       if (Math.abs(event.currentTarget.currentTime - restoredPositionRef.current) > 0.5) setResumedAt(0);
       saveProgress();
     },
@@ -277,16 +211,11 @@ function TrackedMediaSession({
     : mediaType === "video" ? <Video size={16} aria-hidden="true"/>
       : <FileText size={16} aria-hidden="true"/>;
 
-  const retryPlayback = () => {
-    setPlaybackError(null);
-    playerRef.current?.load();
-  };
-
   return <div className="tracked-section-media" data-testid={`tracked-media-${mediaAssetId}`}>
     {mediaType === "video" && <video
       ref={element => { playerRef.current = element; }}
-      src={versionedVideoStreamUrl(url)}
-      controls
+      src={url}
+      controls={progressReady}
       playsInline
       preload="metadata"
       aria-label={`مشاهدة ${title}`}
@@ -295,7 +224,7 @@ function TrackedMediaSession({
     {mediaType === "audio" && <audio
       ref={element => { playerRef.current = element; }}
       src={url}
-      controls
+      controls={progressReady}
       preload="metadata"
       aria-label={`الاستماع إلى ${title}`}
       {...playerEvents}
@@ -308,11 +237,6 @@ function TrackedMediaSession({
       {!progressReady && mediaType !== "file" && (progressError
         ? <span>تعذّر تحميل موضعك السابق. {onRetryProgress && <button type="button" onClick={onRetryProgress}>إعادة المحاولة</button>}</span>
         : <span>جارٍ تحميل موضع التشغيل…</span>)}
-      {playbackError !== null && mediaType !== "file" && <span className="tracked-section-media-error" role="alert">
-        {playbackErrorMessage(playbackError, mediaType)}
-        <button type="button" onClick={retryPlayback}>إعادة المحاولة</button>
-        <a href={url} download>تنزيل {mediaType === "audio" ? "الصوت" : "الفيديو"}</a>
-      </span>}
       <span className="tracked-section-media-kind">{mediaIcon}{mediaType === "audio" ? "استماع" : mediaType === "video" ? "مشاهدة" : "مرفق"}</span>
       {mediaType !== "file" && <span>وقت التعلّم المسجل: {formatTime(watchedSeconds)}{durationSeconds > 0 ? ` من ${formatTime(durationSeconds)}` : ""}</span>}
       {resumedAt > 0 && <span data-testid={`media-resumed-${mediaAssetId}`}>استُعيد موضعك عند {formatTime(resumedAt)}</span>}

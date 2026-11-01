@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, bigint, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
 export const adCustomersTable = pgTable("ad_customers", {
@@ -54,7 +54,7 @@ export const adAssetsTable = pgTable("ad_assets", {
   objectPath: text("object_path").notNull(),
   ownerId: text("owner_id").notNull(),
   mime: text("mime").notNull(),
-  size: bigint("size", { mode: "number" }).notNull(),
+  size: integer("size").notNull(),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

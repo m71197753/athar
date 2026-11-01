@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type R
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BadgeCheck, Bell, BookOpen, BriefcaseBusiness, ExternalLink, FileClock, Layers3, LayoutGrid, Link2Off, Megaphone, Paperclip,
+  ArrowDown, ArrowLeft, ArrowUp, BadgeCheck, Bell, BookOpen, BriefcaseBusiness, ExternalLink, FileClock, Layers3, LayoutGrid, Link2Off, Megaphone,
   Languages, Palette, Pencil, Plus, RotateCcw, Search, Settings2, ShieldAlert, ShieldCheck, Trash2, Users, X,
 } from 'lucide-react';
 import {
@@ -17,33 +17,27 @@ import {
 } from '@workspace/api-client-react';
 import type { AdminNotification, AdminOverviewDetailsKind, AdminUser, AppearanceSettings, ContentEntry, ContentInput, ModuleSetting, PlatformSection, SectionBlock, SectionInput } from '@workspace/api-client-react';
 import { ThemeToggle } from '../components/theme-toggle';
-import { formatSectionMediaCleanupAuditTarget } from '../lib/section-media-cleanup-audit';
-import { NamedColorPicker } from '../components/NamedColorPicker';
 import { RequiredMark } from '../components/RequiredMark';
 import { SectionAppearanceFields } from '../components/SectionAppearanceFields';
 import './admin.css';
 import AdsAdminPanel from '../ads/AdsAdminPanel';
 import { AcademyAdminPanel } from '../academy';
-import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, ICON_SHAPES, PLATFORM_FONTS, appearanceContrast, getAppearanceIconRadius, getAppearanceTextColor } from '../lib/platform-appearance';
+import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE, getAppearanceTextColor } from '../lib/platform-appearance';
 import { SectionsAdminPanel } from './SectionsAdminPanel';
 import { GraduatesAdminPanel } from './GraduatesAdminPanel';
 import { SectionContentBlockEditor } from './SectionContentBlockEditor';
 import { AdminNotificationsPanel } from './AdminNotificationsPanel';
 import LanguageAdminPanel from './LanguageAdminPanel';
-import { ModuleSubmissionsAdminPanel } from './ModuleSubmissionsAdminPanel';
-import { AchievementEvidenceReviewPanel } from './AchievementEvidenceReviewPanel';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const validSectionMediaUrl = (value: string) => /^\/api\/platform\/section-media\/[a-f0-9-]{36}$/i.test(value);
-type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'module-submissions' | 'evidence-review' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
+type Tab = 'overview' | 'notifications' | 'users' | 'content' | 'sections' | 'academy' | 'languages' | 'graduates' | 'ads' | 'settings' | 'audit';
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: 'overview', label: 'نظرة عامة', icon: LayoutGrid },
   { id: 'notifications', label: 'الإشعارات', icon: Bell },
   { id: 'users', label: 'الحسابات', icon: Users },
   { id: 'content', label: 'المحتوى', icon: Megaphone },
   { id: 'sections', label: 'إدارة الأقسام', icon: Layers3 },
-  { id: 'module-submissions', label: 'ملفات الطلاب', icon: ShieldCheck },
-  { id: 'evidence-review', label: 'أدلة الإنجاز', icon: Paperclip },
   { id: 'academy', label: 'المذاكرة', icon: BookOpen },
   { id: 'languages', label: 'تعلم اللغات', icon: Languages },
   { id: 'graduates', label: 'الخريجون', icon: BriefcaseBusiness },
@@ -345,9 +339,6 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   if (q.isError || !moduleDraft || !appearanceDraft || !q.data) return <ErrorBox error={q.error} retry={() => q.refetch()}/>;
   const serverModules = q.data.moduleSettings;
   const serverAppearance = q.data.appearance;
-  const iconColor = appearanceDraft.iconColor ?? DEFAULT_APPEARANCE.iconColor ?? appearanceDraft.primaryColor;
-  const iconShape = appearanceDraft.iconShape ?? DEFAULT_APPEARANCE.iconShape ?? 'rounded';
-  const iconRadius = getAppearanceIconRadius(iconShape);
   const canonicalModules = (modules: ModuleSetting[]) => [...modules].sort((a, b) => a.key.localeCompare(b.key));
   const modulesDirty = JSON.stringify(canonicalModules(moduleDraft)) !== JSON.stringify(canonicalModules(serverModules));
   const appearanceDirty = JSON.stringify(appearanceDraft) !== JSON.stringify(serverAppearance);
@@ -389,7 +380,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
   };
   const choosePreset = (preset: AppearanceSettings) => {
     setMsg(null);
-    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor, textColor: preset.textColor, headingColor: preset.headingColor, cardTextColor: preset.cardTextColor, cardBorderColor: preset.cardBorderColor, iconColor: preset.iconColor ?? preset.primaryColor }));
+    setAppearanceDraft(current => current && ({ ...current, primaryColor: preset.primaryColor, accentColor: preset.accentColor, canvasColor: preset.canvasColor, surfaceColor: preset.surfaceColor }));
   };
   const persist = (modules: ModuleSetting[], appearance: AppearanceSettings) => {
     const invalidContent = modules.some(module => (module.blocks ?? []).length > 20 || (module.blocks ?? []).some(block =>
@@ -458,17 +449,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
       </article>;
     })}</div>
     <section className="adm-appearance" aria-labelledby="adm-appearance-title">
-      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">الخطوط وألوان الواجهة</h2><p>إعدادات عامة لكل الطلاب، تشمل لون الأيقونات وشكل خلفيتها. يحتفظ الوضع الداكن بتباين مريح للقراءة.</p></div></div>
-      <label className="adm-field"><span>خط المنصة</span><select value={appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'} onChange={e => updateAppearance('fontFamily', e.target.value as AppearanceSettings['fontFamily'])} data-testid="select-platform-font">
-        <option value="IBM Plex Sans Arabic">أثر — نص واضح وعناوين كايرو</option>
-        <option value="Cairo">كايرو — عربي هندسي</option>
-        <option value="Tahoma">تاهوما — كلاسيكي واضح</option>
-        <option value="Arial">أريال — بسيط ورسمي</option>
-      </select></label>
-      <label className="adm-field"><span>حجم خط الواجهة — {appearanceDraft.fontScale ?? 100}%</span>
-        <input type="range" min={90} max={130} step={5} value={appearanceDraft.fontScale ?? 100} onChange={e => updateAppearance('fontScale', Number(e.target.value))} data-testid="input-platform-font-size"/>
-        <small>من ٩٠٪ إلى ١٣٠٪. يؤثر على النصوص والعناوين والأزرار، ولا يغير حجم مستند السيرة.</small>
-      </label>
+      <div className="adm-appearance-heading"><span className="adm-appearance-mark"><Palette size={18}/></span><div><h2 id="adm-appearance-title">ألوان ورسالة الواجهة</h2><p>اختر ألوان أثر وعدّل رسالة الترحيب التي تظهر للطلاب.</p></div></div>
       <div className="adm-appearance-presets" aria-label="لوحات ألوان جاهزة">{APPEARANCE_PRESETS.map(preset => <button key={preset.label} type="button" className="adm-preset" aria-pressed={appearanceDraft.primaryColor === preset.value.primaryColor && appearanceDraft.accentColor === preset.value.accentColor && appearanceDraft.canvasColor === preset.value.canvasColor} onClick={() => choosePreset(preset.value)}><span className="adm-preset-swatches"><i style={{ background: preset.value.primaryColor }}/><i style={{ background: preset.value.accentColor }}/><i style={{ background: preset.value.canvasColor }}/></span>{preset.label}</button>)}</div>
       <div className="adm-color-grid">
         {([
@@ -476,39 +457,18 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
           ['accentColor', 'لون الإبراز'],
           ['canvasColor', 'خلفية الصفحات'],
           ['surfaceColor', 'خلفية البطاقات'],
-          ['textColor', 'لون النصوص'],
-          ['headingColor', 'لون العناوين'],
-          ['cardTextColor', 'لون النص داخل المربعات'],
-          ['cardBorderColor', 'لون حدود المربعات'],
         ] as const).map(([key, label]) => <label className="adm-color-field" key={key}>
-          <span>{label}</span><span className="adm-color-value"><NamedColorPicker label={label} value={appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'} onChange={value => updateAppearance(key, value.toUpperCase())} testId={`admin-appearance-${key}`}/><code dir="ltr">{appearanceDraft[key] ?? DEFAULT_APPEARANCE[key] ?? '#FFFFFF'}</code></span>
+          <span>{label}</span><span className="adm-color-value"><input type="color" value={appearanceDraft[key]} onChange={e => updateAppearance(key, e.target.value.toUpperCase())} aria-label={label}/><code dir="ltr">{appearanceDraft[key]}</code></span>
         </label>)}
-      </div>
-      <div className="adm-icon-style-settings">
-        <label className="adm-color-field adm-icon-color-field">
-          <span>لون الأيقونات العامة</span>
-          <span className="adm-color-value"><NamedColorPicker label="لون الأيقونات العامة" value={iconColor} onChange={value => updateAppearance('iconColor', value.toUpperCase())} testId="admin-appearance-icon-color"/><code dir="ltr">{iconColor}</code></span>
-        </label>
-        <div className="adm-icon-shape-field">
-          <span className="adm-icon-shape-label">شكل خلفية الأيقونات</span>
-          <div className="adm-icon-shape-options" role="group" aria-label="شكل خلفية الأيقونات">
-            {ICON_SHAPES.map(shape => <button key={shape.value} type="button" className="adm-icon-shape-option" aria-pressed={iconShape === shape.value} onClick={() => updateAppearance('iconShape', shape.value)} data-testid={`button-platform-icon-shape-${shape.value}`}>
-              <span className="adm-icon-shape-swatch" style={{ color: iconColor, background: `color-mix(in srgb, ${iconColor} 13%, ${appearanceDraft.surfaceColor})`, borderRadius: shape.radius }}><Palette size={18}/></span>
-              <span>{shape.label}</span>
-            </button>)}
-          </div>
-        </div>
       </div>
       <div className="adm-editor adm-copy-editor">
          <label className="adm-field"><span>عنوان الترحيب <RequiredMark/></span><input required minLength={2} maxLength={80} value={appearanceDraft.welcomeTitle} onChange={e => updateAppearance('welcomeTitle', e.target.value)} /></label>
          <label className="adm-field"><span>النص التعريفي <RequiredMark/></span><textarea required minLength={2} maxLength={220} rows={3} value={appearanceDraft.welcomeDescription} onChange={e => updateAppearance('welcomeDescription', e.target.value)} /></label>
       </div>
-      {(appearanceContrast(appearanceDraft.textColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(appearanceDraft.headingColor ?? '#172033', appearanceDraft.surfaceColor) < 3 || appearanceContrast(appearanceDraft.cardTextColor ?? '#334155', appearanceDraft.surfaceColor) < 4.5 || appearanceContrast(iconColor, appearanceDraft.surfaceColor) < 3) && <p className="adm-form-error" role="status">تباين النص أو الأيقونات مع البطاقة منخفض. اختر لونًا أوضح لسهولة القراءة والرؤية.</p>}
-      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor, '--platform-font-body': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'IBM Plex Sans Arabic'], '--platform-font-heading': PLATFORM_FONTS[appearanceDraft.fontFamily ?? 'Cairo'], '--platform-font-scale': (appearanceDraft.fontScale ?? 100) / 100 } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
-        <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.cardBorderColor ?? '#E2E8F0' } as CSSProperties}>
+      <div className="adm-appearance-preview" style={{ background: appearanceDraft.canvasColor } as CSSProperties} aria-label="معاينة مباشرة للواجهة">
+        <div className="adm-appearance-preview-card" style={{ background: appearanceDraft.surfaceColor, borderColor: appearanceDraft.accentColor } as CSSProperties}>
           <span className="adm-preview-label" style={{ color: appearanceDraft.primaryColor }}>معاينة الواجهة</span>
-          <b style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeTitle}</b><p style={{ color: appearanceDraft.cardTextColor ?? '#334155' }}>{appearanceDraft.welcomeDescription}</p>
-          <div className="adm-icon-preview-row"><span style={{ color: iconColor, background: `color-mix(in srgb, ${iconColor} 13%, ${appearanceDraft.surfaceColor})`, borderRadius: iconRadius }}><Palette size={19}/></span><small>معاينة لون وشكل الأيقونة</small></div>
+          <b>{appearanceDraft.welcomeTitle}</b><p>{appearanceDraft.welcomeDescription}</p>
           <button type="button" style={{ background: appearanceDraft.primaryColor, color: getAppearanceTextColor(appearanceDraft.primaryColor) }}>ابدأ الآن</button>
         </div>
       </div>
@@ -519,7 +479,7 @@ function SettingsPanel({ onOpenAcademy }: { onOpenAcademy: () => void }) {
       {dirty && <button type="button" className="button button-outline" disabled={save.isPending} onClick={() => { setModuleDraft(serverModules); setAppearanceDraft(serverAppearance); setMsg(null); }}><RotateCcw size={15}/> تراجع</button>}
       <button type="button" className="button button-primary" disabled={!dirty || save.isPending} onClick={() => persist(moduleDraft, appearanceDraft)}>{save.isPending ? 'جارٍ الحفظ…' : 'حفظ الإعدادات'}</button>
     </div>
-    <p className="adm-global-note">تغييرات الألوان ورسالة الترحيب وشكل الأيقونات تظهر لكل الطلاب بعد الحفظ، مع بقاء الشعار كما هو.</p>
+    <p className="adm-global-note">تغييرات الألوان ورسالة الترحيب تظهر لكل الطلاب بعد الحفظ، مع بقاء الشعار كما هو.</p>
   </section>;
 }
 
@@ -532,26 +492,7 @@ function AuditPanel() {
   const total = Math.max(1, Math.ceil(q.data.total / Math.max(1, q.data.pageSize)));
   return <section aria-labelledby="adm-audit-h"><div className="adm-section-head"><h2 id="adm-audit-h">سجل النشاط الإداري</h2></div>
     {q.data.items.length === 0 ? <Empty title="السجل فارغ" body="ستظهر هنا كل عملية إدارية فور تنفيذها."/> : <>
-      <ol className="adm-audit">{q.data.items.map(a => {
-        const isMediaCleanup = a.action === 'section-media.cleanup';
-        const evidenceActionLabels: Record<string, string> = {
-          'achievement_evidence.view': 'مراجعة دليل إنجاز',
-          'achievement_evidence.preview': 'معاينة مرفق إنجاز',
-          'achievement_evidence.download': 'تنزيل مرفق إنجاز',
-        };
-        const evidenceAction = evidenceActionLabels[a.action];
-        const evidenceDetails = [
-          a.evidenceStudentName && `الطالب: ${a.evidenceStudentName}`,
-          a.evidenceAchievementTitle && `الإنجاز: ${a.evidenceAchievementTitle}`,
-          a.evidenceAttachmentTitle && `المرفق: ${a.evidenceAttachmentTitle}`,
-        ].filter(Boolean).join(' · ');
-        return <li key={a.id}>
-          <time>{fmtDate(a.createdAt)}</time>
-          <b>{isMediaCleanup ? 'تنظيف مرفقات الأقسام' : evidenceAction ?? <span dir="ltr">{a.action}</span>}</b>
-          <span>{isMediaCleanup ? <>النتيجة: {formatSectionMediaCleanupAuditTarget(a.target)}</> : evidenceAction ? evidenceDetails || 'لم يعد المرفق متاحًا' : <>الهدف: <code dir="ltr">{a.target}</code></>}</span>
-          <small>المنفّذ: {a.actorId === 'system:scheduled-section-media-cleanup' ? 'التنظيف الدوري' : <code dir="ltr">{a.actorId}</code>}</small>
-        </li>;
-      })}</ol>
+      <ol className="adm-audit">{q.data.items.map(a => <li key={a.id}><time>{fmtDate(a.createdAt)}</time><b dir="ltr">{a.action}</b><span>الهدف: <code dir="ltr">{a.target}</code></span><small>المنفّذ: <code dir="ltr">{a.actorId}</code></small></li>)}</ol>
       <Pager page={page} total={total} count={q.data.total} onPage={setPage} busy={q.isFetching}/></>}
   </section>;
 }
@@ -571,7 +512,7 @@ export default function AdminPage() {
   const [focusSubmissions, setFocusSubmissions] = useState(false);
   const frame = (body: ReactNode) => <div className="adm-frame" dir="rtl">
     <header className="adm-top"><Link href="/dashboard" className="adm-brand" aria-label="العودة إلى مساحة الطالب"><Brand/></Link><span className="adm-crumb"><ShieldCheck size={16}/> لوحة الإشراف</span><ThemeToggle/>
-      <Link href="/dashboard" className="adm-back" aria-label="الرجوع للبرنامج" title="الرجوع للبرنامج" data-testid="link-admin-back-to-app"><ArrowRight size={16}/><span>الرجوع للبرنامج</span></Link></header>{body}</div>;
+      <Link href="/dashboard" className="adm-back">مساحة الطالب <ArrowLeft size={14}/></Link></header>{body}</div>;
   if (access.isLoading) return frame(<main className="adm-main"><Skeleton rows={4}/></main>);
   const s = statusOf(access.error);
   if (access.isError && s !== 401 && s !== 403) return frame(<main className="adm-main"><ErrorBox error={access.error} retry={() => access.refetch()}/></main>);
@@ -594,8 +535,6 @@ export default function AdminPage() {
       {tab === 'users' && <UsersPanel selfId={selfId}/>}
       {tab === 'content' && <ContentPanel/>}
       {tab === 'sections' && <SectionsAdminPanel onOpenModuleSettings={() => setTab('settings')}/>}
-      {tab === 'module-submissions' && <ModuleSubmissionsAdminPanel/>}
-      {tab === 'evidence-review' && <AchievementEvidenceReviewPanel/>}
       {tab === 'academy' && <AcademyAdminPanel focusSubmissions={focusSubmissions}/>}
       {tab === 'languages' && <LanguageAdminPanel/>}
       {tab === 'graduates' && <GraduatesAdminPanel/>}

@@ -9,7 +9,6 @@ import type { SectionBlockMediaType } from './sectionBlockMediaType';
 import type { SectionBlockType } from './sectionBlockType';
 
 export interface SectionBlock {
-  id?: string;
   type: SectionBlockType;
   mediaType?: SectionBlockMediaType;
   /**

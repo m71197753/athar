@@ -5,8 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { AppearanceSettingsFontFamily } from './appearanceSettingsFontFamily';
-import type { AppearanceSettingsIconShape } from './appearanceSettingsIconShape';
 
 export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
@@ -17,23 +15,6 @@ export interface AppearanceSettings {
   canvasColor: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   surfaceColor: string;
-  fontFamily?: AppearanceSettingsFontFamily;
-  /**
-     * @minimum 90
-     * @maximum 130
-     */
-  fontScale?: number;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  textColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  headingColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  cardTextColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  cardBorderColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  iconColor?: string;
-  iconShape?: AppearanceSettingsIconShape;
   /**
      * @minLength 2
      * @maxLength 80

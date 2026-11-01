@@ -4,7 +4,6 @@ import type { SectionBlock, SectionCourse, SectionCourseUnit } from "@workspace/
 import { SectionContentBlockEditor } from "./SectionContentBlockEditor";
 import { RequiredMark } from "../components/RequiredMark";
 import { groupCourseMaterials, type IndexedLesson } from "../lib/section-units";
-import { MAX_COURSE_MATERIALS, MAX_COURSE_UNITS } from "../lib/course-limits";
 import "./section-builder.css";
 
 const emptyLesson = (unitId?: string): SectionBlock => ({ type: "text", title: "", body: "", url: "", ...(unitId ? { unitId } : {}) });
@@ -13,7 +12,7 @@ export function CourseUnitsEditor({ course, onChange }: { course: SectionCourse;
   const [notice, setNotice] = useState("");
   const units = course.units ?? [];
   const { groups, loose } = groupCourseMaterials(course);
-  const full = course.materials.length >= MAX_COURSE_MATERIALS;
+  const full = course.materials.length >= 20;
 
   const setUnits = (next: SectionCourseUnit[]) => onChange({ units: next });
   const patchUnit = (id: string, patch: Partial<SectionCourseUnit>) => setUnits(units.map(u => u.id === id ? { ...u, ...patch } : u));
@@ -73,15 +72,15 @@ export function CourseUnitsEditor({ course, onChange }: { course: SectionCourse;
         block={block}
         name={`course-${course.id}-material-kind-${index}-${groupKey}`}
         testIdPrefix={`course-${course.id}-material-${index}`}
-        maxBatchFileCount={MAX_COURSE_MATERIALS + 1 - course.materials.length}
+        maxBatchFileCount={21 - course.materials.length}
         onChange={patch => setMaterial(index, patch)}
         onUploadMany={blocks => batch(index, blocks)}
       />
     </article>)}</div>;
 
   return <div className="sb-units">
-    <div className="adm-section-block-heading"><div><h5>الوحدات والدروس</h5><p>نظّم الدروس في وحدات مرتبة. الحد الأقصى {MAX_COURSE_UNITS.toLocaleString("ar")} وحدة و{MAX_COURSE_MATERIALS.toLocaleString("ar")} درسًا لكل دورة ({course.materials.length.toLocaleString("ar")}/{MAX_COURSE_MATERIALS.toLocaleString("ar")}).</p></div>
-      <button type="button" className="button button-outline button-compact" disabled={units.length >= MAX_COURSE_UNITS} onClick={addUnit} data-testid={`button-add-unit-${course.id}`}><Plus size={14}/> إضافة وحدة</button>
+    <div className="adm-section-block-heading"><div><h5>الوحدات والدروس</h5><p>نظّم الدروس في وحدات مرتبة. الحد الأقصى 20 وحدة و20 درسًا لكل دورة ({course.materials.length.toLocaleString("ar")}/20).</p></div>
+      <button type="button" className="button button-outline button-compact" disabled={units.length >= 20} onClick={addUnit} data-testid={`button-add-unit-${course.id}`}><Plus size={14}/> إضافة وحدة</button>
     </div>
     {notice && <p className="sb-notice" role="status">{notice} <button type="button" onClick={() => setNotice("")}>حسنًا</button></p>}
     {groups.map(({ unit, lessons }, i) => <section className="sb-unit" key={unit.id} data-testid={`admin-unit-${unit.id}`}>

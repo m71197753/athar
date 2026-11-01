@@ -12,7 +12,6 @@ import {
   platformSettingsTable,
   platformMediaAssetsTable,
   sectionMediaProgressTable,
-  coursePositionsTable,
 } from "@workspace/db";
 import {
   CompletePlatformSectionCourseParams,
@@ -23,11 +22,6 @@ import {
   GetAcademyProgressResponse,
   GetSectionMediaProgressParams,
   GetSectionMediaProgressResponse,
-  GetCoursePositionParams,
-  GetCoursePositionResponse,
-  SaveCoursePositionParams,
-  SaveCoursePositionBody,
-  SaveCoursePositionResponse,
   ListLearningItemsQueryParams,
   ListLearningItemsResponse,
   SaveSectionMediaProgressBody,
@@ -41,7 +35,6 @@ import {
   UpdateLearningItemResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
-import { resolveCourseLesson } from "../lib/course-position";
 import { enabledModules } from "../lib/platform-access";
 
 const router: IRouter = Router();
@@ -84,46 +77,6 @@ async function getPublishedMediaScope(slug: string) {
   );
   return module ? { section: null, moduleBlocks: module.blocks ?? [], academyLessonId: null, communityCourseId: null } : null;
 }
-
-router.get("/sections/:slug/courses/:courseId/position", requireAuth, async (req, res): Promise<void> => {
-  const parsed = GetCoursePositionParams.safeParse(req.params);
-  if (!parsed.success) { res.status(400).json({ error: "Invalid course" }); return; }
-  const { slug, courseId } = parsed.data;
-  const scope = await getPublishedMediaScope(slug);
-  if (!scope?.section?.courses.some(course => course.id === courseId)) {
-    res.status(404).json({ error: "Published course not found" }); return;
-  }
-  const [saved] = await db.select().from(coursePositionsTable).where(and(
-    eq(coursePositionsTable.userId, res.locals.userId as string),
-    eq(coursePositionsTable.sectionSlug, slug), eq(coursePositionsTable.courseId, courseId),
-  )).limit(1);
-  res.setHeader("Cache-Control", "private, no-store");
-  res.json(GetCoursePositionResponse.parse({ lesson: saved?.lesson ?? null }));
-});
-
-router.put("/sections/:slug/courses/:courseId/position", requireAuth, async (req, res): Promise<void> => {
-  if (req.get("X-Athar-Expected-User") && req.get("X-Athar-Expected-User") !== res.locals.userId) {
-    res.status(403).json({ error: "Account changed; reopen the course" }); return;
-  }
-  const params = SaveCoursePositionParams.safeParse(req.params);
-  const parsed = SaveCoursePositionBody.safeParse(req.body);
-  if (!params.success || !parsed.success) { res.status(400).json({ error: "Invalid lesson" }); return; }
-  const { slug, courseId } = params.data;
-  const scope = await getPublishedMediaScope(slug);
-  const course = scope?.section?.courses.find(item => item.id === courseId);
-  if (!course) { res.status(404).json({ error: "Published course not found" }); return; }
-  const index = resolveCourseLesson(course.materials, parsed.data.lesson);
-  if (index < 0) { res.status(409).json({ error: "Lesson changed or cannot be uniquely identified" }); return; }
-  const lesson = course.materials[index];
-  await db.insert(coursePositionsTable).values({
-    userId: res.locals.userId as string, sectionSlug: slug, courseId, lesson,
-  }).onConflictDoUpdate({
-    target: [coursePositionsTable.userId, coursePositionsTable.sectionSlug, coursePositionsTable.courseId],
-    set: { lesson, updatedAt: new Date() },
-  });
-  res.setHeader("Cache-Control", "private, no-store");
-  res.json(SaveCoursePositionResponse.parse({ lesson }));
-});
 
 router.get("/sections/:slug/media-progress", requireAuth, async (req, res): Promise<void> => {
   const params = GetSectionMediaProgressParams.safeParse(req.params);

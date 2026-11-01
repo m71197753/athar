@@ -456,12 +456,13 @@ export const UpdateAdEnquiryResponse = zod.object({
 })
 
 
+export const requestAdAssetUploadBodySizeMax = 83886080;
 
 
 
 export const RequestAdAssetUploadBody = zod.object({
   "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']),
-  "size": zod.number().int().min(1)
+  "size": zod.number().int().min(1).max(requestAdAssetUploadBodySizeMax)
 })
 
 export const RequestAdAssetUploadResponse = zod.object({
@@ -611,14 +612,6 @@ export const getPlatformContentResponseAppearancePrimaryColorRegExp = new RegExp
 export const getPlatformContentResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getPlatformContentResponseAppearanceFontScaleMin = 90;
-export const getPlatformContentResponseAppearanceFontScaleMax = 130;
-
-export const getPlatformContentResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getPlatformContentResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getPlatformContentResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getPlatformContentResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getPlatformContentResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getPlatformContentResponseAppearanceWelcomeTitleMin = 2;
 export const getPlatformContentResponseAppearanceWelcomeTitleMax = 80;
 
@@ -648,7 +641,7 @@ export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemTitleM
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax = 100;
+export const getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax = 20;
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax = 60;
 
@@ -660,7 +653,7 @@ export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemBo
 
 export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsMax = 100;
+export const getPlatformContentResponseSectionsItemOneCoursesItemMaterialsMax = 20;
 
 export const getPlatformContentResponseSectionsItemOneCoursesMax = 20;
 
@@ -692,7 +685,6 @@ export const GetPlatformContentResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseModuleSettingsItemBlocksItemTitleMax),
@@ -706,14 +698,6 @@ export const GetPlatformContentResponse = zod.object({
   "accentColor": zod.string().regex(getPlatformContentResponseAppearanceAccentColorRegExp),
   "canvasColor": zod.string().regex(getPlatformContentResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(getPlatformContentResponseAppearanceSurfaceColorRegExp),
-  "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
-  "fontScale": zod.number().int().min(getPlatformContentResponseAppearanceFontScaleMin).max(getPlatformContentResponseAppearanceFontScaleMax).optional(),
-  "textColor": zod.string().regex(getPlatformContentResponseAppearanceTextColorRegExp).optional(),
-  "headingColor": zod.string().regex(getPlatformContentResponseAppearanceHeadingColorRegExp).optional(),
-  "cardTextColor": zod.string().regex(getPlatformContentResponseAppearanceCardTextColorRegExp).optional(),
-  "cardBorderColor": zod.string().regex(getPlatformContentResponseAppearanceCardBorderColorRegExp).optional(),
-  "iconColor": zod.string().regex(getPlatformContentResponseAppearanceIconColorRegExp).optional(),
-  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(getPlatformContentResponseAppearanceWelcomeTitleMin).max(getPlatformContentResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getPlatformContentResponseAppearanceWelcomeDescriptionMin).max(getPlatformContentResponseAppearanceWelcomeDescriptionMax)
 }),
@@ -725,7 +709,6 @@ export const GetPlatformContentResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneBlocksItemTitleMax),
@@ -744,7 +727,6 @@ export const GetPlatformContentResponse = zod.object({
 })).max(getPlatformContentResponseSectionsItemOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsItemMax)).max(getPlatformContentResponseSectionsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getPlatformContentResponseSectionsItemOneCoursesItemMaterialsItemTitleMax),
@@ -792,45 +774,6 @@ export const GetAdminOverviewDetailsResponse = zod.object({
   "subtitle": zod.string(),
   "ownerId": zod.string(),
   "updatedAt": zod.string()
-})),
-  "total": zod.number().int(),
-  "page": zod.number().int(),
-  "pageSize": zod.number().int()
-})
-
-
-export const listAdminAchievementEvidenceQuerySearchMax = 100;
-
-export const listAdminAchievementEvidenceQueryPageDefault = 1;
-
-
-
-export const ListAdminAchievementEvidenceQueryParams = zod.object({
-  "search": zod.coerce.string().max(listAdminAchievementEvidenceQuerySearchMax).optional(),
-  "page": zod.coerce.number().int().min(1).default(listAdminAchievementEvidenceQueryPageDefault)
-})
-
-
-
-
-export const ListAdminAchievementEvidenceResponse = zod.object({
-  "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "achievementId": zod.string().uuid(),
-  "studentName": zod.string(),
-  "studentUniversity": zod.string(),
-  "studentMajor": zod.string(),
-  "achievementTitle": zod.string(),
-  "kind": zod.string(),
-  "title": zod.string(),
-  "content": zod.string().nullable(),
-  "url": zod.string().nullable(),
-  "originalName": zod.string().nullable(),
-  "mime": zod.string().nullable(),
-  "size": zod.number().int().min(1).nullable(),
-  "status": zod.string(),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
 })),
   "total": zod.number().int(),
   "page": zod.number().int(),
@@ -1015,19 +958,13 @@ export const getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const getAdminSettingsResponseModuleSettingsItemBlocksMax = 20;
 
+export const getAdminSettingsResponseModuleSettingsMin = 7;
+export const getAdminSettingsResponseModuleSettingsMax = 7;
 
 export const getAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getAdminSettingsResponseAppearanceFontScaleMin = 90;
-export const getAdminSettingsResponseAppearanceFontScaleMax = 130;
-
-export const getAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const getAdminSettingsResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const getAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const getAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1047,7 +984,6 @@ export const GetAdminSettingsResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(getAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
@@ -1055,20 +991,12 @@ export const GetAdminSettingsResponse = zod.object({
   "url": zod.string().max(getAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(getAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
-})).min(1),
+})).min(getAdminSettingsResponseModuleSettingsMin).max(getAdminSettingsResponseModuleSettingsMax),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(getAdminSettingsResponseAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(getAdminSettingsResponseAppearanceAccentColorRegExp),
   "canvasColor": zod.string().regex(getAdminSettingsResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(getAdminSettingsResponseAppearanceSurfaceColorRegExp),
-  "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
-  "fontScale": zod.number().int().min(getAdminSettingsResponseAppearanceFontScaleMin).max(getAdminSettingsResponseAppearanceFontScaleMax).optional(),
-  "textColor": zod.string().regex(getAdminSettingsResponseAppearanceTextColorRegExp).optional(),
-  "headingColor": zod.string().regex(getAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
-  "cardTextColor": zod.string().regex(getAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
-  "cardBorderColor": zod.string().regex(getAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
-  "iconColor": zod.string().regex(getAdminSettingsResponseAppearanceIconColorRegExp).optional(),
-  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(getAdminSettingsResponseAppearanceWelcomeTitleMin).max(getAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(getAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(getAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })
@@ -1091,19 +1019,13 @@ export const saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const saveAdminSettingsBodyModuleSettingsItemBlocksMax = 20;
 
+export const saveAdminSettingsBodyModuleSettingsMin = 7;
+export const saveAdminSettingsBodyModuleSettingsMax = 7;
 
 export const saveAdminSettingsBodyAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsBodyAppearanceFontScaleMin = 90;
-export const saveAdminSettingsBodyAppearanceFontScaleMax = 130;
-
-export const saveAdminSettingsBodyAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsBodyAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsBodyAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsBodyAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsBodyAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsBodyAppearanceWelcomeTitleMax = 80;
 
@@ -1123,7 +1045,6 @@ export const SaveAdminSettingsBody = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsBodyModuleSettingsItemBlocksItemTitleMax),
@@ -1131,20 +1052,12 @@ export const SaveAdminSettingsBody = zod.object({
   "url": zod.string().max(saveAdminSettingsBodyModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsBodyModuleSettingsItemBlocksMax).optional()
-})).min(1),
+})).min(saveAdminSettingsBodyModuleSettingsMin).max(saveAdminSettingsBodyModuleSettingsMax),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(saveAdminSettingsBodyAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(saveAdminSettingsBodyAppearanceAccentColorRegExp),
   "canvasColor": zod.string().regex(saveAdminSettingsBodyAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(saveAdminSettingsBodyAppearanceSurfaceColorRegExp),
-  "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
-  "fontScale": zod.number().int().min(saveAdminSettingsBodyAppearanceFontScaleMin).max(saveAdminSettingsBodyAppearanceFontScaleMax).optional(),
-  "textColor": zod.string().regex(saveAdminSettingsBodyAppearanceTextColorRegExp).optional(),
-  "headingColor": zod.string().regex(saveAdminSettingsBodyAppearanceHeadingColorRegExp).optional(),
-  "cardTextColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardTextColorRegExp).optional(),
-  "cardBorderColor": zod.string().regex(saveAdminSettingsBodyAppearanceCardBorderColorRegExp).optional(),
-  "iconColor": zod.string().regex(saveAdminSettingsBodyAppearanceIconColorRegExp).optional(),
-  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeTitleMin).max(saveAdminSettingsBodyAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsBodyAppearanceWelcomeDescriptionMin).max(saveAdminSettingsBodyAppearanceWelcomeDescriptionMax)
 })
@@ -1166,19 +1079,13 @@ export const saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax = 2048;
 
 export const saveAdminSettingsResponseModuleSettingsItemBlocksMax = 20;
 
+export const saveAdminSettingsResponseModuleSettingsMin = 7;
+export const saveAdminSettingsResponseModuleSettingsMax = 7;
 
 export const saveAdminSettingsResponseAppearancePrimaryColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceCanvasColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceSurfaceColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsResponseAppearanceFontScaleMin = 90;
-export const saveAdminSettingsResponseAppearanceFontScaleMax = 130;
-
-export const saveAdminSettingsResponseAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsResponseAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsResponseAppearanceCardTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsResponseAppearanceCardBorderColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const saveAdminSettingsResponseAppearanceIconColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMin = 2;
 export const saveAdminSettingsResponseAppearanceWelcomeTitleMax = 80;
 
@@ -1198,7 +1105,6 @@ export const SaveAdminSettingsResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(saveAdminSettingsResponseModuleSettingsItemBlocksItemTitleMax),
@@ -1206,20 +1112,12 @@ export const SaveAdminSettingsResponse = zod.object({
   "url": zod.string().max(saveAdminSettingsResponseModuleSettingsItemBlocksItemUrlMax),
   "unitId": zod.string().uuid().optional()
 })).max(saveAdminSettingsResponseModuleSettingsItemBlocksMax).optional()
-})).min(1),
+})).min(saveAdminSettingsResponseModuleSettingsMin).max(saveAdminSettingsResponseModuleSettingsMax),
   "appearance": zod.object({
   "primaryColor": zod.string().regex(saveAdminSettingsResponseAppearancePrimaryColorRegExp),
   "accentColor": zod.string().regex(saveAdminSettingsResponseAppearanceAccentColorRegExp),
   "canvasColor": zod.string().regex(saveAdminSettingsResponseAppearanceCanvasColorRegExp),
   "surfaceColor": zod.string().regex(saveAdminSettingsResponseAppearanceSurfaceColorRegExp),
-  "fontFamily": zod.enum(['IBM Plex Sans Arabic', 'Cairo', 'Tahoma', 'Arial']).optional(),
-  "fontScale": zod.number().int().min(saveAdminSettingsResponseAppearanceFontScaleMin).max(saveAdminSettingsResponseAppearanceFontScaleMax).optional(),
-  "textColor": zod.string().regex(saveAdminSettingsResponseAppearanceTextColorRegExp).optional(),
-  "headingColor": zod.string().regex(saveAdminSettingsResponseAppearanceHeadingColorRegExp).optional(),
-  "cardTextColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardTextColorRegExp).optional(),
-  "cardBorderColor": zod.string().regex(saveAdminSettingsResponseAppearanceCardBorderColorRegExp).optional(),
-  "iconColor": zod.string().regex(saveAdminSettingsResponseAppearanceIconColorRegExp).optional(),
-  "iconShape": zod.enum(['rounded', 'circle', 'square']).optional(),
   "welcomeTitle": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeTitleMin).max(saveAdminSettingsResponseAppearanceWelcomeTitleMax),
   "welcomeDescription": zod.string().min(saveAdminSettingsResponseAppearanceWelcomeDescriptionMin).max(saveAdminSettingsResponseAppearanceWelcomeDescriptionMax)
 })
@@ -1764,33 +1662,12 @@ export const requestSectionMediaUploadBodyOriginalNameMax = 240;
 export const RequestSectionMediaUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestSectionMediaUploadBodyOriginalNameMax),
   "mime": zod.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/webm', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']),
-  "size": zod.number().int().min(1),
-  "resumable": zod.boolean().optional().describe('Request a resumable direct-to-storage upload session')
+  "size": zod.number().int().min(1)
 })
 
 export const RequestSectionMediaUploadResponse = zod.object({
   "id": zod.string().uuid(),
-  "uploadUrl": zod.string().url(),
-  "resumable": zod.boolean().optional()
-})
-
-
-export const PreviewSectionMediaCleanupResponse = zod.object({
-  "retentionDays": zod.number().int(),
-  "expiredUploads": zod.number().int(),
-  "unlinkedAssets": zod.number().int(),
-  "orphanFiles": zod.number().int(),
-  "reclaimableBytes": zod.number().int()
-})
-
-
-export const CleanupSectionMediaResponse = zod.object({
-  "retentionDays": zod.number().int(),
-  "expiredUploads": zod.number().int(),
-  "removedAssets": zod.number().int(),
-  "deletedFiles": zod.number().int(),
-  "failedFiles": zod.number().int(),
-  "reclaimedBytes": zod.number().int()
+  "uploadUrl": zod.string().url()
 })
 
 
@@ -1833,7 +1710,7 @@ export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemTitleMax =
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax = 100;
+export const listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax = 20;
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax = 60;
 
@@ -1845,7 +1722,7 @@ export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemBodyMa
 
 export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsMax = 100;
+export const listAdminSectionsResponseItemsItemOneCoursesItemMaterialsMax = 20;
 
 export const listAdminSectionsResponseItemsItemOneCoursesMax = 20;
 
@@ -1864,7 +1741,6 @@ export const ListAdminSectionsResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneBlocksItemTitleMax),
@@ -1883,7 +1759,6 @@ export const ListAdminSectionsResponse = zod.object({
 })).max(listAdminSectionsResponseItemsItemOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsItemMax)).max(listAdminSectionsResponseItemsItemOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(listAdminSectionsResponseItemsItemOneCoursesItemMaterialsItemTitleMax),
@@ -1925,7 +1800,7 @@ export const createAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
 
 export const createAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
 
-export const createAdminSectionBodyCoursesItemUnitsMax = 100;
+export const createAdminSectionBodyCoursesItemUnitsMax = 20;
 
 export const createAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
@@ -1937,7 +1812,7 @@ export const createAdminSectionBodyCoursesItemMaterialsItemBodyMax = 2000;
 
 export const createAdminSectionBodyCoursesItemMaterialsItemUrlMax = 2048;
 
-export const createAdminSectionBodyCoursesItemMaterialsMax = 100;
+export const createAdminSectionBodyCoursesItemMaterialsMax = 20;
 
 export const createAdminSectionBodyCoursesMax = 20;
 
@@ -1954,7 +1829,6 @@ export const CreateAdminSectionBody = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyBlocksItemTitleMax),
@@ -1973,7 +1847,6 @@ export const CreateAdminSectionBody = zod.object({
 })).max(createAdminSectionBodyCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(createAdminSectionBodyCoursesItemSkillsItemMax)).max(createAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionBodyCoursesItemMaterialsItemTitleMax),
@@ -2009,7 +1882,7 @@ export const createAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
 
 export const createAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const createAdminSectionResponseOneCoursesItemUnitsMax = 100;
+export const createAdminSectionResponseOneCoursesItemUnitsMax = 20;
 
 export const createAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -2021,7 +1894,7 @@ export const createAdminSectionResponseOneCoursesItemMaterialsItemBodyMax = 2000
 
 export const createAdminSectionResponseOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const createAdminSectionResponseOneCoursesItemMaterialsMax = 100;
+export const createAdminSectionResponseOneCoursesItemMaterialsMax = 20;
 
 export const createAdminSectionResponseOneCoursesMax = 20;
 
@@ -2039,7 +1912,6 @@ export const CreateAdminSectionResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneBlocksItemTitleMax),
@@ -2058,7 +1930,6 @@ export const CreateAdminSectionResponse = zod.object({
 })).max(createAdminSectionResponseOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(createAdminSectionResponseOneCoursesItemSkillsItemMax)).max(createAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(createAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
@@ -2103,7 +1974,7 @@ export const updateAdminSectionBodyCoursesItemUnitsItemTitleMax = 120;
 
 export const updateAdminSectionBodyCoursesItemUnitsItemDescriptionMax = 600;
 
-export const updateAdminSectionBodyCoursesItemUnitsMax = 100;
+export const updateAdminSectionBodyCoursesItemUnitsMax = 20;
 
 export const updateAdminSectionBodyCoursesItemSkillsItemMax = 60;
 
@@ -2115,7 +1986,7 @@ export const updateAdminSectionBodyCoursesItemMaterialsItemBodyMax = 2000;
 
 export const updateAdminSectionBodyCoursesItemMaterialsItemUrlMax = 2048;
 
-export const updateAdminSectionBodyCoursesItemMaterialsMax = 100;
+export const updateAdminSectionBodyCoursesItemMaterialsMax = 20;
 
 export const updateAdminSectionBodyCoursesMax = 20;
 
@@ -2132,7 +2003,6 @@ export const UpdateAdminSectionBody = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyBlocksItemTitleMax),
@@ -2151,7 +2021,6 @@ export const UpdateAdminSectionBody = zod.object({
 })).max(updateAdminSectionBodyCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionBodyCoursesItemSkillsItemMax)).max(updateAdminSectionBodyCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionBodyCoursesItemMaterialsItemTitleMax),
@@ -2187,7 +2056,7 @@ export const updateAdminSectionResponseOneCoursesItemUnitsItemTitleMax = 120;
 
 export const updateAdminSectionResponseOneCoursesItemUnitsItemDescriptionMax = 600;
 
-export const updateAdminSectionResponseOneCoursesItemUnitsMax = 100;
+export const updateAdminSectionResponseOneCoursesItemUnitsMax = 20;
 
 export const updateAdminSectionResponseOneCoursesItemSkillsItemMax = 60;
 
@@ -2199,7 +2068,7 @@ export const updateAdminSectionResponseOneCoursesItemMaterialsItemBodyMax = 2000
 
 export const updateAdminSectionResponseOneCoursesItemMaterialsItemUrlMax = 2048;
 
-export const updateAdminSectionResponseOneCoursesItemMaterialsMax = 100;
+export const updateAdminSectionResponseOneCoursesItemMaterialsMax = 20;
 
 export const updateAdminSectionResponseOneCoursesMax = 20;
 
@@ -2217,7 +2086,6 @@ export const UpdateAdminSectionResponse = zod.object({
   "accentKey": zod.enum(['teal', 'green', 'blue', 'indigo', 'violet', 'amber', 'rose']).optional(),
   "cardStyle": zod.enum(['soft', 'outlined', 'gradient']).optional(),
   "blocks": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneBlocksItemTitleMax),
@@ -2236,7 +2104,6 @@ export const UpdateAdminSectionResponse = zod.object({
 })).max(updateAdminSectionResponseOneCoursesItemUnitsMax).optional(),
   "skills": zod.array(zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemSkillsItemMax)).max(updateAdminSectionResponseOneCoursesItemSkillsMax).optional(),
   "materials": zod.array(zod.object({
-  "id": zod.string().uuid().optional(),
   "type": zod.enum(['text', 'link', 'media']),
   "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
   "title": zod.string().min(1).max(updateAdminSectionResponseOneCoursesItemMaterialsItemTitleMax),
@@ -2291,86 +2158,6 @@ export const CompletePlatformSectionCourseResponse = zod.object({
   "studyMinutes": zod.number().int().min(completePlatformSectionCourseResponseStudyMinutesMin),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
-})
-
-
-export const getCoursePositionPathSlugMax = 120;
-
-
-
-export const GetCoursePositionParams = zod.object({
-  "slug": zod.coerce.string().min(1).max(getCoursePositionPathSlugMax),
-  "courseId": zod.coerce.string().uuid()
-})
-
-export const getCoursePositionResponseLessonOneTitleMax = 100;
-
-export const getCoursePositionResponseLessonOneBodyMax = 2000;
-
-export const getCoursePositionResponseLessonOneUrlMax = 2048;
-
-
-
-export const GetCoursePositionResponse = zod.object({
-  "lesson": zod.union([zod.object({
-  "id": zod.string().uuid().optional(),
-  "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
-  "title": zod.string().min(1).max(getCoursePositionResponseLessonOneTitleMax),
-  "body": zod.string().max(getCoursePositionResponseLessonOneBodyMax),
-  "url": zod.string().max(getCoursePositionResponseLessonOneUrlMax),
-  "unitId": zod.string().uuid().optional()
-}),zod.null()])
-})
-
-
-export const saveCoursePositionPathSlugMax = 120;
-
-
-
-export const SaveCoursePositionParams = zod.object({
-  "slug": zod.coerce.string().min(1).max(saveCoursePositionPathSlugMax),
-  "courseId": zod.coerce.string().uuid()
-})
-
-export const saveCoursePositionBodyLessonTitleMax = 100;
-
-export const saveCoursePositionBodyLessonBodyMax = 2000;
-
-export const saveCoursePositionBodyLessonUrlMax = 2048;
-
-
-
-export const SaveCoursePositionBody = zod.object({
-  "lesson": zod.object({
-  "id": zod.string().uuid().optional(),
-  "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
-  "title": zod.string().min(1).max(saveCoursePositionBodyLessonTitleMax),
-  "body": zod.string().max(saveCoursePositionBodyLessonBodyMax),
-  "url": zod.string().max(saveCoursePositionBodyLessonUrlMax),
-  "unitId": zod.string().uuid().optional()
-})
-})
-
-export const saveCoursePositionResponseLessonOneTitleMax = 100;
-
-export const saveCoursePositionResponseLessonOneBodyMax = 2000;
-
-export const saveCoursePositionResponseLessonOneUrlMax = 2048;
-
-
-
-export const SaveCoursePositionResponse = zod.object({
-  "lesson": zod.union([zod.object({
-  "id": zod.string().uuid().optional(),
-  "type": zod.enum(['text', 'link', 'media']),
-  "mediaType": zod.enum(['image', 'audio', 'video', 'file']).optional(),
-  "title": zod.string().min(1).max(saveCoursePositionResponseLessonOneTitleMax),
-  "body": zod.string().max(saveCoursePositionResponseLessonOneBodyMax),
-  "url": zod.string().max(saveCoursePositionResponseLessonOneUrlMax),
-  "unitId": zod.string().uuid().optional()
-}),zod.null()])
 })
 
 
@@ -2483,10 +2270,7 @@ export const ListAdminAuditResponse = zod.object({
   "actorId": zod.string(),
   "action": zod.string(),
   "target": zod.string(),
-  "createdAt": zod.string(),
-  "evidenceStudentName": zod.string().nullable(),
-  "evidenceAchievementTitle": zod.string().nullable(),
-  "evidenceAttachmentTitle": zod.string().nullable()
+  "createdAt": zod.string()
 })),
   "total": zod.number().int(),
   "page": zod.number().int(),
@@ -2713,1016 +2497,6 @@ export const SaveResumeShareSettingsResponse = zod.object({
 
 
 /**
- * @summary List the current student's private resume drafts
- */
-export const listStudentResumesResponseContentFullNameMax = 120;
-
-export const listStudentResumesResponseContentEmailMax = 200;
-
-export const listStudentResumesResponseContentPhoneMax = 60;
-
-export const listStudentResumesResponseContentLocationMax = 160;
-
-export const listStudentResumesResponseContentLinkedinMax = 400;
-
-export const listStudentResumesResponseContentWebsiteMax = 400;
-
-export const listStudentResumesResponseContentHeadlineMax = 240;
-
-export const listStudentResumesResponseContentSummaryMax = 2000;
-
-export const listStudentResumesResponseContentEducationItemTitleMax = 180;
-
-export const listStudentResumesResponseContentEducationItemOrganizationMax = 180;
-
-export const listStudentResumesResponseContentEducationItemLocationMax = 180;
-
-export const listStudentResumesResponseContentEducationItemPeriodMax = 100;
-
-export const listStudentResumesResponseContentEducationItemDescriptionMax = 2000;
-
-export const listStudentResumesResponseContentEducationItemLinkMax = 400;
-
-export const listStudentResumesResponseContentEducationMax = 20;
-
-export const listStudentResumesResponseContentExperienceItemTitleMax = 180;
-
-export const listStudentResumesResponseContentExperienceItemOrganizationMax = 180;
-
-export const listStudentResumesResponseContentExperienceItemLocationMax = 180;
-
-export const listStudentResumesResponseContentExperienceItemPeriodMax = 100;
-
-export const listStudentResumesResponseContentExperienceItemDescriptionMax = 2000;
-
-export const listStudentResumesResponseContentExperienceItemLinkMax = 400;
-
-export const listStudentResumesResponseContentExperienceMax = 30;
-
-export const listStudentResumesResponseContentProjectsItemTitleMax = 180;
-
-export const listStudentResumesResponseContentProjectsItemOrganizationMax = 180;
-
-export const listStudentResumesResponseContentProjectsItemLocationMax = 180;
-
-export const listStudentResumesResponseContentProjectsItemPeriodMax = 100;
-
-export const listStudentResumesResponseContentProjectsItemDescriptionMax = 2000;
-
-export const listStudentResumesResponseContentProjectsItemLinkMax = 400;
-
-export const listStudentResumesResponseContentProjectsMax = 30;
-
-export const listStudentResumesResponseContentCoursesItemTitleMax = 180;
-
-export const listStudentResumesResponseContentCoursesItemOrganizationMax = 180;
-
-export const listStudentResumesResponseContentCoursesItemLocationMax = 180;
-
-export const listStudentResumesResponseContentCoursesItemPeriodMax = 100;
-
-export const listStudentResumesResponseContentCoursesItemDescriptionMax = 2000;
-
-export const listStudentResumesResponseContentCoursesItemLinkMax = 400;
-
-export const listStudentResumesResponseContentCoursesMax = 30;
-
-export const listStudentResumesResponseContentSkillsItemMax = 80;
-
-export const listStudentResumesResponseContentSkillsMax = 60;
-
-export const listStudentResumesResponseContentCertificationsItemMax = 180;
-
-export const listStudentResumesResponseContentCertificationsMax = 30;
-
-export const listStudentResumesResponseContentLanguagesItemMax = 100;
-
-export const listStudentResumesResponseContentLanguagesMax = 20;
-
-export const listStudentResumesResponseContentAppearanceFontSizeMin = 10;
-export const listStudentResumesResponseContentAppearanceFontSizeMax = 18;
-
-export const listStudentResumesResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const listStudentResumesResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const listStudentResumesResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const listStudentResumesResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const listStudentResumesResponseContentInlineStylesItemFieldMax = 240;
-
-export const listStudentResumesResponseContentInlineStylesItemStartMin = 0;
-export const listStudentResumesResponseContentInlineStylesItemStartMax = 20000;
-
-export const listStudentResumesResponseContentInlineStylesItemEndMax = 20000;
-
-export const listStudentResumesResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const listStudentResumesResponseContentInlineStylesItemFontSizeMin = 8;
-export const listStudentResumesResponseContentInlineStylesItemFontSizeMax = 32;
-
-export const listStudentResumesResponseContentInlineStylesMax = 600;
-
-
-
-export const ListStudentResumesResponseItem = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string(),
-  "origin": zod.enum(['guided', 'manual']),
-  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
-  "content": zod.object({
-  "fullName": zod.string().max(listStudentResumesResponseContentFullNameMax),
-  "email": zod.string().max(listStudentResumesResponseContentEmailMax),
-  "phone": zod.string().max(listStudentResumesResponseContentPhoneMax),
-  "location": zod.string().max(listStudentResumesResponseContentLocationMax),
-  "linkedin": zod.string().max(listStudentResumesResponseContentLinkedinMax),
-  "website": zod.string().max(listStudentResumesResponseContentWebsiteMax),
-  "headline": zod.string().max(listStudentResumesResponseContentHeadlineMax),
-  "summary": zod.string().max(listStudentResumesResponseContentSummaryMax),
-  "education": zod.array(zod.object({
-  "title": zod.string().max(listStudentResumesResponseContentEducationItemTitleMax),
-  "organization": zod.string().max(listStudentResumesResponseContentEducationItemOrganizationMax),
-  "location": zod.string().max(listStudentResumesResponseContentEducationItemLocationMax),
-  "period": zod.string().max(listStudentResumesResponseContentEducationItemPeriodMax),
-  "description": zod.string().max(listStudentResumesResponseContentEducationItemDescriptionMax),
-  "link": zod.string().max(listStudentResumesResponseContentEducationItemLinkMax)
-})).max(listStudentResumesResponseContentEducationMax),
-  "experience": zod.array(zod.object({
-  "title": zod.string().max(listStudentResumesResponseContentExperienceItemTitleMax),
-  "organization": zod.string().max(listStudentResumesResponseContentExperienceItemOrganizationMax),
-  "location": zod.string().max(listStudentResumesResponseContentExperienceItemLocationMax),
-  "period": zod.string().max(listStudentResumesResponseContentExperienceItemPeriodMax),
-  "description": zod.string().max(listStudentResumesResponseContentExperienceItemDescriptionMax),
-  "link": zod.string().max(listStudentResumesResponseContentExperienceItemLinkMax)
-})).max(listStudentResumesResponseContentExperienceMax),
-  "projects": zod.array(zod.object({
-  "title": zod.string().max(listStudentResumesResponseContentProjectsItemTitleMax),
-  "organization": zod.string().max(listStudentResumesResponseContentProjectsItemOrganizationMax),
-  "location": zod.string().max(listStudentResumesResponseContentProjectsItemLocationMax),
-  "period": zod.string().max(listStudentResumesResponseContentProjectsItemPeriodMax),
-  "description": zod.string().max(listStudentResumesResponseContentProjectsItemDescriptionMax),
-  "link": zod.string().max(listStudentResumesResponseContentProjectsItemLinkMax)
-})).max(listStudentResumesResponseContentProjectsMax),
-  "courses": zod.array(zod.object({
-  "title": zod.string().max(listStudentResumesResponseContentCoursesItemTitleMax),
-  "organization": zod.string().max(listStudentResumesResponseContentCoursesItemOrganizationMax),
-  "location": zod.string().max(listStudentResumesResponseContentCoursesItemLocationMax),
-  "period": zod.string().max(listStudentResumesResponseContentCoursesItemPeriodMax),
-  "description": zod.string().max(listStudentResumesResponseContentCoursesItemDescriptionMax),
-  "link": zod.string().max(listStudentResumesResponseContentCoursesItemLinkMax)
-})).max(listStudentResumesResponseContentCoursesMax),
-  "skills": zod.array(zod.string().max(listStudentResumesResponseContentSkillsItemMax)).max(listStudentResumesResponseContentSkillsMax),
-  "certifications": zod.array(zod.string().max(listStudentResumesResponseContentCertificationsItemMax)).max(listStudentResumesResponseContentCertificationsMax),
-  "languages": zod.array(zod.string().max(listStudentResumesResponseContentLanguagesItemMax)).max(listStudentResumesResponseContentLanguagesMax),
-  "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
-  "fontSize": zod.number().int().min(listStudentResumesResponseContentAppearanceFontSizeMin).max(listStudentResumesResponseContentAppearanceFontSizeMax).optional(),
-  "pageColor": zod.string().regex(listStudentResumesResponseContentAppearancePageColorRegExp),
-  "textColor": zod.string().regex(listStudentResumesResponseContentAppearanceTextColorRegExp),
-  "headingColor": zod.string().regex(listStudentResumesResponseContentAppearanceHeadingColorRegExp),
-  "accentColor": zod.string().regex(listStudentResumesResponseContentAppearanceAccentColorRegExp)
-}).optional(),
-  "inlineStyles": zod.array(zod.object({
-  "field": zod.string().min(1).max(listStudentResumesResponseContentInlineStylesItemFieldMax),
-  "start": zod.number().int().min(listStudentResumesResponseContentInlineStylesItemStartMin).max(listStudentResumesResponseContentInlineStylesItemStartMax),
-  "end": zod.number().int().min(1).max(listStudentResumesResponseContentInlineStylesItemEndMax),
-  "bold": zod.boolean().optional(),
-  "italic": zod.boolean().optional(),
-  "underline": zod.boolean().optional(),
-  "color": zod.string().regex(listStudentResumesResponseContentInlineStylesItemColorRegExp).optional(),
-  "fontSize": zod.number().int().min(listStudentResumesResponseContentInlineStylesItemFontSizeMin).max(listStudentResumesResponseContentInlineStylesItemFontSizeMax).optional()
-})).max(listStudentResumesResponseContentInlineStylesMax).optional()
-}),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-export const ListStudentResumesResponse = zod.array(ListStudentResumesResponseItem)
-
-
-/**
- * @summary Create a private resume draft
- */
-export const createStudentResumeBodyTitleMax = 120;
-
-export const createStudentResumeBodyContentFullNameMax = 120;
-
-export const createStudentResumeBodyContentEmailMax = 200;
-
-export const createStudentResumeBodyContentPhoneMax = 60;
-
-export const createStudentResumeBodyContentLocationMax = 160;
-
-export const createStudentResumeBodyContentLinkedinMax = 400;
-
-export const createStudentResumeBodyContentWebsiteMax = 400;
-
-export const createStudentResumeBodyContentHeadlineMax = 240;
-
-export const createStudentResumeBodyContentSummaryMax = 2000;
-
-export const createStudentResumeBodyContentEducationItemTitleMax = 180;
-
-export const createStudentResumeBodyContentEducationItemOrganizationMax = 180;
-
-export const createStudentResumeBodyContentEducationItemLocationMax = 180;
-
-export const createStudentResumeBodyContentEducationItemPeriodMax = 100;
-
-export const createStudentResumeBodyContentEducationItemDescriptionMax = 2000;
-
-export const createStudentResumeBodyContentEducationItemLinkMax = 400;
-
-export const createStudentResumeBodyContentEducationMax = 20;
-
-export const createStudentResumeBodyContentExperienceItemTitleMax = 180;
-
-export const createStudentResumeBodyContentExperienceItemOrganizationMax = 180;
-
-export const createStudentResumeBodyContentExperienceItemLocationMax = 180;
-
-export const createStudentResumeBodyContentExperienceItemPeriodMax = 100;
-
-export const createStudentResumeBodyContentExperienceItemDescriptionMax = 2000;
-
-export const createStudentResumeBodyContentExperienceItemLinkMax = 400;
-
-export const createStudentResumeBodyContentExperienceMax = 30;
-
-export const createStudentResumeBodyContentProjectsItemTitleMax = 180;
-
-export const createStudentResumeBodyContentProjectsItemOrganizationMax = 180;
-
-export const createStudentResumeBodyContentProjectsItemLocationMax = 180;
-
-export const createStudentResumeBodyContentProjectsItemPeriodMax = 100;
-
-export const createStudentResumeBodyContentProjectsItemDescriptionMax = 2000;
-
-export const createStudentResumeBodyContentProjectsItemLinkMax = 400;
-
-export const createStudentResumeBodyContentProjectsMax = 30;
-
-export const createStudentResumeBodyContentCoursesItemTitleMax = 180;
-
-export const createStudentResumeBodyContentCoursesItemOrganizationMax = 180;
-
-export const createStudentResumeBodyContentCoursesItemLocationMax = 180;
-
-export const createStudentResumeBodyContentCoursesItemPeriodMax = 100;
-
-export const createStudentResumeBodyContentCoursesItemDescriptionMax = 2000;
-
-export const createStudentResumeBodyContentCoursesItemLinkMax = 400;
-
-export const createStudentResumeBodyContentCoursesMax = 30;
-
-export const createStudentResumeBodyContentSkillsItemMax = 80;
-
-export const createStudentResumeBodyContentSkillsMax = 60;
-
-export const createStudentResumeBodyContentCertificationsItemMax = 180;
-
-export const createStudentResumeBodyContentCertificationsMax = 30;
-
-export const createStudentResumeBodyContentLanguagesItemMax = 100;
-
-export const createStudentResumeBodyContentLanguagesMax = 20;
-
-export const createStudentResumeBodyContentAppearanceFontSizeMin = 10;
-export const createStudentResumeBodyContentAppearanceFontSizeMax = 18;
-
-export const createStudentResumeBodyContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeBodyContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeBodyContentInlineStylesItemFieldMax = 240;
-
-export const createStudentResumeBodyContentInlineStylesItemStartMin = 0;
-export const createStudentResumeBodyContentInlineStylesItemStartMax = 20000;
-
-export const createStudentResumeBodyContentInlineStylesItemEndMax = 20000;
-
-export const createStudentResumeBodyContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeBodyContentInlineStylesItemFontSizeMin = 8;
-export const createStudentResumeBodyContentInlineStylesItemFontSizeMax = 32;
-
-export const createStudentResumeBodyContentInlineStylesMax = 600;
-
-
-
-export const CreateStudentResumeBody = zod.object({
-  "title": zod.string().min(1).max(createStudentResumeBodyTitleMax),
-  "origin": zod.enum(['guided', 'manual']),
-  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
-  "content": zod.object({
-  "fullName": zod.string().max(createStudentResumeBodyContentFullNameMax),
-  "email": zod.string().max(createStudentResumeBodyContentEmailMax),
-  "phone": zod.string().max(createStudentResumeBodyContentPhoneMax),
-  "location": zod.string().max(createStudentResumeBodyContentLocationMax),
-  "linkedin": zod.string().max(createStudentResumeBodyContentLinkedinMax),
-  "website": zod.string().max(createStudentResumeBodyContentWebsiteMax),
-  "headline": zod.string().max(createStudentResumeBodyContentHeadlineMax),
-  "summary": zod.string().max(createStudentResumeBodyContentSummaryMax),
-  "education": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeBodyContentEducationItemTitleMax),
-  "organization": zod.string().max(createStudentResumeBodyContentEducationItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeBodyContentEducationItemLocationMax),
-  "period": zod.string().max(createStudentResumeBodyContentEducationItemPeriodMax),
-  "description": zod.string().max(createStudentResumeBodyContentEducationItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeBodyContentEducationItemLinkMax)
-})).max(createStudentResumeBodyContentEducationMax),
-  "experience": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeBodyContentExperienceItemTitleMax),
-  "organization": zod.string().max(createStudentResumeBodyContentExperienceItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeBodyContentExperienceItemLocationMax),
-  "period": zod.string().max(createStudentResumeBodyContentExperienceItemPeriodMax),
-  "description": zod.string().max(createStudentResumeBodyContentExperienceItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeBodyContentExperienceItemLinkMax)
-})).max(createStudentResumeBodyContentExperienceMax),
-  "projects": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeBodyContentProjectsItemTitleMax),
-  "organization": zod.string().max(createStudentResumeBodyContentProjectsItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeBodyContentProjectsItemLocationMax),
-  "period": zod.string().max(createStudentResumeBodyContentProjectsItemPeriodMax),
-  "description": zod.string().max(createStudentResumeBodyContentProjectsItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeBodyContentProjectsItemLinkMax)
-})).max(createStudentResumeBodyContentProjectsMax),
-  "courses": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeBodyContentCoursesItemTitleMax),
-  "organization": zod.string().max(createStudentResumeBodyContentCoursesItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeBodyContentCoursesItemLocationMax),
-  "period": zod.string().max(createStudentResumeBodyContentCoursesItemPeriodMax),
-  "description": zod.string().max(createStudentResumeBodyContentCoursesItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeBodyContentCoursesItemLinkMax)
-})).max(createStudentResumeBodyContentCoursesMax),
-  "skills": zod.array(zod.string().max(createStudentResumeBodyContentSkillsItemMax)).max(createStudentResumeBodyContentSkillsMax),
-  "certifications": zod.array(zod.string().max(createStudentResumeBodyContentCertificationsItemMax)).max(createStudentResumeBodyContentCertificationsMax),
-  "languages": zod.array(zod.string().max(createStudentResumeBodyContentLanguagesItemMax)).max(createStudentResumeBodyContentLanguagesMax),
-  "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
-  "fontSize": zod.number().int().min(createStudentResumeBodyContentAppearanceFontSizeMin).max(createStudentResumeBodyContentAppearanceFontSizeMax).optional(),
-  "pageColor": zod.string().regex(createStudentResumeBodyContentAppearancePageColorRegExp),
-  "textColor": zod.string().regex(createStudentResumeBodyContentAppearanceTextColorRegExp),
-  "headingColor": zod.string().regex(createStudentResumeBodyContentAppearanceHeadingColorRegExp),
-  "accentColor": zod.string().regex(createStudentResumeBodyContentAppearanceAccentColorRegExp)
-}).optional(),
-  "inlineStyles": zod.array(zod.object({
-  "field": zod.string().min(1).max(createStudentResumeBodyContentInlineStylesItemFieldMax),
-  "start": zod.number().int().min(createStudentResumeBodyContentInlineStylesItemStartMin).max(createStudentResumeBodyContentInlineStylesItemStartMax),
-  "end": zod.number().int().min(1).max(createStudentResumeBodyContentInlineStylesItemEndMax),
-  "bold": zod.boolean().optional(),
-  "italic": zod.boolean().optional(),
-  "underline": zod.boolean().optional(),
-  "color": zod.string().regex(createStudentResumeBodyContentInlineStylesItemColorRegExp).optional(),
-  "fontSize": zod.number().int().min(createStudentResumeBodyContentInlineStylesItemFontSizeMin).max(createStudentResumeBodyContentInlineStylesItemFontSizeMax).optional()
-})).max(createStudentResumeBodyContentInlineStylesMax).optional()
-})
-})
-
-export const createStudentResumeResponseContentFullNameMax = 120;
-
-export const createStudentResumeResponseContentEmailMax = 200;
-
-export const createStudentResumeResponseContentPhoneMax = 60;
-
-export const createStudentResumeResponseContentLocationMax = 160;
-
-export const createStudentResumeResponseContentLinkedinMax = 400;
-
-export const createStudentResumeResponseContentWebsiteMax = 400;
-
-export const createStudentResumeResponseContentHeadlineMax = 240;
-
-export const createStudentResumeResponseContentSummaryMax = 2000;
-
-export const createStudentResumeResponseContentEducationItemTitleMax = 180;
-
-export const createStudentResumeResponseContentEducationItemOrganizationMax = 180;
-
-export const createStudentResumeResponseContentEducationItemLocationMax = 180;
-
-export const createStudentResumeResponseContentEducationItemPeriodMax = 100;
-
-export const createStudentResumeResponseContentEducationItemDescriptionMax = 2000;
-
-export const createStudentResumeResponseContentEducationItemLinkMax = 400;
-
-export const createStudentResumeResponseContentEducationMax = 20;
-
-export const createStudentResumeResponseContentExperienceItemTitleMax = 180;
-
-export const createStudentResumeResponseContentExperienceItemOrganizationMax = 180;
-
-export const createStudentResumeResponseContentExperienceItemLocationMax = 180;
-
-export const createStudentResumeResponseContentExperienceItemPeriodMax = 100;
-
-export const createStudentResumeResponseContentExperienceItemDescriptionMax = 2000;
-
-export const createStudentResumeResponseContentExperienceItemLinkMax = 400;
-
-export const createStudentResumeResponseContentExperienceMax = 30;
-
-export const createStudentResumeResponseContentProjectsItemTitleMax = 180;
-
-export const createStudentResumeResponseContentProjectsItemOrganizationMax = 180;
-
-export const createStudentResumeResponseContentProjectsItemLocationMax = 180;
-
-export const createStudentResumeResponseContentProjectsItemPeriodMax = 100;
-
-export const createStudentResumeResponseContentProjectsItemDescriptionMax = 2000;
-
-export const createStudentResumeResponseContentProjectsItemLinkMax = 400;
-
-export const createStudentResumeResponseContentProjectsMax = 30;
-
-export const createStudentResumeResponseContentCoursesItemTitleMax = 180;
-
-export const createStudentResumeResponseContentCoursesItemOrganizationMax = 180;
-
-export const createStudentResumeResponseContentCoursesItemLocationMax = 180;
-
-export const createStudentResumeResponseContentCoursesItemPeriodMax = 100;
-
-export const createStudentResumeResponseContentCoursesItemDescriptionMax = 2000;
-
-export const createStudentResumeResponseContentCoursesItemLinkMax = 400;
-
-export const createStudentResumeResponseContentCoursesMax = 30;
-
-export const createStudentResumeResponseContentSkillsItemMax = 80;
-
-export const createStudentResumeResponseContentSkillsMax = 60;
-
-export const createStudentResumeResponseContentCertificationsItemMax = 180;
-
-export const createStudentResumeResponseContentCertificationsMax = 30;
-
-export const createStudentResumeResponseContentLanguagesItemMax = 100;
-
-export const createStudentResumeResponseContentLanguagesMax = 20;
-
-export const createStudentResumeResponseContentAppearanceFontSizeMin = 10;
-export const createStudentResumeResponseContentAppearanceFontSizeMax = 18;
-
-export const createStudentResumeResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeResponseContentInlineStylesItemFieldMax = 240;
-
-export const createStudentResumeResponseContentInlineStylesItemStartMin = 0;
-export const createStudentResumeResponseContentInlineStylesItemStartMax = 20000;
-
-export const createStudentResumeResponseContentInlineStylesItemEndMax = 20000;
-
-export const createStudentResumeResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const createStudentResumeResponseContentInlineStylesItemFontSizeMin = 8;
-export const createStudentResumeResponseContentInlineStylesItemFontSizeMax = 32;
-
-export const createStudentResumeResponseContentInlineStylesMax = 600;
-
-
-
-export const CreateStudentResumeResponse = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string(),
-  "origin": zod.enum(['guided', 'manual']),
-  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
-  "content": zod.object({
-  "fullName": zod.string().max(createStudentResumeResponseContentFullNameMax),
-  "email": zod.string().max(createStudentResumeResponseContentEmailMax),
-  "phone": zod.string().max(createStudentResumeResponseContentPhoneMax),
-  "location": zod.string().max(createStudentResumeResponseContentLocationMax),
-  "linkedin": zod.string().max(createStudentResumeResponseContentLinkedinMax),
-  "website": zod.string().max(createStudentResumeResponseContentWebsiteMax),
-  "headline": zod.string().max(createStudentResumeResponseContentHeadlineMax),
-  "summary": zod.string().max(createStudentResumeResponseContentSummaryMax),
-  "education": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeResponseContentEducationItemTitleMax),
-  "organization": zod.string().max(createStudentResumeResponseContentEducationItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeResponseContentEducationItemLocationMax),
-  "period": zod.string().max(createStudentResumeResponseContentEducationItemPeriodMax),
-  "description": zod.string().max(createStudentResumeResponseContentEducationItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeResponseContentEducationItemLinkMax)
-})).max(createStudentResumeResponseContentEducationMax),
-  "experience": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeResponseContentExperienceItemTitleMax),
-  "organization": zod.string().max(createStudentResumeResponseContentExperienceItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeResponseContentExperienceItemLocationMax),
-  "period": zod.string().max(createStudentResumeResponseContentExperienceItemPeriodMax),
-  "description": zod.string().max(createStudentResumeResponseContentExperienceItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeResponseContentExperienceItemLinkMax)
-})).max(createStudentResumeResponseContentExperienceMax),
-  "projects": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeResponseContentProjectsItemTitleMax),
-  "organization": zod.string().max(createStudentResumeResponseContentProjectsItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeResponseContentProjectsItemLocationMax),
-  "period": zod.string().max(createStudentResumeResponseContentProjectsItemPeriodMax),
-  "description": zod.string().max(createStudentResumeResponseContentProjectsItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeResponseContentProjectsItemLinkMax)
-})).max(createStudentResumeResponseContentProjectsMax),
-  "courses": zod.array(zod.object({
-  "title": zod.string().max(createStudentResumeResponseContentCoursesItemTitleMax),
-  "organization": zod.string().max(createStudentResumeResponseContentCoursesItemOrganizationMax),
-  "location": zod.string().max(createStudentResumeResponseContentCoursesItemLocationMax),
-  "period": zod.string().max(createStudentResumeResponseContentCoursesItemPeriodMax),
-  "description": zod.string().max(createStudentResumeResponseContentCoursesItemDescriptionMax),
-  "link": zod.string().max(createStudentResumeResponseContentCoursesItemLinkMax)
-})).max(createStudentResumeResponseContentCoursesMax),
-  "skills": zod.array(zod.string().max(createStudentResumeResponseContentSkillsItemMax)).max(createStudentResumeResponseContentSkillsMax),
-  "certifications": zod.array(zod.string().max(createStudentResumeResponseContentCertificationsItemMax)).max(createStudentResumeResponseContentCertificationsMax),
-  "languages": zod.array(zod.string().max(createStudentResumeResponseContentLanguagesItemMax)).max(createStudentResumeResponseContentLanguagesMax),
-  "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
-  "fontSize": zod.number().int().min(createStudentResumeResponseContentAppearanceFontSizeMin).max(createStudentResumeResponseContentAppearanceFontSizeMax).optional(),
-  "pageColor": zod.string().regex(createStudentResumeResponseContentAppearancePageColorRegExp),
-  "textColor": zod.string().regex(createStudentResumeResponseContentAppearanceTextColorRegExp),
-  "headingColor": zod.string().regex(createStudentResumeResponseContentAppearanceHeadingColorRegExp),
-  "accentColor": zod.string().regex(createStudentResumeResponseContentAppearanceAccentColorRegExp)
-}).optional(),
-  "inlineStyles": zod.array(zod.object({
-  "field": zod.string().min(1).max(createStudentResumeResponseContentInlineStylesItemFieldMax),
-  "start": zod.number().int().min(createStudentResumeResponseContentInlineStylesItemStartMin).max(createStudentResumeResponseContentInlineStylesItemStartMax),
-  "end": zod.number().int().min(1).max(createStudentResumeResponseContentInlineStylesItemEndMax),
-  "bold": zod.boolean().optional(),
-  "italic": zod.boolean().optional(),
-  "underline": zod.boolean().optional(),
-  "color": zod.string().regex(createStudentResumeResponseContentInlineStylesItemColorRegExp).optional(),
-  "fontSize": zod.number().int().min(createStudentResumeResponseContentInlineStylesItemFontSizeMin).max(createStudentResumeResponseContentInlineStylesItemFontSizeMax).optional()
-})).max(createStudentResumeResponseContentInlineStylesMax).optional()
-}),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Update an owned private resume draft
- */
-export const UpdateStudentResumeParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const updateStudentResumeBodyTitleMax = 120;
-
-export const updateStudentResumeBodyContentFullNameMax = 120;
-
-export const updateStudentResumeBodyContentEmailMax = 200;
-
-export const updateStudentResumeBodyContentPhoneMax = 60;
-
-export const updateStudentResumeBodyContentLocationMax = 160;
-
-export const updateStudentResumeBodyContentLinkedinMax = 400;
-
-export const updateStudentResumeBodyContentWebsiteMax = 400;
-
-export const updateStudentResumeBodyContentHeadlineMax = 240;
-
-export const updateStudentResumeBodyContentSummaryMax = 2000;
-
-export const updateStudentResumeBodyContentEducationItemTitleMax = 180;
-
-export const updateStudentResumeBodyContentEducationItemOrganizationMax = 180;
-
-export const updateStudentResumeBodyContentEducationItemLocationMax = 180;
-
-export const updateStudentResumeBodyContentEducationItemPeriodMax = 100;
-
-export const updateStudentResumeBodyContentEducationItemDescriptionMax = 2000;
-
-export const updateStudentResumeBodyContentEducationItemLinkMax = 400;
-
-export const updateStudentResumeBodyContentEducationMax = 20;
-
-export const updateStudentResumeBodyContentExperienceItemTitleMax = 180;
-
-export const updateStudentResumeBodyContentExperienceItemOrganizationMax = 180;
-
-export const updateStudentResumeBodyContentExperienceItemLocationMax = 180;
-
-export const updateStudentResumeBodyContentExperienceItemPeriodMax = 100;
-
-export const updateStudentResumeBodyContentExperienceItemDescriptionMax = 2000;
-
-export const updateStudentResumeBodyContentExperienceItemLinkMax = 400;
-
-export const updateStudentResumeBodyContentExperienceMax = 30;
-
-export const updateStudentResumeBodyContentProjectsItemTitleMax = 180;
-
-export const updateStudentResumeBodyContentProjectsItemOrganizationMax = 180;
-
-export const updateStudentResumeBodyContentProjectsItemLocationMax = 180;
-
-export const updateStudentResumeBodyContentProjectsItemPeriodMax = 100;
-
-export const updateStudentResumeBodyContentProjectsItemDescriptionMax = 2000;
-
-export const updateStudentResumeBodyContentProjectsItemLinkMax = 400;
-
-export const updateStudentResumeBodyContentProjectsMax = 30;
-
-export const updateStudentResumeBodyContentCoursesItemTitleMax = 180;
-
-export const updateStudentResumeBodyContentCoursesItemOrganizationMax = 180;
-
-export const updateStudentResumeBodyContentCoursesItemLocationMax = 180;
-
-export const updateStudentResumeBodyContentCoursesItemPeriodMax = 100;
-
-export const updateStudentResumeBodyContentCoursesItemDescriptionMax = 2000;
-
-export const updateStudentResumeBodyContentCoursesItemLinkMax = 400;
-
-export const updateStudentResumeBodyContentCoursesMax = 30;
-
-export const updateStudentResumeBodyContentSkillsItemMax = 80;
-
-export const updateStudentResumeBodyContentSkillsMax = 60;
-
-export const updateStudentResumeBodyContentCertificationsItemMax = 180;
-
-export const updateStudentResumeBodyContentCertificationsMax = 30;
-
-export const updateStudentResumeBodyContentLanguagesItemMax = 100;
-
-export const updateStudentResumeBodyContentLanguagesMax = 20;
-
-export const updateStudentResumeBodyContentAppearanceFontSizeMin = 10;
-export const updateStudentResumeBodyContentAppearanceFontSizeMax = 18;
-
-export const updateStudentResumeBodyContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeBodyContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeBodyContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeBodyContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeBodyContentInlineStylesItemFieldMax = 240;
-
-export const updateStudentResumeBodyContentInlineStylesItemStartMin = 0;
-export const updateStudentResumeBodyContentInlineStylesItemStartMax = 20000;
-
-export const updateStudentResumeBodyContentInlineStylesItemEndMax = 20000;
-
-export const updateStudentResumeBodyContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeBodyContentInlineStylesItemFontSizeMin = 8;
-export const updateStudentResumeBodyContentInlineStylesItemFontSizeMax = 32;
-
-export const updateStudentResumeBodyContentInlineStylesMax = 600;
-
-
-
-export const UpdateStudentResumeBody = zod.object({
-  "title": zod.string().min(1).max(updateStudentResumeBodyTitleMax),
-  "origin": zod.enum(['guided', 'manual']),
-  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
-  "content": zod.object({
-  "fullName": zod.string().max(updateStudentResumeBodyContentFullNameMax),
-  "email": zod.string().max(updateStudentResumeBodyContentEmailMax),
-  "phone": zod.string().max(updateStudentResumeBodyContentPhoneMax),
-  "location": zod.string().max(updateStudentResumeBodyContentLocationMax),
-  "linkedin": zod.string().max(updateStudentResumeBodyContentLinkedinMax),
-  "website": zod.string().max(updateStudentResumeBodyContentWebsiteMax),
-  "headline": zod.string().max(updateStudentResumeBodyContentHeadlineMax),
-  "summary": zod.string().max(updateStudentResumeBodyContentSummaryMax),
-  "education": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeBodyContentEducationItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeBodyContentEducationItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeBodyContentEducationItemLocationMax),
-  "period": zod.string().max(updateStudentResumeBodyContentEducationItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeBodyContentEducationItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeBodyContentEducationItemLinkMax)
-})).max(updateStudentResumeBodyContentEducationMax),
-  "experience": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeBodyContentExperienceItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeBodyContentExperienceItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeBodyContentExperienceItemLocationMax),
-  "period": zod.string().max(updateStudentResumeBodyContentExperienceItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeBodyContentExperienceItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeBodyContentExperienceItemLinkMax)
-})).max(updateStudentResumeBodyContentExperienceMax),
-  "projects": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeBodyContentProjectsItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeBodyContentProjectsItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeBodyContentProjectsItemLocationMax),
-  "period": zod.string().max(updateStudentResumeBodyContentProjectsItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeBodyContentProjectsItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeBodyContentProjectsItemLinkMax)
-})).max(updateStudentResumeBodyContentProjectsMax),
-  "courses": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeBodyContentCoursesItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeBodyContentCoursesItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeBodyContentCoursesItemLocationMax),
-  "period": zod.string().max(updateStudentResumeBodyContentCoursesItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeBodyContentCoursesItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeBodyContentCoursesItemLinkMax)
-})).max(updateStudentResumeBodyContentCoursesMax),
-  "skills": zod.array(zod.string().max(updateStudentResumeBodyContentSkillsItemMax)).max(updateStudentResumeBodyContentSkillsMax),
-  "certifications": zod.array(zod.string().max(updateStudentResumeBodyContentCertificationsItemMax)).max(updateStudentResumeBodyContentCertificationsMax),
-  "languages": zod.array(zod.string().max(updateStudentResumeBodyContentLanguagesItemMax)).max(updateStudentResumeBodyContentLanguagesMax),
-  "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
-  "fontSize": zod.number().int().min(updateStudentResumeBodyContentAppearanceFontSizeMin).max(updateStudentResumeBodyContentAppearanceFontSizeMax).optional(),
-  "pageColor": zod.string().regex(updateStudentResumeBodyContentAppearancePageColorRegExp),
-  "textColor": zod.string().regex(updateStudentResumeBodyContentAppearanceTextColorRegExp),
-  "headingColor": zod.string().regex(updateStudentResumeBodyContentAppearanceHeadingColorRegExp),
-  "accentColor": zod.string().regex(updateStudentResumeBodyContentAppearanceAccentColorRegExp)
-}).optional(),
-  "inlineStyles": zod.array(zod.object({
-  "field": zod.string().min(1).max(updateStudentResumeBodyContentInlineStylesItemFieldMax),
-  "start": zod.number().int().min(updateStudentResumeBodyContentInlineStylesItemStartMin).max(updateStudentResumeBodyContentInlineStylesItemStartMax),
-  "end": zod.number().int().min(1).max(updateStudentResumeBodyContentInlineStylesItemEndMax),
-  "bold": zod.boolean().optional(),
-  "italic": zod.boolean().optional(),
-  "underline": zod.boolean().optional(),
-  "color": zod.string().regex(updateStudentResumeBodyContentInlineStylesItemColorRegExp).optional(),
-  "fontSize": zod.number().int().min(updateStudentResumeBodyContentInlineStylesItemFontSizeMin).max(updateStudentResumeBodyContentInlineStylesItemFontSizeMax).optional()
-})).max(updateStudentResumeBodyContentInlineStylesMax).optional()
-})
-})
-
-export const updateStudentResumeResponseContentFullNameMax = 120;
-
-export const updateStudentResumeResponseContentEmailMax = 200;
-
-export const updateStudentResumeResponseContentPhoneMax = 60;
-
-export const updateStudentResumeResponseContentLocationMax = 160;
-
-export const updateStudentResumeResponseContentLinkedinMax = 400;
-
-export const updateStudentResumeResponseContentWebsiteMax = 400;
-
-export const updateStudentResumeResponseContentHeadlineMax = 240;
-
-export const updateStudentResumeResponseContentSummaryMax = 2000;
-
-export const updateStudentResumeResponseContentEducationItemTitleMax = 180;
-
-export const updateStudentResumeResponseContentEducationItemOrganizationMax = 180;
-
-export const updateStudentResumeResponseContentEducationItemLocationMax = 180;
-
-export const updateStudentResumeResponseContentEducationItemPeriodMax = 100;
-
-export const updateStudentResumeResponseContentEducationItemDescriptionMax = 2000;
-
-export const updateStudentResumeResponseContentEducationItemLinkMax = 400;
-
-export const updateStudentResumeResponseContentEducationMax = 20;
-
-export const updateStudentResumeResponseContentExperienceItemTitleMax = 180;
-
-export const updateStudentResumeResponseContentExperienceItemOrganizationMax = 180;
-
-export const updateStudentResumeResponseContentExperienceItemLocationMax = 180;
-
-export const updateStudentResumeResponseContentExperienceItemPeriodMax = 100;
-
-export const updateStudentResumeResponseContentExperienceItemDescriptionMax = 2000;
-
-export const updateStudentResumeResponseContentExperienceItemLinkMax = 400;
-
-export const updateStudentResumeResponseContentExperienceMax = 30;
-
-export const updateStudentResumeResponseContentProjectsItemTitleMax = 180;
-
-export const updateStudentResumeResponseContentProjectsItemOrganizationMax = 180;
-
-export const updateStudentResumeResponseContentProjectsItemLocationMax = 180;
-
-export const updateStudentResumeResponseContentProjectsItemPeriodMax = 100;
-
-export const updateStudentResumeResponseContentProjectsItemDescriptionMax = 2000;
-
-export const updateStudentResumeResponseContentProjectsItemLinkMax = 400;
-
-export const updateStudentResumeResponseContentProjectsMax = 30;
-
-export const updateStudentResumeResponseContentCoursesItemTitleMax = 180;
-
-export const updateStudentResumeResponseContentCoursesItemOrganizationMax = 180;
-
-export const updateStudentResumeResponseContentCoursesItemLocationMax = 180;
-
-export const updateStudentResumeResponseContentCoursesItemPeriodMax = 100;
-
-export const updateStudentResumeResponseContentCoursesItemDescriptionMax = 2000;
-
-export const updateStudentResumeResponseContentCoursesItemLinkMax = 400;
-
-export const updateStudentResumeResponseContentCoursesMax = 30;
-
-export const updateStudentResumeResponseContentSkillsItemMax = 80;
-
-export const updateStudentResumeResponseContentSkillsMax = 60;
-
-export const updateStudentResumeResponseContentCertificationsItemMax = 180;
-
-export const updateStudentResumeResponseContentCertificationsMax = 30;
-
-export const updateStudentResumeResponseContentLanguagesItemMax = 100;
-
-export const updateStudentResumeResponseContentLanguagesMax = 20;
-
-export const updateStudentResumeResponseContentAppearanceFontSizeMin = 10;
-export const updateStudentResumeResponseContentAppearanceFontSizeMax = 18;
-
-export const updateStudentResumeResponseContentAppearancePageColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeResponseContentAppearanceTextColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeResponseContentAppearanceHeadingColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeResponseContentAppearanceAccentColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeResponseContentInlineStylesItemFieldMax = 240;
-
-export const updateStudentResumeResponseContentInlineStylesItemStartMin = 0;
-export const updateStudentResumeResponseContentInlineStylesItemStartMax = 20000;
-
-export const updateStudentResumeResponseContentInlineStylesItemEndMax = 20000;
-
-export const updateStudentResumeResponseContentInlineStylesItemColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-export const updateStudentResumeResponseContentInlineStylesItemFontSizeMin = 8;
-export const updateStudentResumeResponseContentInlineStylesItemFontSizeMax = 32;
-
-export const updateStudentResumeResponseContentInlineStylesMax = 600;
-
-
-
-export const UpdateStudentResumeResponse = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string(),
-  "origin": zod.enum(['guided', 'manual']),
-  "template": zod.enum(['ats', 'professional', 'classic', 'modern', 'sidebar']),
-  "content": zod.object({
-  "fullName": zod.string().max(updateStudentResumeResponseContentFullNameMax),
-  "email": zod.string().max(updateStudentResumeResponseContentEmailMax),
-  "phone": zod.string().max(updateStudentResumeResponseContentPhoneMax),
-  "location": zod.string().max(updateStudentResumeResponseContentLocationMax),
-  "linkedin": zod.string().max(updateStudentResumeResponseContentLinkedinMax),
-  "website": zod.string().max(updateStudentResumeResponseContentWebsiteMax),
-  "headline": zod.string().max(updateStudentResumeResponseContentHeadlineMax),
-  "summary": zod.string().max(updateStudentResumeResponseContentSummaryMax),
-  "education": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeResponseContentEducationItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeResponseContentEducationItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeResponseContentEducationItemLocationMax),
-  "period": zod.string().max(updateStudentResumeResponseContentEducationItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeResponseContentEducationItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeResponseContentEducationItemLinkMax)
-})).max(updateStudentResumeResponseContentEducationMax),
-  "experience": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeResponseContentExperienceItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeResponseContentExperienceItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeResponseContentExperienceItemLocationMax),
-  "period": zod.string().max(updateStudentResumeResponseContentExperienceItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeResponseContentExperienceItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeResponseContentExperienceItemLinkMax)
-})).max(updateStudentResumeResponseContentExperienceMax),
-  "projects": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeResponseContentProjectsItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeResponseContentProjectsItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeResponseContentProjectsItemLocationMax),
-  "period": zod.string().max(updateStudentResumeResponseContentProjectsItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeResponseContentProjectsItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeResponseContentProjectsItemLinkMax)
-})).max(updateStudentResumeResponseContentProjectsMax),
-  "courses": zod.array(zod.object({
-  "title": zod.string().max(updateStudentResumeResponseContentCoursesItemTitleMax),
-  "organization": zod.string().max(updateStudentResumeResponseContentCoursesItemOrganizationMax),
-  "location": zod.string().max(updateStudentResumeResponseContentCoursesItemLocationMax),
-  "period": zod.string().max(updateStudentResumeResponseContentCoursesItemPeriodMax),
-  "description": zod.string().max(updateStudentResumeResponseContentCoursesItemDescriptionMax),
-  "link": zod.string().max(updateStudentResumeResponseContentCoursesItemLinkMax)
-})).max(updateStudentResumeResponseContentCoursesMax),
-  "skills": zod.array(zod.string().max(updateStudentResumeResponseContentSkillsItemMax)).max(updateStudentResumeResponseContentSkillsMax),
-  "certifications": zod.array(zod.string().max(updateStudentResumeResponseContentCertificationsItemMax)).max(updateStudentResumeResponseContentCertificationsMax),
-  "languages": zod.array(zod.string().max(updateStudentResumeResponseContentLanguagesItemMax)).max(updateStudentResumeResponseContentLanguagesMax),
-  "appearance": zod.object({
-  "fontFamily": zod.enum(['Arial', 'Tahoma', 'Verdana', 'Georgia', 'Cairo', 'IBM Plex Sans Arabic']),
-  "fontSize": zod.number().int().min(updateStudentResumeResponseContentAppearanceFontSizeMin).max(updateStudentResumeResponseContentAppearanceFontSizeMax).optional(),
-  "pageColor": zod.string().regex(updateStudentResumeResponseContentAppearancePageColorRegExp),
-  "textColor": zod.string().regex(updateStudentResumeResponseContentAppearanceTextColorRegExp),
-  "headingColor": zod.string().regex(updateStudentResumeResponseContentAppearanceHeadingColorRegExp),
-  "accentColor": zod.string().regex(updateStudentResumeResponseContentAppearanceAccentColorRegExp)
-}).optional(),
-  "inlineStyles": zod.array(zod.object({
-  "field": zod.string().min(1).max(updateStudentResumeResponseContentInlineStylesItemFieldMax),
-  "start": zod.number().int().min(updateStudentResumeResponseContentInlineStylesItemStartMin).max(updateStudentResumeResponseContentInlineStylesItemStartMax),
-  "end": zod.number().int().min(1).max(updateStudentResumeResponseContentInlineStylesItemEndMax),
-  "bold": zod.boolean().optional(),
-  "italic": zod.boolean().optional(),
-  "underline": zod.boolean().optional(),
-  "color": zod.string().regex(updateStudentResumeResponseContentInlineStylesItemColorRegExp).optional(),
-  "fontSize": zod.number().int().min(updateStudentResumeResponseContentInlineStylesItemFontSizeMin).max(updateStudentResumeResponseContentInlineStylesItemFontSizeMax).optional()
-})).max(updateStudentResumeResponseContentInlineStylesMax).optional()
-}),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Delete an owned private resume draft
- */
-export const DeleteStudentResumeParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const DeleteStudentResumeResponse = zod.void()
-
-
-/**
- * @summary List the current student's private office files
- */
-export const listStudentOfficeFilesResponseTitleMax = 120;
-
-export const listStudentOfficeFilesResponseContentMax = 120000;
-
-
-
-export const ListStudentOfficeFilesResponseItem = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string().min(1).max(listStudentOfficeFilesResponseTitleMax),
-  "kind": zod.enum(['document', 'spreadsheet']),
-  "content": zod.string().max(listStudentOfficeFilesResponseContentMax),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-export const ListStudentOfficeFilesResponse = zod.array(ListStudentOfficeFilesResponseItem)
-
-
-/**
- * @summary Create a private document or spreadsheet
- */
-export const createStudentOfficeFileBodyTitleMax = 120;
-
-export const createStudentOfficeFileBodyContentMax = 120000;
-
-
-
-export const CreateStudentOfficeFileBody = zod.object({
-  "title": zod.string().min(1).max(createStudentOfficeFileBodyTitleMax),
-  "kind": zod.enum(['document', 'spreadsheet']),
-  "content": zod.string().max(createStudentOfficeFileBodyContentMax)
-})
-
-export const createStudentOfficeFileResponseTitleMax = 120;
-
-export const createStudentOfficeFileResponseContentMax = 120000;
-
-
-
-export const CreateStudentOfficeFileResponse = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string().min(1).max(createStudentOfficeFileResponseTitleMax),
-  "kind": zod.enum(['document', 'spreadsheet']),
-  "content": zod.string().max(createStudentOfficeFileResponseContentMax),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Update an owned private office file
- */
-export const UpdateStudentOfficeFileParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const updateStudentOfficeFileBodyTitleMax = 120;
-
-export const updateStudentOfficeFileBodyContentMax = 120000;
-
-
-
-export const UpdateStudentOfficeFileBody = zod.object({
-  "title": zod.string().min(1).max(updateStudentOfficeFileBodyTitleMax),
-  "content": zod.string().max(updateStudentOfficeFileBodyContentMax)
-})
-
-export const updateStudentOfficeFileResponseTitleMax = 120;
-
-export const updateStudentOfficeFileResponseContentMax = 120000;
-
-
-
-export const UpdateStudentOfficeFileResponse = zod.object({
-  "id": zod.string().uuid(),
-  "title": zod.string().min(1).max(updateStudentOfficeFileResponseTitleMax),
-  "kind": zod.enum(['document', 'spreadsheet']),
-  "content": zod.string().max(updateStudentOfficeFileResponseContentMax),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Delete an owned private office file
- */
-export const DeleteStudentOfficeFileParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const DeleteStudentOfficeFileResponse = zod.void()
-
-
-/**
  * @summary Get only the fields approved for a public professional profile
  */
 export const getPublicResumePathTokenMin = 32;
@@ -3925,354 +2699,6 @@ export const DeleteAchievementResponse = zod.void()
 
 
 /**
- * @summary List private evidence attached to an achievement
- */
-export const ListAchievementAttachmentsParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const ListAchievementAttachmentsResponseItem = zod.object({
-  "id": zod.string().uuid(),
-  "kind": zod.enum(['file', 'text', 'link']),
-  "title": zod.string(),
-  "content": zod.string().nullable(),
-  "url": zod.string().url().nullable(),
-  "originalName": zod.string().nullable(),
-  "mime": zod.string().nullable(),
-  "size": zod.number().int().nullable(),
-  "status": zod.enum(['uploading', 'ready']),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-})
-export const ListAchievementAttachmentsResponse = zod.array(ListAchievementAttachmentsResponseItem)
-
-
-/**
- * @summary Add text or a link as private evidence
- */
-export const CreateAchievementAttachmentParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const createAchievementAttachmentBodyTitleMax = 120;
-
-export const createAchievementAttachmentBodyContentMax = 8000;
-
-export const createAchievementAttachmentBodyUrlMax = 2048;
-
-
-
-export const CreateAchievementAttachmentBody = zod.object({
-  "kind": zod.enum(['text', 'link']),
-  "title": zod.string().min(1).max(createAchievementAttachmentBodyTitleMax),
-  "content": zod.string().max(createAchievementAttachmentBodyContentMax).optional(),
-  "url": zod.string().url().max(createAchievementAttachmentBodyUrlMax).optional()
-})
-
-export const CreateAchievementAttachmentResponse = zod.object({
-  "id": zod.string().uuid(),
-  "kind": zod.enum(['file', 'text', 'link']),
-  "title": zod.string(),
-  "content": zod.string().nullable(),
-  "url": zod.string().url().nullable(),
-  "originalName": zod.string().nullable(),
-  "mime": zod.string().nullable(),
-  "size": zod.number().int().nullable(),
-  "status": zod.enum(['uploading', 'ready']),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Request a private direct-upload URL for achievement evidence
- */
-export const RequestAchievementAttachmentUploadParams = zod.object({
-  "id": zod.coerce.string().uuid()
-})
-
-export const requestAchievementAttachmentUploadBodyNameMax = 255;
-
-export const requestAchievementAttachmentUploadBodyMimeMax = 120;
-
-
-
-
-export const RequestAchievementAttachmentUploadBody = zod.object({
-  "name": zod.string().min(1).max(requestAchievementAttachmentUploadBodyNameMax),
-  "mime": zod.string().min(1).max(requestAchievementAttachmentUploadBodyMimeMax),
-  "size": zod.number().int().min(1)
-})
-
-export const RequestAchievementAttachmentUploadResponse = zod.object({
-  "id": zod.string().uuid(),
-  "uploadUrl": zod.string().url()
-})
-
-
-/**
- * @summary Verify and finish an achievement evidence upload
- */
-export const ConfirmAchievementAttachmentUploadParams = zod.object({
-  "id": zod.coerce.string().uuid(),
-  "attachmentId": zod.coerce.string().uuid()
-})
-
-export const ConfirmAchievementAttachmentUploadResponse = zod.object({
-  "id": zod.string().uuid(),
-  "kind": zod.enum(['file', 'text', 'link']),
-  "title": zod.string(),
-  "content": zod.string().nullable(),
-  "url": zod.string().url().nullable(),
-  "originalName": zod.string().nullable(),
-  "mime": zod.string().nullable(),
-  "size": zod.number().int().nullable(),
-  "status": zod.enum(['uploading', 'ready']),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Stream private achievement evidence to its owner or an administrator
- */
-export const DownloadAchievementAttachmentParams = zod.object({
-  "id": zod.coerce.string().uuid(),
-  "attachmentId": zod.coerce.string().uuid()
-})
-
-export const DownloadAchievementAttachmentHeader = zod.object({
-  "Range": zod.string().optional()
-})
-
-export const DownloadAchievementAttachmentResponse = zod.unknown()
-
-
-/**
- * @summary Preview private achievement evidence for its owner or an administrator
- */
-export const PreviewAchievementAttachmentParams = zod.object({
-  "id": zod.coerce.string().uuid(),
-  "attachmentId": zod.coerce.string().uuid()
-})
-
-export const PreviewAchievementAttachmentHeader = zod.object({
-  "Range": zod.string().optional()
-})
-
-export const PreviewAchievementAttachmentResponse = zod.unknown()
-
-
-/**
- * @summary Delete private evidence from an achievement
- */
-export const DeleteAchievementAttachmentParams = zod.object({
-  "id": zod.coerce.string().uuid(),
-  "attachmentId": zod.coerce.string().uuid()
-})
-
-export const DeleteAchievementAttachmentResponse = zod.void()
-
-
-/**
- * @summary List the authenticated student's files submitted to a module
- */
-export const ListModuleSubmissionsParams = zod.object({
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant'])
-})
-
-export const ListModuleSubmissionsResponse = zod.object({
-  "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "title": zod.string(),
-  "note": zod.string().nullable(),
-  "originalName": zod.string(),
-  "mime": zod.string(),
-  "size": zod.number().int(),
-  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
-  "reviewNote": zod.string().nullable(),
-  "reviewedAt": zod.coerce.date().nullable(),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-}))
-})
-
-
-/**
- * @summary Delete one of the authenticated student's module submissions
- */
-export const DeleteModuleSubmissionParams = zod.object({
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "submissionId": zod.coerce.string().uuid()
-})
-
-export const DeleteModuleSubmissionResponse = zod.void()
-
-
-/**
- * @summary Request a private upload URL for a file submitted to a module
- */
-export const RequestModuleSubmissionUploadParams = zod.object({
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant'])
-})
-
-export const requestModuleSubmissionUploadBodyTitleMax = 160;
-
-export const requestModuleSubmissionUploadBodyNoteMax = 2000;
-
-export const requestModuleSubmissionUploadBodyOriginalNameMax = 255;
-
-export const requestModuleSubmissionUploadBodyMimeMax = 120;
-
-
-
-
-export const RequestModuleSubmissionUploadBody = zod.object({
-  "title": zod.string().min(1).max(requestModuleSubmissionUploadBodyTitleMax),
-  "note": zod.string().max(requestModuleSubmissionUploadBodyNoteMax).nullish(),
-  "originalName": zod.string().min(1).max(requestModuleSubmissionUploadBodyOriginalNameMax),
-  "mime": zod.string().min(1).max(requestModuleSubmissionUploadBodyMimeMax),
-  "size": zod.number().int().min(1)
-})
-
-export const RequestModuleSubmissionUploadResponse = zod.object({
-  "id": zod.string().uuid(),
-  "uploadUrl": zod.string().url()
-})
-
-
-/**
- * @summary Verify and finish a module file submission
- */
-export const ConfirmModuleSubmissionUploadParams = zod.object({
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "submissionId": zod.coerce.string().uuid()
-})
-
-export const ConfirmModuleSubmissionUploadResponse = zod.object({
-  "id": zod.string().uuid(),
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "title": zod.string(),
-  "note": zod.string().nullable(),
-  "originalName": zod.string(),
-  "mime": zod.string(),
-  "size": zod.number().int(),
-  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
-  "reviewNote": zod.string().nullable(),
-  "reviewedAt": zod.coerce.date().nullable(),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Stream a module submission to its owner
- */
-export const DownloadModuleSubmissionParams = zod.object({
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "submissionId": zod.coerce.string().uuid()
-})
-
-export const DownloadModuleSubmissionHeader = zod.object({
-  "Range": zod.string().optional()
-})
-
-export const DownloadModuleSubmissionResponse = zod.unknown()
-
-
-/**
- * @summary List student files submitted to platform modules
- */
-export const listAdminModuleSubmissionsQueryPageDefault = 1;
-
-
-
-export const ListAdminModuleSubmissionsQueryParams = zod.object({
-  "status": zod.enum(['pending', 'approved', 'rejected']).optional(),
-  "page": zod.coerce.number().int().min(1).default(listAdminModuleSubmissionsQueryPageDefault)
-})
-
-export const listAdminModuleSubmissionsResponseTotalMin = 0;
-
-
-
-
-
-export const ListAdminModuleSubmissionsResponse = zod.object({
-  "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "title": zod.string(),
-  "note": zod.string().nullable(),
-  "originalName": zod.string(),
-  "mime": zod.string(),
-  "size": zod.number().int(),
-  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
-  "reviewNote": zod.string().nullable(),
-  "reviewedAt": zod.coerce.date().nullable(),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-}).and(zod.object({
-  "ownerId": zod.string(),
-  "reviewedBy": zod.string().nullable()
-}))),
-  "total": zod.number().int().min(listAdminModuleSubmissionsResponseTotalMin),
-  "page": zod.number().int().min(1),
-  "pageSize": zod.number().int().min(1)
-})
-
-
-/**
- * @summary Approve or reject a student module submission
- */
-export const ReviewAdminModuleSubmissionParams = zod.object({
-  "submissionId": zod.coerce.string().uuid()
-})
-
-export const reviewAdminModuleSubmissionBodyReviewNoteMax = 1000;
-
-
-
-export const ReviewAdminModuleSubmissionBody = zod.object({
-  "status": zod.enum(['approved', 'rejected']),
-  "reviewNote": zod.string().max(reviewAdminModuleSubmissionBodyReviewNoteMax).nullish()
-})
-
-export const ReviewAdminModuleSubmissionResponse = zod.object({
-  "id": zod.string().uuid(),
-  "moduleKey": zod.enum(['achievements', 'learning', 'academy', 'languages', 'graduates', 'roadmap', 'resume', 'assistant']),
-  "title": zod.string(),
-  "note": zod.string().nullable(),
-  "originalName": zod.string(),
-  "mime": zod.string(),
-  "size": zod.number().int(),
-  "status": zod.enum(['uploading', 'pending', 'approved', 'rejected']),
-  "reviewNote": zod.string().nullable(),
-  "reviewedAt": zod.coerce.date().nullable(),
-  "downloadUrl": zod.string().nullable(),
-  "createdAt": zod.coerce.date()
-}).and(zod.object({
-  "ownerId": zod.string(),
-  "reviewedBy": zod.string().nullable()
-}))
-
-
-/**
- * @summary Stream a student's file to an administrator for review
- */
-export const DownloadAdminModuleSubmissionParams = zod.object({
-  "submissionId": zod.coerce.string().uuid()
-})
-
-export const DownloadAdminModuleSubmissionHeader = zod.object({
-  "Range": zod.string().optional()
-})
-
-export const DownloadAdminModuleSubmissionResponse = zod.unknown()
-
-
-/**
  * @summary Create an optional CV bullet and interview story from student-provided facts
  */
 export const generateAchievementDraftBodyTitleMax = 160;
@@ -4305,30 +2731,6 @@ export const GenerateAchievementDraftResponse = zod.object({
   "interviewStory": zod.string(),
   "serviceOffer": zod.string(),
   "summary": zod.string()
-})
-
-
-/**
- * @summary Rewrite a student-provided resume summary or achievement without inventing facts
- */
-export const rewriteResumeTextBodySourceTextMax = 3000;
-
-export const rewriteResumeTextBodyTargetRoleMax = 180;
-
-
-
-export const RewriteResumeTextBody = zod.object({
-  "mode": zod.enum(['summary', 'bullet']),
-  "sourceText": zod.string().min(1).max(rewriteResumeTextBodySourceTextMax),
-  "targetRole": zod.string().max(rewriteResumeTextBodyTargetRoleMax).optional()
-})
-
-export const rewriteResumeTextResponseSuggestionMax = 3000;
-
-
-
-export const RewriteResumeTextResponse = zod.object({
-  "suggestion": zod.string().min(1).max(rewriteResumeTextResponseSuggestionMax)
 })
 
 
@@ -5633,11 +4035,9 @@ export const ConvertAcademyGrowthToAchievementResponse = zod.object({
 export const ListAcademyFilesResponseItem = zod.object({
   "id": zod.string().uuid(),
   "originalName": zod.string(),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
   "size": zod.number().int().min(1),
-  "createdAt": zod.coerce.date(),
-  "studyAvailable": zod.boolean().optional(),
-  "studyMessage": zod.string().optional()
+  "createdAt": zod.coerce.date()
 })
 export const ListAcademyFilesResponse = zod.array(ListAcademyFilesResponseItem)
 
@@ -5647,13 +4047,14 @@ export const ListAcademyFilesResponse = zod.array(ListAcademyFilesResponseItem)
  */
 export const requestAcademyFileUploadBodyOriginalNameMax = 180;
 
+export const requestAcademyFileUploadBodySizeMax = 10485760;
 
 
 
 export const RequestAcademyFileUploadBody = zod.object({
   "originalName": zod.string().min(1).max(requestAcademyFileUploadBodyOriginalNameMax),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
-  "size": zod.number().int().min(1)
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
+  "size": zod.number().int().min(1).max(requestAcademyFileUploadBodySizeMax)
 })
 
 export const RequestAcademyFileUploadResponse = zod.object({
@@ -5675,11 +4076,9 @@ export const ConfirmAcademyFileUploadParams = zod.object({
 export const ConfirmAcademyFileUploadResponse = zod.object({
   "id": zod.string().uuid(),
   "originalName": zod.string(),
-  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-powerpoint', 'application/vnd.ms-excel', 'text/csv', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg']),
+  "mime": zod.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/webp']),
   "size": zod.number().int().min(1),
-  "createdAt": zod.coerce.date(),
-  "studyAvailable": zod.boolean().optional(),
-  "studyMessage": zod.string().optional()
+  "createdAt": zod.coerce.date()
 })
 
 

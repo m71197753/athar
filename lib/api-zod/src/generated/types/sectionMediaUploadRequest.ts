@@ -9,5 +9,4 @@
 export interface SectionMediaUploadRequest {
   id: string;
   uploadUrl: string;
-  resumable?: boolean;
 }

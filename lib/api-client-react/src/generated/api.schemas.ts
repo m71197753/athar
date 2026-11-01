@@ -247,7 +247,10 @@ export const AdAssetInputMime = {
 
 export interface AdAssetInput {
   mime: AdAssetInputMime;
-  /** @minimum 1 */
+  /**
+     * @minimum 1
+     * @maximum 83886080
+     */
   size: number;
 }
 
@@ -336,7 +339,6 @@ export const SectionBlockMediaType = {
 } as const;
 
 export interface SectionBlock {
-  id?: string;
   type: SectionBlockType;
   mediaType?: SectionBlockMediaType;
   /**
@@ -373,25 +375,6 @@ export interface ModuleSetting {
   blocks?: SectionBlock[];
 }
 
-export type AppearanceSettingsFontFamily = typeof AppearanceSettingsFontFamily[keyof typeof AppearanceSettingsFontFamily];
-
-
-export const AppearanceSettingsFontFamily = {
-  IBM_Plex_Sans_Arabic: 'IBM Plex Sans Arabic',
-  Cairo: 'Cairo',
-  Tahoma: 'Tahoma',
-  Arial: 'Arial',
-} as const;
-
-export type AppearanceSettingsIconShape = typeof AppearanceSettingsIconShape[keyof typeof AppearanceSettingsIconShape];
-
-
-export const AppearanceSettingsIconShape = {
-  rounded: 'rounded',
-  circle: 'circle',
-  square: 'square',
-} as const;
-
 export interface AppearanceSettings {
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   primaryColor: string;
@@ -401,23 +384,6 @@ export interface AppearanceSettings {
   canvasColor: string;
   /** @pattern ^#[0-9A-Fa-f]{6}$ */
   surfaceColor: string;
-  fontFamily?: AppearanceSettingsFontFamily;
-  /**
-     * @minimum 90
-     * @maximum 130
-     */
-  fontScale?: number;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  textColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  headingColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  cardTextColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  cardBorderColor?: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  iconColor?: string;
-  iconShape?: AppearanceSettingsIconShape;
   /**
      * @minLength 2
      * @maxLength 80
@@ -431,7 +397,10 @@ export interface AppearanceSettings {
 }
 
 export interface PlatformSettings {
-  /** @minItems 1 */
+  /**
+     * @minItems 7
+     * @maxItems 7
+     */
   moduleSettings: ModuleSetting[];
   appearance: AppearanceSettings;
 }
@@ -555,41 +524,6 @@ export interface AdminOverviewDetails {
   pageSize: number;
 }
 
-export interface AdminAchievementEvidenceItem {
-  id: string;
-  achievementId: string;
-  studentName: string;
-  studentUniversity: string;
-  studentMajor: string;
-  achievementTitle: string;
-  kind: string;
-  title: string;
-  /** @nullable */
-  content: string | null;
-  /** @nullable */
-  url: string | null;
-  /** @nullable */
-  originalName: string | null;
-  /** @nullable */
-  mime: string | null;
-  /**
-     * @minimum 1
-     * @nullable
-     */
-  size: number | null;
-  status: string;
-  /** @nullable */
-  downloadUrl: string | null;
-  createdAt: string;
-}
-
-export interface AdminAchievementEvidencePage {
-  items: AdminAchievementEvidenceItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
 export type SectionMediaUploadInputMime = typeof SectionMediaUploadInputMime[keyof typeof SectionMediaUploadInputMime];
 
 
@@ -619,35 +553,15 @@ export interface SectionMediaUploadInput {
   mime: SectionMediaUploadInputMime;
   /** @minimum 1 */
   size: number;
-  /** Request a resumable direct-to-storage upload session */
-  resumable?: boolean;
 }
 
 export interface SectionMediaUploadRequest {
   id: string;
   uploadUrl: string;
-  resumable?: boolean;
 }
 
 export interface SectionMediaUploadResult {
   url: string;
-}
-
-export interface SectionMediaCleanupPreview {
-  retentionDays: number;
-  expiredUploads: number;
-  unlinkedAssets: number;
-  orphanFiles: number;
-  reclaimableBytes: number;
-}
-
-export interface SectionMediaCleanupResult {
-  retentionDays: number;
-  expiredUploads: number;
-  removedAssets: number;
-  deletedFiles: number;
-  failedFiles: number;
-  reclaimedBytes: number;
 }
 
 export type ContentInputKind = typeof ContentInputKind[keyof typeof ContentInputKind];
@@ -709,7 +623,7 @@ export interface SectionCourse {
   title: string;
   /** @maxLength 600 */
   description: string;
-  /** @maxItems 100 */
+  /** @maxItems 20 */
   units?: SectionCourseUnit[];
   /**
      * @maxItems 20
@@ -719,7 +633,7 @@ export interface SectionCourse {
   skills?: string[];
   /**
      * @minItems 1
-     * @maxItems 100
+     * @maxItems 20
      */
   materials: SectionBlock[];
 }
@@ -766,14 +680,6 @@ export interface PlatformContent {
   sections: PlatformSection[];
 }
 
-export interface CoursePositionInput {
-  lesson: SectionBlock;
-}
-
-export interface CoursePosition {
-  lesson: SectionBlock | null;
-}
-
 export interface AdminSectionList {
   items: PlatformSection[];
 }
@@ -784,12 +690,6 @@ export interface AuditEntry {
   action: string;
   target: string;
   createdAt: string;
-  /** @nullable */
-  evidenceStudentName: string | null;
-  /** @nullable */
-  evidenceAchievementTitle: string | null;
-  /** @nullable */
-  evidenceAttachmentTitle: string | null;
 }
 
 export interface AuditPage {
@@ -850,270 +750,6 @@ export interface StudentProfileInput {
      * @items.maxLength 60
      */
   skills: string[];
-}
-
-export interface ResumeSectionEntry {
-  /** @maxLength 180 */
-  title: string;
-  /** @maxLength 180 */
-  organization: string;
-  /** @maxLength 180 */
-  location: string;
-  /** @maxLength 100 */
-  period: string;
-  /** @maxLength 2000 */
-  description: string;
-  /** @maxLength 400 */
-  link: string;
-}
-
-export type StudentResumeAppearanceFontFamily = typeof StudentResumeAppearanceFontFamily[keyof typeof StudentResumeAppearanceFontFamily];
-
-
-export const StudentResumeAppearanceFontFamily = {
-  Arial: 'Arial',
-  Tahoma: 'Tahoma',
-  Verdana: 'Verdana',
-  Georgia: 'Georgia',
-  Cairo: 'Cairo',
-  IBM_Plex_Sans_Arabic: 'IBM Plex Sans Arabic',
-} as const;
-
-export interface StudentResumeAppearance {
-  fontFamily: StudentResumeAppearanceFontFamily;
-  /**
-     * @minimum 10
-     * @maximum 18
-     */
-  fontSize?: number;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  pageColor: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  textColor: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  headingColor: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  accentColor: string;
-}
-
-export interface StudentResumeInlineStyleRange {
-  /**
-     * @minLength 1
-     * @maxLength 240
-     */
-  field: string;
-  /**
-     * @minimum 0
-     * @maximum 20000
-     */
-  start: number;
-  /**
-     * @minimum 1
-     * @maximum 20000
-     */
-  end: number;
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  color?: string;
-  /**
-     * @minimum 8
-     * @maximum 32
-     */
-  fontSize?: number;
-}
-
-export interface StudentResumeContent {
-  /** @maxLength 120 */
-  fullName: string;
-  /** @maxLength 200 */
-  email: string;
-  /** @maxLength 60 */
-  phone: string;
-  /** @maxLength 160 */
-  location: string;
-  /** @maxLength 400 */
-  linkedin: string;
-  /** @maxLength 400 */
-  website: string;
-  /** @maxLength 240 */
-  headline: string;
-  /** @maxLength 2000 */
-  summary: string;
-  /** @maxItems 20 */
-  education: ResumeSectionEntry[];
-  /** @maxItems 30 */
-  experience: ResumeSectionEntry[];
-  /** @maxItems 30 */
-  projects: ResumeSectionEntry[];
-  /** @maxItems 30 */
-  courses: ResumeSectionEntry[];
-  /**
-     * @maxItems 60
-     * @items.maxLength 80
-     */
-  skills: string[];
-  /**
-     * @maxItems 30
-     * @items.maxLength 180
-     */
-  certifications: string[];
-  /**
-     * @maxItems 20
-     * @items.maxLength 100
-     */
-  languages: string[];
-  appearance?: StudentResumeAppearance;
-  /** @maxItems 600 */
-  inlineStyles?: StudentResumeInlineStyleRange[];
-}
-
-export type StudentResumeOrigin = typeof StudentResumeOrigin[keyof typeof StudentResumeOrigin];
-
-
-export const StudentResumeOrigin = {
-  guided: 'guided',
-  manual: 'manual',
-} as const;
-
-export type StudentResumeTemplate = typeof StudentResumeTemplate[keyof typeof StudentResumeTemplate];
-
-
-export const StudentResumeTemplate = {
-  ats: 'ats',
-  professional: 'professional',
-  classic: 'classic',
-  modern: 'modern',
-  sidebar: 'sidebar',
-} as const;
-
-export interface StudentResume {
-  id: string;
-  title: string;
-  origin: StudentResumeOrigin;
-  template: StudentResumeTemplate;
-  content: StudentResumeContent;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type StudentResumeList = StudentResume[];
-
-export type StudentResumeInputTemplate = typeof StudentResumeInputTemplate[keyof typeof StudentResumeInputTemplate];
-
-
-export const StudentResumeInputTemplate = {
-  ats: 'ats',
-  professional: 'professional',
-  classic: 'classic',
-  modern: 'modern',
-  sidebar: 'sidebar',
-} as const;
-
-export interface StudentResumeInput {
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  origin: StudentResumeOrigin;
-  template: StudentResumeInputTemplate;
-  content: StudentResumeContent;
-}
-
-export type StudentResumeUpdateTemplate = typeof StudentResumeUpdateTemplate[keyof typeof StudentResumeUpdateTemplate];
-
-
-export const StudentResumeUpdateTemplate = {
-  ats: 'ats',
-  professional: 'professional',
-  classic: 'classic',
-  modern: 'modern',
-  sidebar: 'sidebar',
-} as const;
-
-export interface StudentResumeUpdate {
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  origin: StudentResumeOrigin;
-  template: StudentResumeUpdateTemplate;
-  content: StudentResumeContent;
-}
-
-export type StudentOfficeFileKind = typeof StudentOfficeFileKind[keyof typeof StudentOfficeFileKind];
-
-
-export const StudentOfficeFileKind = {
-  document: 'document',
-  spreadsheet: 'spreadsheet',
-} as const;
-
-export interface StudentOfficeFile {
-  id: string;
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  kind: StudentOfficeFileKind;
-  /** @maxLength 120000 */
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type StudentOfficeFileList = StudentOfficeFile[];
-
-export interface StudentOfficeFileInput {
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  kind: StudentOfficeFileKind;
-  /** @maxLength 120000 */
-  content: string;
-}
-
-export interface StudentOfficeFileUpdate {
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  /** @maxLength 120000 */
-  content: string;
-}
-
-export type ResumeWritingInputMode = typeof ResumeWritingInputMode[keyof typeof ResumeWritingInputMode];
-
-
-export const ResumeWritingInputMode = {
-  summary: 'summary',
-  bullet: 'bullet',
-} as const;
-
-export interface ResumeWritingInput {
-  mode: ResumeWritingInputMode;
-  /**
-     * @minLength 1
-     * @maxLength 3000
-     */
-  sourceText: string;
-  /** @maxLength 180 */
-  targetRole?: string;
-}
-
-export interface ResumeWritingSuggestion {
-  /**
-     * @minLength 1
-     * @maxLength 3000
-     */
-  suggestion: string;
 }
 
 export interface ResumeShareSettings {
@@ -1327,180 +963,6 @@ export interface AchievementUpdate {
      * @nullable
      */
   summary?: string | null;
-}
-
-export type AchievementAttachmentKind = typeof AchievementAttachmentKind[keyof typeof AchievementAttachmentKind];
-
-
-export const AchievementAttachmentKind = {
-  file: 'file',
-  text: 'text',
-  link: 'link',
-} as const;
-
-export type AchievementAttachmentStatus = typeof AchievementAttachmentStatus[keyof typeof AchievementAttachmentStatus];
-
-
-export const AchievementAttachmentStatus = {
-  uploading: 'uploading',
-  ready: 'ready',
-} as const;
-
-export interface AchievementAttachment {
-  id: string;
-  kind: AchievementAttachmentKind;
-  title: string;
-  /** @nullable */
-  content: string | null;
-  /** @nullable */
-  url: string | null;
-  /** @nullable */
-  originalName: string | null;
-  /** @nullable */
-  mime: string | null;
-  /** @nullable */
-  size: number | null;
-  status: AchievementAttachmentStatus;
-  /** @nullable */
-  downloadUrl: string | null;
-  createdAt: string;
-}
-
-export type AchievementAttachmentInputKind = typeof AchievementAttachmentInputKind[keyof typeof AchievementAttachmentInputKind];
-
-
-export const AchievementAttachmentInputKind = {
-  text: 'text',
-  link: 'link',
-} as const;
-
-export interface AchievementAttachmentInput {
-  kind: AchievementAttachmentInputKind;
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  title: string;
-  /** @maxLength 8000 */
-  content?: string;
-  /** @maxLength 2048 */
-  url?: string;
-}
-
-export interface AchievementAttachmentUploadInput {
-  /**
-     * @minLength 1
-     * @maxLength 255
-     */
-  name: string;
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  mime: string;
-  /** @minimum 1 */
-  size: number;
-}
-
-export interface AchievementAttachmentUpload {
-  id: string;
-  uploadUrl: string;
-}
-
-export type ModuleSubmissionStatus = typeof ModuleSubmissionStatus[keyof typeof ModuleSubmissionStatus];
-
-
-export const ModuleSubmissionStatus = {
-  uploading: 'uploading',
-  pending: 'pending',
-  approved: 'approved',
-  rejected: 'rejected',
-} as const;
-
-export interface ModuleSubmission {
-  id: string;
-  moduleKey: ModuleKey;
-  title: string;
-  /** @nullable */
-  note: string | null;
-  originalName: string;
-  mime: string;
-  size: number;
-  status: ModuleSubmissionStatus;
-  /** @nullable */
-  reviewNote: string | null;
-  /** @nullable */
-  reviewedAt: string | null;
-  /** @nullable */
-  downloadUrl: string | null;
-  createdAt: string;
-}
-
-export type AdminModuleSubmission = ModuleSubmission & ({
-  ownerId: string;
-  /** @nullable */
-  reviewedBy: string | null;
-});
-
-export interface ModuleSubmissionList {
-  items: ModuleSubmission[];
-}
-
-export interface AdminModuleSubmissionList {
-  items: AdminModuleSubmission[];
-  /** @minimum 0 */
-  total: number;
-  /** @minimum 1 */
-  page: number;
-  /** @minimum 1 */
-  pageSize: number;
-}
-
-export interface ModuleSubmissionUploadInput {
-  /**
-     * @minLength 1
-     * @maxLength 160
-     */
-  title: string;
-  /**
-     * @maxLength 2000
-     * @nullable
-     */
-  note?: string | null;
-  /**
-     * @minLength 1
-     * @maxLength 255
-     */
-  originalName: string;
-  /**
-     * @minLength 1
-     * @maxLength 120
-     */
-  mime: string;
-  /** @minimum 1 */
-  size: number;
-}
-
-export interface ModuleSubmissionUpload {
-  id: string;
-  uploadUrl: string;
-}
-
-export type ModuleSubmissionReviewInputStatus = typeof ModuleSubmissionReviewInputStatus[keyof typeof ModuleSubmissionReviewInputStatus];
-
-
-export const ModuleSubmissionReviewInputStatus = {
-  approved: 'approved',
-  rejected: 'rejected',
-} as const;
-
-export interface ModuleSubmissionReviewInput {
-  status: ModuleSubmissionReviewInputStatus;
-  /**
-     * @maxLength 1000
-     * @nullable
-     */
-  reviewNote?: string | null;
 }
 
 export interface AchievementDraftInput {
@@ -2817,18 +2279,6 @@ export const AcademyStudentFileMime = {
   'image/jpeg': 'image/jpeg',
   'image/png': 'image/png',
   'image/webp': 'image/webp',
-  'application/vndopenxmlformats-officedocumentpresentationmlpresentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vndopenxmlformats-officedocumentspreadsheetmlsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/msword': 'application/msword',
-  'application/vndms-powerpoint': 'application/vnd.ms-powerpoint',
-  'application/vndms-excel': 'application/vnd.ms-excel',
-  'text/csv': 'text/csv',
-  'video/mp4': 'video/mp4',
-  'video/webm': 'video/webm',
-  'audio/mpeg': 'audio/mpeg',
-  'audio/mp4': 'audio/mp4',
-  'audio/wav': 'audio/wav',
-  'audio/ogg': 'audio/ogg',
 } as const;
 
 export interface AcademyStudentFile {
@@ -2838,8 +2288,6 @@ export interface AcademyStudentFile {
   /** @minimum 1 */
   size: number;
   createdAt: string;
-  studyAvailable?: boolean;
-  studyMessage?: string;
 }
 
 export type AcademyStudentFileInputMime = typeof AcademyStudentFileInputMime[keyof typeof AcademyStudentFileInputMime];
@@ -2852,18 +2300,6 @@ export const AcademyStudentFileInputMime = {
   'image/jpeg': 'image/jpeg',
   'image/png': 'image/png',
   'image/webp': 'image/webp',
-  'application/vndopenxmlformats-officedocumentpresentationmlpresentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vndopenxmlformats-officedocumentspreadsheetmlsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/msword': 'application/msword',
-  'application/vndms-powerpoint': 'application/vnd.ms-powerpoint',
-  'application/vndms-excel': 'application/vnd.ms-excel',
-  'text/csv': 'text/csv',
-  'video/mp4': 'video/mp4',
-  'video/webm': 'video/webm',
-  'audio/mpeg': 'audio/mpeg',
-  'audio/mp4': 'audio/mp4',
-  'audio/wav': 'audio/wav',
-  'audio/ogg': 'audio/ogg',
 } as const;
 
 export interface AcademyStudentFileInput {
@@ -2873,7 +2309,10 @@ export interface AcademyStudentFileInput {
      */
   originalName: string;
   mime: AcademyStudentFileInputMime;
-  /** @minimum 1 */
+  /**
+     * @minimum 1
+     * @maximum 10485760
+     */
   size: number;
 }
 
@@ -4044,17 +3483,6 @@ kind: AdminOverviewDetailsKind;
 page?: number;
 };
 
-export type ListAdminAchievementEvidenceParams = {
-/**
- * @maxLength 100
- */
-search?: string;
-/**
- * @minimum 1
- */
-page?: number;
-};
-
 export type ListAdminUsersParams = {
 /**
  * @maxLength 100
@@ -4129,23 +3557,6 @@ export const ListAchievementsCategory = {
   course: 'course',
   research: 'research',
   other: 'other',
-} as const;
-
-export type ListAdminModuleSubmissionsParams = {
-status?: ListAdminModuleSubmissionsStatus;
-/**
- * @minimum 1
- */
-page?: number;
-};
-
-export type ListAdminModuleSubmissionsStatus = typeof ListAdminModuleSubmissionsStatus[keyof typeof ListAdminModuleSubmissionsStatus];
-
-
-export const ListAdminModuleSubmissionsStatus = {
-  pending: 'pending',
-  approved: 'approved',
-  rejected: 'rejected',
 } as const;
 
 export type ListLanguageLearningContentParams = {

@@ -5,8 +5,6 @@ import aiRouter from "./ai";
 import careerRouter from "./career";
 import learningRouter from "./learning";
 import resumeShareRouter from "./resume-share";
-import studentResumesRouter from "./student-resumes";
-import studentOfficeFilesRouter from "./student-office-files";
 import adminRouter from "./admin";
 import adsRouter from "./ads";
 import academyRouter from "./academy";
@@ -19,7 +17,6 @@ import graduatesAdminRouter from "./graduates-admin";
 import languageLearningRouter from "./languages";
 import languageGamificationRouter from "./language-gamification-routes";
 import languageAdminRouter from "./language-admin";
-import moduleSubmissionsRouter from "./module-submissions";
 
 const router: IRouter = Router();
 
@@ -34,7 +31,6 @@ router.use(graduatesRouter);
 router.use(languageLearningRouter);
 router.use(languageGamificationRouter);
 router.use(languageAdminRouter);
-router.use(moduleSubmissionsRouter);
 router.use(adminRouter);
 router.use(studentRouter);
 router.use(aiRouter);
@@ -42,7 +38,5 @@ router.use(careerRouter);
 router.use(learningRouter);
 router.use(academyRouter);
 router.use(resumeShareRouter);
-router.use(studentResumesRouter);
-router.use(studentOfficeFilesRouter);
 
 export default router;

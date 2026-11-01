@@ -8,7 +8,7 @@ const source = fs.readFileSync(new URL("../src/lib/section-units.ts", import.met
 const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const sandbox = { exports: {}, URL };
 vm.runInNewContext(output, sandbox);
-const { groupCourseMaterials, adminPreviewMediaUrl, versionedVideoStreamUrl, safeSectionLink } = sandbox.exports;
+const { groupCourseMaterials, adminPreviewMediaUrl, safeSectionLink } = sandbox.exports;
 
 test("unit ordering never duplicates or drops canonical lessons, including legacy content", () => {
   const units = [{ id: "b", title: "الثانية" }, { id: "a", title: "الأولى" }];
@@ -23,8 +23,6 @@ test("unit ordering never duplicates or drops canonical lessons, including legac
 test("draft preview uses only protected canonical media and safe external links", () => {
   const id = "045be0bb-3cb8-4872-a66b-555dcaa66238";
   assert.equal(adminPreviewMediaUrl(`/api/platform/section-media/${id}`), `/api/admin/section-media/${id}/preview`);
-  assert.equal(versionedVideoStreamUrl(`/api/platform/section-media/${id}`), `/api/platform/section-media/${id}?mediaRevision=2`);
-  assert.equal(versionedVideoStreamUrl(`/api/admin/section-media/${id}/preview?token=ok`), `/api/admin/section-media/${id}/preview?token=ok&mediaRevision=2`);
   assert.equal(adminPreviewMediaUrl("data:text/html,unsafe"), "");
   assert.equal(safeSectionLink("javascript:alert(1)"), undefined);
   assert.equal(safeSectionLink("https://user:password@example.com"), undefined);

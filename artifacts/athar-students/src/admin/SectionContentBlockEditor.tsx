@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
+import { useState } from "react";
+import { FileText, Headphones, Image as ImageIcon, Link2, LoaderCircle, Upload, Video } from "lucide-react";
 import { RequiredMark } from "../components/RequiredMark";
 import { useConfirmSectionMediaUpload, useRequestSectionMediaUpload } from "@workspace/api-client-react";
-import type { SectionBlock, SectionMediaUploadInput, SectionMediaUploadRequest } from "@workspace/api-client-react";
-import { uploadFile, UploadSessionExpiredError } from "../lib/upload-file";
-import { adminPreviewMediaUrl, versionedVideoStreamUrl } from "../lib/section-units";
+import type { SectionBlock, SectionMediaUploadInput } from "@workspace/api-client-react";
+import { uploadFile } from "../lib/upload-file";
+import { adminPreviewMediaUrl } from "../lib/section-units";
 
 const acceptedMimeTypes = new Set<SectionMediaUploadInput["mime"]>([
   "image/jpeg", "image/png", "image/webp", "image/gif",
@@ -34,11 +34,6 @@ export function SectionContentBlockEditor({
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [uploadPercent, setUploadPercent] = useState(0);
-  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
-  const [retryFiles, setRetryFiles] = useState<File[]>([]);
-  const tickets = useRef(new WeakMap<File, SectionMediaUploadRequest>());
-  const uploadController = useRef<AbortController | null>(null);
-  useEffect(() => () => uploadController.current?.abort(), []);
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
@@ -59,9 +54,6 @@ export function SectionContentBlockEditor({
       return;
     }
     setUploading(true);
-    setRetryFiles([]);
-    const controller = new AbortController();
-    uploadController.current = controller;
     const uploadedBlocks: SectionBlock[] = [];
     const applyUploadedBlocks = () => {
       if (uploadedBlocks.length === 1) onChange(uploadedBlocks[0]);
@@ -72,27 +64,10 @@ export function SectionContentBlockEditor({
         setUploadStatus(files.length > 1
           ? `جارٍ رفع الملف ${index + 1} من ${files.length}: ${file.name}`
           : `جارٍ رفع ${file.name}…`);
-        let ticket = tickets.current.get(file);
-        if (!ticket) {
-          ticket = await requestUpload.mutateAsync({ data: { originalName: file.name, mime, size: file.size, resumable: true } });
-          tickets.current.set(file, ticket);
-        }
-        if (controller.signal.aborted) throw new DOMException("تم إيقاف الرفع.", "AbortError");
-        try {
-          await uploadFile(ticket.uploadUrl, file, mime, setUploadPercent, {
-            resumable: ticket.resumable,
-            signal: controller.signal,
-            onStatus: status => setUploadStatus(status === "reconnecting"
-              ? `انقطع الاتصال؛ جارٍ استكمال ${file.name} من آخر جزء محفوظ…`
-              : `جارٍ رفع الملف ${index + 1} من ${files.length}: ${file.name}`),
-          });
-        } catch (error) {
-          if (error instanceof UploadSessionExpiredError) tickets.current.delete(file);
-          throw error;
-        }
+        const ticket = await requestUpload.mutateAsync({ data: { originalName: file.name, mime, size: file.size } });
+        await uploadFile(ticket.uploadUrl, file, mime, setUploadPercent);
         setUploadStatus(`جارٍ التحقق من ${file.name}…`);
         const confirmed = await confirmUpload.mutateAsync({ id: ticket.id });
-        tickets.current.delete(file);
         uploadedBlocks.push({
           type: "media",
           mediaType: kindForMime(mime),
@@ -102,20 +77,15 @@ export function SectionContentBlockEditor({
         });
       }
       applyUploadedBlocks();
-    } catch (error) {
-      setRetryFiles(files.slice(uploadedBlocks.length));
+    } catch {
       if (uploadedBlocks.length) {
         applyUploadedBlocks();
-        setUploadError("توقف رفع المجموعة قبل اكتمالها؛ أُضيفت الملفات التي اكتمل رفعها. يمكنك استكمال باقي الملفات.");
+        setUploadError("توقف رفع المجموعة قبل اكتمالها؛ أُضيفت الملفات التي اكتمل رفعها. اختر الباقي للمحاولة مجددًا.");
       } else {
-        setUploadError(error instanceof Error && error.name === "AbortError"
-          ? "توقف الرفع. يمكنك استكماله من آخر جزء محفوظ ما دامت الصفحة مفتوحة."
-          : error instanceof UploadSessionExpiredError ? error.message
-          : "لم يكتمل الرفع أو التحقق منه. اضغط «استكمال الرفع» لإعادة المحاولة بدون إعادة الأجزاء المحفوظة.");
+        setUploadError("لم يكتمل رفع الملف. تحقق من الاتصال وحاول مرة أخرى.");
       }
     } finally {
       setUploading(false);
-      uploadController.current = null;
       setUploadStatus("");
     }
   };
@@ -146,20 +116,11 @@ export function SectionContentBlockEditor({
       </label>
       <small className="adm-upload-hint">يمكنك اختيار عدة ملفات دفعة واحدة، ثم إضافة روابط في القائمة نفسها. الملفات الكبيرة تحتاج وقتًا أطول.</small>
       {uploading && <div role="status"><p className="adm-upload-status"><LoaderCircle size={15} className="adm-spin"/> {uploadStatus} — {uploadPercent.toLocaleString("ar")}٪</p><progress value={uploadPercent} max={100} aria-label="نسبة رفع الملف" style={{ width: "100%" }}/></div>}
-      {uploading && <button type="button" className="button button-outline" onClick={() => uploadController.current?.abort()}>إيقاف الرفع مؤقتًا</button>}
       {uploadError && <p className="adm-form-error" role="alert">{uploadError}</p>}
-      {!uploading && retryFiles.length > 0 && <button type="button" className="button button-outline" onClick={() => void upload(retryFiles)}>استكمال الرفع</button>}
-      <small className="adm-upload-status">الرفع يدعم الاستكمال عند انقطاع الإنترنت. اترك الصفحة مفتوحة؛ إغلاقها أو تحديثها يتطلب إعادة اختيار الملف وبدء رفع جديد.</small>
       {block.url && block.mediaType === "image" && <img className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} alt={block.title || "معاينة الصورة"} loading="lazy"/>}
       {block.url && block.mediaType === "audio" && <audio className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
-      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={versionedVideoStreamUrl(adminPreviewMediaUrl(block.url))} controls preload="metadata"/>}
-       {block.url && block.mediaType === "file" && <button className="adm-media-file-link" type="button" onClick={() => setFilePreviewOpen(true)}><FileText size={16}/> معاينة داخل أثر</button>}
-       {filePreviewOpen && block.url && block.mediaType === "file" && <div className="adm-inline-file-preview-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setFilePreviewOpen(false); }}>
-         <section className="adm-inline-file-preview" role="dialog" aria-modal="true" aria-label={`معاينة ${block.title}`}>
-           <header><b>{block.title || "معاينة الملف"}</b><button type="button" onClick={() => setFilePreviewOpen(false)}><ArrowRight size={16}/> رجوع للبرنامج</button></header>
-           <iframe src={adminPreviewMediaUrl(block.url)} title={`معاينة ${block.title}`} />
-         </section>
-       </div>}
+      {block.url && block.mediaType === "video" && <video className="adm-media-preview" src={adminPreviewMediaUrl(block.url)} controls preload="metadata"/>}
+      {block.url && block.mediaType === "file" && <a className="adm-media-file-link" href={adminPreviewMediaUrl(block.url)} target="_blank" rel="noopener noreferrer"><FileText size={16}/> فتح المرفق</a>}
       {block.url && <span className="adm-upload-status">{block.mediaType === "image" ? <ImageIcon size={14}/> : block.mediaType === "audio" ? <Headphones size={14}/> : block.mediaType === "video" ? <Video size={14}/> : <FileText size={14}/>} تم التحقق من الملف؛ سيظهر للطلاب بعد نشر المحتوى.</span>}
     </>}
   </div>;

@@ -1,8 +1,7 @@
 import { Storage } from "@google-cloud/storage";
 import { randomUUID } from "node:crypto";
-import type { AcademyUploadMime } from "./academy-content";
+import { MAX_ACADEMY_FILE_BYTES, type AcademyUploadMime } from "./academy-content";
 import { assetFile } from "./ad-storage";
-import { validAcademyExtraHeader } from "./academy-library-formats";
 
 const sidecar = "http://127.0.0.1:1106";
 const storage = new Storage({
@@ -46,7 +45,7 @@ export async function validateAcademyUpload(
   path: string,
   mime: AcademyUploadMime,
   expectedSize: number,
-  maxBytes: number | null = null,
+  maxBytes: number | null = MAX_ACADEMY_FILE_BYTES,
 ): Promise<string | null> {
   if (!Number.isSafeInteger(expectedSize) || expectedSize < 1 ||
     (maxBytes !== null && expectedSize > maxBytes)) return null;
@@ -62,7 +61,7 @@ export async function validateAcademyUpload(
     generation: metadata.generation,
   });
   const [header] = await pinned.download({ start: 0, end: 15, validation: false });
-  const valid = validAcademyExtraHeader(header, mime) ||
+  const valid =
     (mime === "application/pdf" && header.subarray(0, 5).toString("ascii") === "%PDF-") ||
     (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" &&
       header[0] === 0x50 && header[1] === 0x4b && header[2] === 0x03 && header[3] === 0x04) ||

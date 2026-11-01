@@ -75,15 +75,12 @@ import {
 } from "@workspace/db";
 import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { createAssetReadUrl } from "../lib/ad-storage";
 import {
   academyExcerpt,
   academySearchTerms,
   chunkAcademyText,
   extractAcademyText,
   isAcademyImageMime,
-  isAcademyIndexableMime,
-  MAX_ACADEMY_FILE_BYTES,
   isAcademyVideoMime,
   normalizeAcademyText,
   supportedAcademyFile,
@@ -119,7 +116,6 @@ async function studentFileAiInput(
   instructions: string,
 ): Promise<AcademyFileAiInput | null> {
   if (isAcademyImageMime(file.mime)) {
-    if (file.size > MAX_ACADEMY_FILE_BYTES) return null;
     const image = await readAcademyAsset(file.objectPath);
     return [
       { type: "text", text: instructions },
@@ -593,14 +589,7 @@ router.get("/academy/files", requireAuth, async (_req, res): Promise<void> => {
     eq(academyStudentFilesTable.userId, userOf(res)),
     eq(academyStudentFilesTable.status, "ready"),
   )).orderBy(desc(academyStudentFilesTable.createdAt));
-  const indexed = files.length ? await db.selectDistinct({ sourceId: academySourceChunksTable.sourceId })
-    .from(academySourceChunksTable).where(and(
-      eq(academySourceChunksTable.sourceType, "student_file"),
-      eq(academySourceChunksTable.ownerId, userOf(res)),
-      inArray(academySourceChunksTable.sourceId, files.map(file => file.id)),
-    )) : [];
-  const indexedIds = new Set(indexed.map(row => row.sourceId));
-  res.json(ListAcademyFilesResponse.parse(files.map(file => studentFilePublic(file, indexedIds.has(file.id)))));
+  res.json(ListAcademyFilesResponse.parse(files.map(studentFilePublic)));
 });
 
 router.post("/academy/files/upload-url", requireAuth, async (req, res): Promise<void> => {
@@ -608,8 +597,8 @@ router.post("/academy/files/upload-url", requireAuth, async (req, res): Promise<
   const parsed = RequestAcademyFileUploadBody.safeParse(req.body);
   if (!parsed.success) return void res.status(400).json({ error: parsed.error.message });
   const { originalName, mime, size } = parsed.data;
-  if (!Number.isSafeInteger(size) || !supportedAcademyFile(originalName, mime)) {
-    return void res.status(400).json({ error: "صيغة الملف غير مدعومة. استخدم مستندًا أو عرضًا تقديميًا أو جدولًا أو صورة أو ملف صوت أو فيديو من الصيغ المعلنة." });
+  if (size > 10 * 1024 * 1024 || !supportedAcademyFile(originalName, mime)) {
+    return void res.status(400).json({ error: "Only PDF, DOCX, TXT and JPEG, PNG or WebP images up to 10 MB are supported" });
   }
   const upload = await createAcademyUpload();
   const [file] = await db.insert(academyStudentFilesTable).values({
@@ -630,23 +619,17 @@ router.post("/academy/files/:fileId/confirm", requireAuth, async (req, res): Pro
   )).limit(1);
   if (!file) return void res.status(404).json({ error: "File not found" });
   if (file.status === "ready") {
-    return void res.json(ConfirmAcademyFileUploadResponse.parse(await studentFileWithStudyStatus(file)));
+    return void res.json(ConfirmAcademyFileUploadResponse.parse(studentFilePublic(file)));
   }
   if (!supportedAcademyFile(file.originalName, file.mime)) {
     return void res.status(400).json({ error: "Unsupported file type" });
   }
-  const confirmedPath = await validateAcademyUpload(file.objectPath, file.mime as AcademyUploadMime, file.size, null);
+  const confirmedPath = await validateAcademyUpload(file.objectPath, file.mime as AcademyUploadMime, file.size);
   if (!confirmedPath) return void res.status(400).json({ error: "The uploaded file did not pass validation" });
   try {
-    let chunks: string[] = [];
-    if (file.size <= MAX_ACADEMY_FILE_BYTES && isAcademyIndexableMime(file.mime)) {
-      try {
-        chunks = chunkAcademyText(await extractAcademyText(await readAcademyAsset(confirmedPath), file.mime));
-      } catch {
-        // Storage succeeds even when a document is scanned, encrypted or too complex to index.
-        chunks = [];
-      }
-    }
+    const chunks = isAcademyImageMime(file.mime)
+      ? []
+      : chunkAcademyText(await extractAcademyText(await readAcademyAsset(confirmedPath), file.mime as AcademyMime));
     const saved = await db.transaction(async (tx) => {
       const [updated] = await tx.update(academyStudentFilesTable).set({
         objectPath: confirmedPath, status: "ready",
@@ -671,17 +654,17 @@ router.post("/academy/files/:fileId/confirm", requireAuth, async (req, res): Pro
         .where(and(eq(academyStudentFilesTable.id, file.id), eq(academyStudentFilesTable.userId, userId)))
         .limit(1);
       if (existing?.status === "ready") {
-        return void res.json(ConfirmAcademyFileUploadResponse.parse(await studentFileWithStudyStatus(existing)));
+        return void res.json(ConfirmAcademyFileUploadResponse.parse(studentFilePublic(existing)));
       }
       return void res.status(409).json({ error: "Upload confirmation is already in progress" });
     }
-    res.json(ConfirmAcademyFileUploadResponse.parse(studentFilePublic(saved, chunks.length > 0)));
+    res.json(ConfirmAcademyFileUploadResponse.parse(studentFilePublic(saved)));
   } catch {
     await deleteAcademyAsset(confirmedPath);
     await db.delete(academyStudentFilesTable).where(and(
       eq(academyStudentFilesTable.id, file.id), eq(academyStudentFilesTable.userId, userId),
     ));
-    res.status(400).json({ error: "تعذّر حفظ الملف في المكتبة. أعد المحاولة." });
+    res.status(400).json({ error: "We could not extract searchable text from this document" });
   }
 });
 
@@ -990,16 +973,14 @@ router.get("/academy/course-files/:fileId/download", requireAuth, async (req, re
     )).limit(1);
   if (!file) return void res.status(404).json({ error: "File not found" });
   if (isAcademyVideoMime(file.file.mime)) {
-    try {
-      const signedUrl = await createAssetReadUrl(file.file.objectPath, 24 * 60 * 60 * 1000);
-      res.redirect(302, signedUrl);
-    } catch (error) {
-      req.log?.warn({
-        fileId: file.file.id,
-        errorName: error instanceof Error ? error.name : "AssetReadUrlError",
-      }, "Unable to create direct academy video URL");
-      res.status(503).json({ error: "Video is temporarily unavailable" });
-    }
+    streamVideoDownload(
+      res,
+      req.header("range"),
+      file.file.objectPath,
+      file.file.originalName,
+      file.file.mime,
+      file.file.size,
+    );
     return;
   }
   streamDownload(res, file.file.objectPath, file.file.originalName);
@@ -1260,24 +1241,10 @@ function courseFilePublic(file: typeof academyCourseFilesTable.$inferSelect) {
   };
 }
 
-async function studentFileWithStudyStatus(file: typeof academyStudentFilesTable.$inferSelect) {
-  const [chunk] = await db.select({ id: academySourceChunksTable.id }).from(academySourceChunksTable).where(and(
-    eq(academySourceChunksTable.sourceType, "student_file"),
-    eq(academySourceChunksTable.sourceId, file.id),
-    eq(academySourceChunksTable.ownerId, file.userId),
-  )).limit(1);
-  return studentFilePublic(file, Boolean(chunk));
-}
-
-function studentFilePublic(file: typeof academyStudentFilesTable.$inferSelect, indexed = false) {
-  const studyAvailable = indexed || (isAcademyImageMime(file.mime) && file.size <= MAX_ACADEMY_FILE_BYTES);
-  const studyMessage = studyAvailable ? "جاهز للتلخيص والاختبارات بموافقتك"
-    : file.size > MAX_ACADEMY_FILE_BYTES ? "محفوظ للتنزيل. المعالجة الذكية حاليًا للملفات حتى ١٠ م.ب؛ قسّم المحتوى لمعالجته."
-      : isAcademyIndexableMime(file.mime) ? "محفوظ للتنزيل، لكن لم نتمكن من استخراج نص مقروء. جرّب نسخة نصية أو صور الصفحات."
-        : "محفوظ للتنزيل فقط. حوّل المستند إلى PDF أو DOCX أو PPTX أو XLSX للمذاكرة الذكية؛ الصوت والفيديو لا يُفرّغان تلقائيًا.";
+function studentFilePublic(file: typeof academyStudentFilesTable.$inferSelect) {
   return {
     id: file.id, originalName: file.originalName, mime: file.mime,
-    size: file.size, createdAt: file.createdAt.toISOString(), studyAvailable, studyMessage,
+    size: file.size, createdAt: file.createdAt.toISOString(),
   };
 }
 
@@ -1354,6 +1321,58 @@ function streamDownload(
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(name)}`);
   streamAcademyAsset(path)
+    .on("error", () => {
+      if (!res.headersSent) res.status(404).json({ error: "File not found" });
+      else res.destroy();
+    })
+    .pipe(res);
+}
+
+function streamVideoDownload(
+  res: Response,
+  rangeHeader: string | undefined,
+  path: string,
+  name: string,
+  mime: string,
+  size: number,
+) {
+  let start = 0;
+  let end = size - 1;
+  let status = 200;
+  if (rangeHeader) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+    if (!match || (!match[1] && !match[2])) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      res.status(416).end();
+      return;
+    }
+    if (!match[1]) {
+      const suffix = Number(match[2]);
+      if (!Number.isFinite(suffix) || suffix < 1) {
+        res.setHeader("Content-Range", `bytes */${size}`);
+        res.status(416).end();
+        return;
+      }
+      start = Math.max(0, size - suffix);
+    } else {
+      start = Number(match[1]);
+      if (match[2]) end = Math.min(Number(match[2]), size - 1);
+    }
+    if (start >= size || end < start) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      res.status(416).end();
+      return;
+    }
+    status = 206;
+  }
+  res.status(status);
+  res.setHeader("Content-Type", mime);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Accept-Ranges", "bytes");
+  res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(safeFileName(name))}`);
+  res.setHeader("Content-Length", String(end - start + 1));
+  if (status === 206) res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
+  streamAcademyAsset(path, { start, end })
     .on("error", () => {
       if (!res.headersSent) res.status(404).json({ error: "File not found" });
       else res.destroy();

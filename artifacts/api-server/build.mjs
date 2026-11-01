@@ -18,7 +18,6 @@ async function buildAll() {
     entryPoints: [
       path.resolve(artifactDir, "src/index.ts"),
       path.resolve(artifactDir, "src/reminders.ts"),
-      path.resolve(artifactDir, "src/section-media-cleanup-job.ts"),
     ],
     platform: "node",
     bundle: true,

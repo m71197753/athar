@@ -39,7 +39,6 @@ import {
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireAdmin } from "../middlewares/requireAdmin";
-import { createAssetReadUrl } from "../lib/ad-storage";
 import {
   chunkAcademyText,
   extractAcademyText,
@@ -363,30 +362,6 @@ router.delete("/admin/academy/course-files/:fileId", async (req, res): Promise<v
     await tx.delete(academyCourseFilesTable).where(eq(academyCourseFilesTable.id, file.id));
   });
   res.sendStatus(204);
-});
-
-router.get("/admin/academy/course-files/:fileId/preview", async (req, res): Promise<void> => {
-  noStore(res);
-  const params = ConfirmAdminAcademyCourseFileParams.safeParse(req.params);
-  if (!params.success) return void res.status(400).json({ error: params.error.message });
-  const [file] = await db.select().from(academyCourseFilesTable).where(and(
-    eq(academyCourseFilesTable.id, params.data.fileId),
-    eq(academyCourseFilesTable.status, "ready"),
-  )).limit(1);
-  if (!file) return void res.status(404).json({ error: "Attachment not found" });
-  if (!isAcademyVideoMime(file.mime)) {
-    return void res.status(415).json({ error: "Only video attachments can be previewed" });
-  }
-  try {
-    const signedUrl = await createAssetReadUrl(file.objectPath, 60 * 60 * 1000);
-    res.redirect(302, signedUrl);
-  } catch (error) {
-    req.log?.warn({
-      fileId: file.id,
-      errorName: error instanceof Error ? error.name : "AssetReadUrlError",
-    }, "Unable to create academy admin video preview URL");
-    res.status(503).json({ error: "Video preview is temporarily unavailable" });
-  }
 });
 
 router.post("/admin/academy/exams", async (req, res): Promise<void> => {

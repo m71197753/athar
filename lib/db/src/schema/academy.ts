@@ -129,7 +129,7 @@ export const academyStudentFilesTable = pgTable(
     originalName: text("original_name").notNull(),
     objectPath: text("object_path").notNull(),
     mime: text("mime").notNull(),
-    size: bigint("size", { mode: "number" }).notNull(),
+    size: integer("size").notNull(),
     status: text("status").notNull().default("pending"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

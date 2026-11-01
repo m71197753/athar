@@ -5,53 +5,16 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   accentColor: "#6366F1",
   canvasColor: "#F8FAFC",
   surfaceColor: "#FFFFFF",
-  fontFamily: "IBM Plex Sans Arabic",
-  fontScale: 100,
-  textColor: "#334155",
-  headingColor: "#172033",
-  cardTextColor: "#334155",
-  cardBorderColor: "#E2E8F0",
-  iconColor: "#4338CA",
-  iconShape: "rounded",
   welcomeTitle: "ابدأ من هنا واختر مساحتك",
   welcomeDescription: "تعلّم، وثّق ما أنجزته، وخطّط لخطوتك المهنية القادمة من المكان نفسه.",
 };
 
-export const PLATFORM_FONTS = {
-  "IBM Plex Sans Arabic": "'IBM Plex Sans Arabic', 'Cairo', Arial, sans-serif",
-  Cairo: "'Cairo', 'IBM Plex Sans Arabic', Arial, sans-serif",
-  Tahoma: "Tahoma, 'IBM Plex Sans Arabic', Arial, sans-serif",
-  Arial: "Arial, 'IBM Plex Sans Arabic', sans-serif",
-} as const;
-
-export function appearanceContrast(foreground: string, background: string) {
-  const luminance = (color: string) => {
-    const [r, g, b] = rgb(color).map(value => {
-      const channel = value / 255;
-      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    });
-    return .2126 * r + .7152 * g + .0722 * b;
-  };
-  const a = luminance(foreground), b = luminance(background);
-  return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
-}
-
 export const APPEARANCE_PRESETS: { label: string; value: AppearanceSettings }[] = [
   { label: "هوية أثر", value: DEFAULT_APPEARANCE },
-  { label: "أخضر هادئ", value: { ...DEFAULT_APPEARANCE, primaryColor: "#0F766E", accentColor: "#14B8A6", canvasColor: "#F4F8F7", iconColor: "#0F766E" } },
-  { label: "أزرق موثوق", value: { ...DEFAULT_APPEARANCE, primaryColor: "#1D4ED8", accentColor: "#3B82F6", canvasColor: "#F4F7FB", iconColor: "#1D4ED8" } },
-  { label: "بنفسجي هادئ", value: { ...DEFAULT_APPEARANCE, primaryColor: "#6D28D9", accentColor: "#8B5CF6", canvasColor: "#F7F5FC", iconColor: "#6D28D9" } },
+  { label: "أخضر هادئ", value: { ...DEFAULT_APPEARANCE, primaryColor: "#0F766E", accentColor: "#14B8A6", canvasColor: "#F4F8F7" } },
+  { label: "أزرق موثوق", value: { ...DEFAULT_APPEARANCE, primaryColor: "#1D4ED8", accentColor: "#3B82F6", canvasColor: "#F4F7FB" } },
+  { label: "بنفسجي هادئ", value: { ...DEFAULT_APPEARANCE, primaryColor: "#6D28D9", accentColor: "#8B5CF6", canvasColor: "#F7F5FC" } },
 ];
-
-export const ICON_SHAPES = [
-  { value: "rounded", label: "مستدير", radius: "14px" },
-  { value: "circle", label: "دائري", radius: "50%" },
-  { value: "square", label: "مربع", radius: "4px" },
-] as const;
-
-export function getAppearanceIconRadius(shape: AppearanceSettings["iconShape"]) {
-  return ICON_SHAPES.find(option => option.value === shape)?.radius ?? "14px";
-}
 
 function rgb(hex: string): [number, number, number] {
   const clean = hex.replace("#", "");
@@ -104,23 +67,6 @@ export function getAppearancePrimary(settings: AppearanceSettings, dark = false)
 
 export function applyPlatformAppearance(settings: AppearanceSettings) {
   const root = document.documentElement.style;
-  const font = settings.fontFamily ?? "IBM Plex Sans Arabic";
-  const iconColor = settings.iconColor ?? settings.primaryColor;
-  const iconDark = mix(iconColor, "#FFFFFF", 0.38);
-  root.setProperty("--platform-font-scale", String((settings.fontScale ?? 100) / 100));
-  root.setProperty("--platform-font-body", PLATFORM_FONTS[font]);
-  root.setProperty("--platform-font-heading", font === "IBM Plex Sans Arabic" ? PLATFORM_FONTS.Cairo : PLATFORM_FONTS[font]);
-  root.setProperty("--platform-text-light", settings.textColor ?? "#334155");
-  root.setProperty("--platform-heading-light", settings.headingColor ?? "#172033");
-  root.setProperty("--platform-card-text-light", settings.cardTextColor ?? settings.textColor ?? "#334155");
-  root.setProperty("--platform-card-border-light", settings.cardBorderColor ?? "#E2E8F0");
-  root.setProperty("--platform-card-text-dark", getAppearanceTextColor(mix(settings.surfaceColor, "#111827", .82)));
-  root.setProperty("--platform-card-border-dark", mix(settings.cardBorderColor ?? "#E2E8F0", "#FFFFFF", .3));
-  root.setProperty("--platform-icon-color-light", iconColor);
-  root.setProperty("--platform-icon-color-dark", iconDark);
-  root.setProperty("--platform-icon-soft-light", mix(iconColor, settings.canvasColor, .9));
-  root.setProperty("--platform-icon-soft-dark", mix(iconDark, "#172033", .84));
-  root.setProperty("--platform-icon-radius", getAppearanceIconRadius(settings.iconShape));
   const primaryDark = getAppearancePrimary(settings, true);
   const accentDark = mix(settings.accentColor, "#FFFFFF", 0.4);
   const deepLight = mix(settings.primaryColor, "#000000", 0.16);

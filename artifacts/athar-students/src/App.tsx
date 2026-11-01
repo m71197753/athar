@@ -25,14 +25,12 @@ const CustomSectionPage = lazy(() => import('./sections/CustomSectionPage').then
 const ModuleSectionContent = lazy(() => import('./sections/ModuleSectionContent').then(module => ({ default: module.ModuleSectionContent })));
 const GraduatesPage = lazy(() => import('./graduates/GraduatesPage').then(module => ({ default: module.GraduatesPage })));
 const ResumeStudio = lazy(() => import('./resume/ResumeStudio'));
-const ResumeTemplateStudio = lazy(() => import('./resume/ResumeTemplateStudio'));
-const OfficeToolsPage = lazy(() => import('./office/OfficeToolsPage'));
 const DemoDataPage = lazy(() => import('./demo/DemoDataPage').then(module => ({ default: module.DemoDataPage })));
 import {
-  ArrowDownLeft, ArrowLeft, ArrowRight, Award, BookOpen, BriefcaseBusiness,
+  ArrowDownLeft, ArrowLeft, Award, BookOpen, BriefcaseBusiness,
   Check, ChevronDown, CircleHelp, ClipboardList, Copy, Download, FileText, Filter,
   GraduationCap, HeartHandshake, Lightbulb, LoaderCircle, LogOut, Menu, Pencil,
-  Paperclip, Plus, Search, Share2, Sparkles, Target, Trash2, TrendingUp, Upload, X, ShieldCheck, Route as RouteIcon, CircleCheck, Clock3,
+  Plus, Search, Share2, Sparkles, Target, Trash2, TrendingUp, X, ShieldCheck, Route as RouteIcon, CircleCheck, Clock3,
   BookMarked, MessageCircle, Send, NotebookPen, Play, CheckCircle2, ExternalLink,
   PanelRightClose, PanelRightOpen, UserRound,
 } from 'lucide-react';
@@ -40,10 +38,7 @@ import {
   useGetPlatformAccess, getGetPlatformAccessQueryKey,
   getGetCareerPlanQueryKey, getGetDashboardSummaryQueryKey, getGetStudentProfileQueryKey, getHealthCheckQueryKey,
   getGetPublicResumeQueryKey, getGetResumeShareSettingsQueryKey,
-  getListAchievementAttachmentsQueryKey, getListAchievementsQueryKey,
-  useConfirmAchievementAttachmentUpload, useCreateAchievement, useCreateAchievementAttachment,
-  useDeleteAchievement, useDeleteAchievementAttachment, useListAchievementAttachments,
-  useRequestAchievementAttachmentUpload,
+  getListAchievementsQueryKey, useCreateAchievement, useDeleteAchievement,
   useGenerateAchievementDraft, useGetDashboardSummary, useGetStudentProfile,
   useHealthCheck, useListAchievements, useSaveStudentProfile, useUpdateAchievement,
   useGetPublicResume, useGetResumeShareSettings, useSaveResumeShareSettings,
@@ -55,7 +50,7 @@ import {
   useGetPlatformContent, getGetPlatformContentQueryKey,
 } from '@workspace/api-client-react';
 import type {
-  Achievement, AchievementAttachment, AchievementAttachmentInput, AchievementDraftInput, AchievementInput, CareerPlanInput, CareerPlanOverview,
+  Achievement, AchievementDraftInput, AchievementInput, CareerPlanInput, CareerPlanOverview,
   CareerPlanSuggestions, CareerReminder, CareerTask, CareerTasksInput, CareerTaskUpdate, DashboardSummary,
   ModuleKey, StudentProfileInput, ResumeShareUpdate,
   LearningItem, LearningItemInput, LearningItemUpdate,
@@ -81,43 +76,6 @@ const categories = Object.keys(categoryNames);
 
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
-}
-
-function BrowserBackGuard() {
-  const [loc, setLocation] = useLocation();
-  const locationRef = useRef(loc);
-  useEffect(() => { locationRef.current = loc; }, [loc]);
-  useEffect(() => {
-    const appOrigin = window.location.origin;
-    window.history.pushState({ atharBackGuard: true }, '', window.location.href);
-    const handlePopState = (event: PopStateEvent) => {
-      const path = window.location.pathname;
-      const insideApp = window.location.origin === appOrigin &&
-        (!basePath || path === basePath || path.startsWith(`${basePath}/`));
-      const previousRoute = stripBase(path);
-      const currentRoute = stripBase(locationRef.current.split('?')[0]);
-      if (insideApp && previousRoute !== currentRoute) {
-        window.dispatchEvent(new Event('athar:browser-back'));
-        return;
-      }
-
-      event.stopImmediatePropagation();
-      if (insideApp) {
-        window.history.pushState({ atharBackGuard: true }, '', window.location.href);
-        return;
-      }
-      if (currentRoute === '/' || currentRoute.startsWith('/sign-in') || currentRoute.startsWith('/sign-up')) {
-        const appUrl = `${basePath}${locationRef.current.startsWith('/') ? locationRef.current : `/${locationRef.current}`}`;
-        window.history.pushState({ atharBackGuard: true }, '', appUrl || '/');
-        return;
-      }
-      window.dispatchEvent(new Event('athar:browser-back'));
-      setLocation('/dashboard');
-    };
-    window.addEventListener('popstate', handlePopState, true);
-    return () => window.removeEventListener('popstate', handlePopState, true);
-  }, [setLocation]);
-  return null;
 }
 
 const clerkAppearance = {
@@ -255,10 +213,6 @@ function Shell({ children: content }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const backStackRef = useRef<string[]>([]);
-  const lastLocationRef = useRef<string | null>(null);
-  const browserBackRef = useRef(false);
-  const skipLocationRecordRef = useRef(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const { data: health } = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey(), retry: false } });
@@ -266,8 +220,6 @@ function Shell({ children: content }: { children: ReactNode }) {
   const navItems = [
     { href: '/dashboard', label: 'الرئيسية', icon: Target },
     { href: '/profile', label: 'ملفي الشخصي', icon: GraduationCap },
-    { href: '/resume-templates', label: 'قوالب السيرة', icon: FileText },
-    { href: '/office', label: 'المستندات والجداول', icon: NotebookPen },
     ...(access.data?.role === 'admin' || access.data?.enabledModules.includes('graduates') ? [{ href: '/graduates', label: 'مساحة الخريجين', icon: BriefcaseBusiness }] : []),
     ...(platform.data?.sections ?? []).map(section => ({
       href: `/sections/${section.slug}`, label: section.title,
@@ -280,7 +232,6 @@ function Shell({ children: content }: { children: ReactNode }) {
     { href: '/dashboard', label: 'الرئيسية', icon: Target },
     { href: '/achievements', label: 'إنجازاتي', icon: Award },
     { href: '/resume', label: 'سيرتي المهنية', icon: FileText },
-    { href: '/office', label: 'المستندات', icon: NotebookPen },
     ...(access.data?.role === 'admin' || access.data?.enabledModules.includes('graduates') ? [{ href: '/graduates', label: 'مساحة الخريجين', icon: BriefcaseBusiness }] : []),
     { href: '/profile', label: 'ملفي الشخصي', icon: GraduationCap },
   ];
@@ -289,8 +240,6 @@ function Shell({ children: content }: { children: ReactNode }) {
     '/achievements': 'إنجازاتي', '/learning': 'تعلّمي', '/academy': 'المذاكرة',
     '/graduates': 'مساحة الخريجين',
     '/languages': 'تعلّم اللغات', '/roadmap': 'خطتي المهنية', '/resume': 'سيرتي المهنية',
-    '/resume-templates': 'قوالب السيرة',
-    '/office': 'المستندات والجداول',
     '/assistant': 'المساعد',
   };
   const currentPath = stripBase(loc.split('?')[0]);
@@ -299,30 +248,6 @@ function Shell({ children: content }: { children: ReactNode }) {
   const customSectionTitle = currentPath.startsWith('/sections/')
     ? platform.data?.sections.find(section => `/sections/${section.slug}` === currentPath)?.title
     : undefined;
-  useEffect(() => {
-    const markBrowserBack = () => { browserBackRef.current = true; };
-    window.addEventListener('athar:browser-back', markBrowserBack);
-    return () => window.removeEventListener('athar:browser-back', markBrowserBack);
-  }, []);
-  useEffect(() => {
-    const previous = lastLocationRef.current;
-    if (previous && previous !== loc) {
-      if (browserBackRef.current) backStackRef.current.pop();
-      else if (!skipLocationRecordRef.current) {
-        backStackRef.current.push(previous);
-        if (backStackRef.current.length > 40) backStackRef.current.shift();
-      }
-    }
-    lastLocationRef.current = loc;
-    browserBackRef.current = false;
-    skipLocationRecordRef.current = false;
-  }, [loc]);
-  const goBackWithinApp = () => {
-    const previous = backStackRef.current.pop() ?? '/dashboard';
-    if (previous === loc) return;
-    skipLocationRecordRef.current = true;
-    setLocation(previous);
-  };
   useEffect(() => {
     if (!profileMenuOpen) return;
     const closeOnOutside = (event: PointerEvent) => {
@@ -363,11 +288,11 @@ function Shell({ children: content }: { children: ReactNode }) {
       <div className="sidebar-status"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'المساحة تعمل' : 'جارٍ الاتصال'}</div>
        <div className="side-user"><span className="user-avatar">{user?.firstName?.slice(0, 1) || 'ط'}</span><span className="user-meta"><b>{user?.fullName || 'طالب أثر'}</b><small>مساحتك الشخصية</small></span></div>
     </aside>
-        <div className="main-column"><header className="topbar"><button className="app-back-button" type="button" onClick={goBackWithinApp} aria-label="الرجوع للصفحة السابقة داخل أثر" title="الرجوع للصفحة السابقة داخل أثر" data-testid="button-app-back"><ArrowRight size={18}/><span>رجوع</span></button><button className="mobile-menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" data-testid="button-open-menu"><Menu size={20}/></button><Link href="/dashboard" className="mobile-header-brand" data-testid="link-mobile-header-brand"><Brand small/></Link><span className="topbar-crumb">مساحة الطالب <span>/</span> {customSectionTitle ?? (crumbPath ? routeTitles[crumbPath] : 'أثر')}</span><button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} title={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)} data-testid="button-sidebar-toggle">{sidebarCollapsed ? <PanelRightOpen size={18}/> : <PanelRightClose size={18}/>}</button><ThemeToggle/><div className="topbar-right"><span className="topbar-note">وثّق ما تعلّمته اليوم</span><div className="profile-menu-wrap" ref={profileMenuRef}><button ref={profileTriggerRef} type="button" className="avatar-mini avatar-trigger" aria-label="فتح قائمة الحساب" aria-haspopup="menu" aria-expanded={profileMenuOpen} aria-controls="topbar-profile-menu" onClick={() => setProfileMenuOpen(open => !open)} data-testid="button-profile-menu">{user?.firstName?.slice(0,1) || 'ط'}</button>{profileMenuOpen && <div className="profile-menu" id="topbar-profile-menu" role="menu" dir="rtl"><div className="profile-menu-heading"><b>{user?.fullName || 'طالب أثر'}</b><small>{user?.primaryEmailAddress?.emailAddress || 'مساحتك الشخصية'}</small></div><Link href="/profile" role="menuitem" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}><UserRound size={17}/> الملف الشخصي</Link><button type="button" role="menuitem" className="profile-menu-item profile-sign-out" onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-sign-out"><LogOut size={17}/> تسجيل الخروج</button></div>}</div></div></header><main className="content-area">{children}</main><footer className="app-footer"><span>أثر — تجاربك الجامعية في مكان واحد</span><Link href="/privacy" className="text-link">الخصوصية</Link><span className="footer-health"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'الاتصال مستقر' : 'جارٍ التحقق من الاتصال'}</span></footer></div>
+        <div className="main-column"><header className="topbar"><button className="mobile-menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" data-testid="button-open-menu"><Menu size={20}/></button><Link href="/dashboard" className="mobile-header-brand" data-testid="link-mobile-header-brand"><Brand small/></Link><span className="topbar-crumb">مساحة الطالب <span>/</span> {customSectionTitle ?? (crumbPath ? routeTitles[crumbPath] : 'أثر')}</span><button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} title={sidebarCollapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)} data-testid="button-sidebar-toggle">{sidebarCollapsed ? <PanelRightOpen size={18}/> : <PanelRightClose size={18}/>}</button><ThemeToggle/><div className="topbar-right"><span className="topbar-note">وثّق ما تعلّمته اليوم</span><div className="profile-menu-wrap" ref={profileMenuRef}><button ref={profileTriggerRef} type="button" className="avatar-mini avatar-trigger" aria-label="فتح قائمة الحساب" aria-haspopup="menu" aria-expanded={profileMenuOpen} aria-controls="topbar-profile-menu" onClick={() => setProfileMenuOpen(open => !open)} data-testid="button-profile-menu">{user?.firstName?.slice(0,1) || 'ط'}</button>{profileMenuOpen && <div className="profile-menu" id="topbar-profile-menu" role="menu" dir="rtl"><div className="profile-menu-heading"><b>{user?.fullName || 'طالب أثر'}</b><small>{user?.primaryEmailAddress?.emailAddress || 'مساحتك الشخصية'}</small></div><Link href="/profile" role="menuitem" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}><UserRound size={17}/> الملف الشخصي</Link><button type="button" role="menuitem" className="profile-menu-item profile-sign-out" onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-sign-out"><LogOut size={17}/> تسجيل الخروج</button></div>}</div></div></header><main className="content-area">{children}</main><footer className="app-footer"><span>أثر — تجاربك الجامعية في مكان واحد</span><Link href="/privacy" className="text-link">الخصوصية</Link><span className="footer-health"><span className={`status-indicator ${health?.status ? '' : 'status-muted'}`}/>{health?.status ? 'الاتصال مستقر' : 'جارٍ التحقق من الاتصال'}</span></footer></div>
     <nav className="mobile-bottom-nav" aria-label="التنقل السريع">
       {mobileItems.slice(0, 2).map(item => { const Icon = item.icon; const label = item.href === '/achievements' ? 'الأثر' : item.label; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
       <button className="mobile-create-button" type="button" onClick={openNewAchievement} aria-label="وثّق أثراً جديداً" data-testid="mobile-nav-create"><Plus size={21}/></button>
-      {mobileItems.slice(2).map(item => { const Icon = item.icon; const label = item.href === '/resume' ? 'سيرتي' : item.href === '/office' ? 'مستندات' : item.href === '/graduates' ? 'الخريجون' : 'ملفي'; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} aria-label={item.label} title={item.label} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
+      {mobileItems.slice(2).map(item => { const Icon = item.icon; const label = item.href === '/resume' ? 'سيرتي' : item.href === '/graduates' ? 'الخريجون' : 'ملفي'; return <Link key={item.href} href={item.href} className={`mobile-bottom-link ${loc === item.href ? 'mobile-bottom-active' : ''}`} data-testid={`mobile-nav-${item.href.slice(1)}`}><Icon size={18}/><span>{label}</span></Link>; })}
     </nav>
   </div>;
 }
@@ -414,224 +339,13 @@ function ProgressRing({ value, label }: { value: number; label: string }) {
   return <div className="progress-ring-wrap"><div className="progress-ring" style={{ '--progress': `${Math.max(0, Math.min(100, value))}%` } as CSSProperties}><div className="progress-ring-inner"><b>{value}<small>%</small></b></div></div><span>{label}</span></div>;
 }
 
-function AchievementCard({ item, onEdit, onDelete, onManageAttachments, compact = false }: { item: Achievement; onEdit?: (a: Achievement) => void; onDelete?: (a: Achievement) => void; onManageAttachments?: (a: Achievement) => void; compact?: boolean }) {
+function AchievementCard({ item, onEdit, onDelete, compact = false }: { item: Achievement; onEdit?: (a: Achievement) => void; onDelete?: (a: Achievement) => void; compact?: boolean }) {
   const Icon = categoryIcons[item.category] || ClipboardList;
   return <article className={`achievement-card ${compact ? 'achievement-compact' : ''}`} data-testid={`card-achievement-${item.id}`}>
     <div className="achievement-icon"><Icon size={19}/></div>
     <div className="achievement-content"><div className="achievement-topline"><span className="achievement-category">{categoryNames[item.category] || 'إنجاز'}</span><time>{new Date(item.achievedOn).toLocaleDateString('ar', { year: 'numeric', month: 'short' })}</time></div><h3 data-testid={`text-achievement-title-${item.id}`}>{item.title}</h3><p>{item.summary || item.resumeBullet || item.result}</p>{item.serviceOffer && <p className="achievement-pitch"><b>عرض مهارة أو مشروع:</b> {item.serviceOffer}</p>}<div className="skill-list">{item.skills?.slice(0, 4).map(skill => <span className="skill-pill" key={skill}>{skill}</span>)}</div></div>
-    {(onEdit || onDelete || onManageAttachments) && <div className="card-actions">{onManageAttachments && <button className="achievement-evidence-action" aria-label="إضافة صور وملفات وروابط لهذا الإنجاز" title="إضافة صور وملفات وروابط" onClick={() => onManageAttachments(item)} data-testid={`button-attachments-${item.id}`}><Paperclip size={15}/><span>الملفات والأدلة</span></button>}{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
+    {(onEdit || onDelete) && <div className="card-actions">{onEdit && <button className="icon-button" aria-label="تعديل الإنجاز" onClick={() => onEdit(item)} data-testid={`button-edit-${item.id}`}><Pencil size={16}/></button>}{onDelete && <button className="icon-button danger-icon" aria-label="حذف الإنجاز" onClick={() => onDelete(item)} data-testid={`button-delete-${item.id}`}><Trash2 size={16}/></button>}</div>}
   </article>;
-}
-
-const achievementMimeByExtension: Record<string, string> = {
-  pdf: 'application/pdf',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  txt: 'text/plain',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-  mp4: 'video/mp4',
-  webm: 'video/webm',
-};
-
-function achievementFileMime(file: File): string {
-  const extension = file.name.toLowerCase().split('.').pop() || '';
-  return (file.type || achievementMimeByExtension[extension] || '').split(';')[0].toLowerCase();
-}
-
-function uploadToSignedUrl(file: File, mime: string, uploadUrl: string, onProgress: (progress: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open('PUT', uploadUrl);
-    request.setRequestHeader('Content-Type', mime);
-    request.upload.onprogress = event => {
-      if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 100));
-    };
-    request.onerror = () => reject(new Error('انقطع الاتصال أثناء رفع الملف.'));
-    request.onabort = () => reject(new Error('تم إيقاف رفع الملف.'));
-    request.onload = () => {
-      if (request.status >= 200 && request.status < 300) {
-        onProgress(100);
-        resolve();
-      } else reject(new Error('لم يقبل التخزين الملف. حاول رفعه مرة أخرى.'));
-    };
-    request.send(file);
-  });
-}
-
-function AchievementAttachmentsDialog({ achievement, onClose }: { achievement: Achievement; onClose: () => void }) {
-  const cache = useQueryClient();
-  const attachments = useListAchievementAttachments(achievement.id, {
-    query: { queryKey: getListAchievementAttachmentsQueryKey(achievement.id) },
-  });
-  const createAttachment = useCreateAchievementAttachment();
-  const requestUpload = useRequestAchievementAttachmentUpload();
-  const confirmUpload = useConfirmAchievementAttachmentUpload();
-  const deleteAttachment = useDeleteAchievementAttachment();
-  const [kind, setKind] = useState<'text' | 'link'>('text');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [url, setUrl] = useState('');
-  const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{ name: string; percent: number } | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
-  const [previewAttachment, setPreviewAttachment] = useState<AchievementAttachment | null>(null);
-  const refreshAttachments = () => cache.invalidateQueries({ queryKey: getListAchievementAttachmentsQueryKey(achievement.id) });
-
-  useEffect(() => {
-    if (!previewAttachment) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setPreviewAttachment(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewAttachment]);
-
-  const addTextOrLink = async (event: FormEvent) => {
-    event.preventDefault();
-    setError('');
-    const data: AchievementAttachmentInput = {
-      kind,
-      title: title.trim(),
-      ...(kind === 'text' ? { content: content.trim() } : { url: url.trim() }),
-    };
-    try {
-      await createAttachment.mutateAsync({ id: achievement.id, data });
-      setTitle('');
-      setContent('');
-      setUrl('');
-      await refreshAttachments();
-    } catch {
-      setError('تعذّر حفظ النص أو الرابط. راجع البيانات وحاول مرة أخرى.');
-    }
-  };
-
-  const uploadQueuedFiles = async () => {
-    if (!queuedFiles.length || uploading) return;
-    setUploading(true);
-    setError('');
-    for (const file of queuedFiles) {
-      const mime = achievementFileMime(file);
-      let uploadId: string | null = null;
-      let transferCompleted = false;
-      try {
-        if (!mime) throw new Error('لا يمكن تحديد نوع الملف. اختر PDF أو DOCX أو TXT أو صورة أو فيديو MP4/WebM.');
-        const upload = await requestUpload.mutateAsync({
-          id: achievement.id,
-          data: { name: file.name, mime, size: file.size },
-        });
-        uploadId = upload.id;
-        setUploadProgress({ name: file.name, percent: 0 });
-        await uploadToSignedUrl(file, mime, upload.uploadUrl, percent => {
-          setUploadProgress({ name: file.name, percent });
-        });
-        transferCompleted = true;
-        await confirmUpload.mutateAsync({ id: achievement.id, attachmentId: upload.id });
-        setQueuedFiles(current => current.filter(item => item !== file));
-        setUploadProgress(null);
-        await refreshAttachments();
-      } catch (uploadError) {
-        if (uploadId && !transferCompleted) {
-          try {
-            await deleteAttachment.mutateAsync({ id: achievement.id, attachmentId: uploadId });
-          } catch {
-            // Leave the pending row visible so it can be removed from the attachment list.
-          }
-        }
-        setError(uploadError instanceof Error ? uploadError.message : 'تعذّر رفع الملف.');
-        setUploadProgress(null);
-        await attachments.refetch();
-        break;
-      }
-    }
-    setUploading(false);
-  };
-
-  const removeAttachment = async (attachment: AchievementAttachment) => {
-    if (!window.confirm(`حذف «${attachment.title}» من هذا الإنجاز؟`)) return;
-    setError('');
-    try {
-      await deleteAttachment.mutateAsync({ id: achievement.id, attachmentId: attachment.id });
-      await refreshAttachments();
-    } catch {
-      setError('تعذّر حذف المرفق. حاول مرة أخرى.');
-    }
-  };
-
-  return <div className="dialog-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !uploading) onClose(); }}>
-    <section className="achievement-dialog achievement-attachments-dialog" role="dialog" aria-modal="true" aria-labelledby="attachments-dialog-title" dir="rtl" data-testid="dialog-achievement-attachments">
-      <header className="dialog-header"><div><span className="page-kicker">توثيق التجربة</span><h2 id="attachments-dialog-title">أدلة إنجازك</h2><p>{achievement.title} — أضف ملفاتك أو نصوصك وروابطك. هذه المرفقات خاصة ولا تظهر في سيرتك العامة.</p></div><button className="icon-button" type="button" onClick={onClose} disabled={uploading} aria-label="إغلاق"><X size={19}/></button></header>
-      <div className="achievement-attachments-body">
-        <section className="attachment-add-panel">
-          <h3><Paperclip size={17}/> صور وفيديوهات وملفات</h3>
-          <p>الأنواع المدعومة: JPG وPNG وWebP وMP4 وWebM وPDF وDOCX وTXT.</p>
-          <label className="button button-outline attachment-file-picker"><Upload size={16}/> اختر ملفات
-            <input
-              type="file"
-              multiple
-              accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf,.docx,.txt,image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-              disabled={uploading}
-              onChange={event => {
-                const files = Array.from(event.currentTarget.files ?? []);
-                if (files.length) setQueuedFiles(current => [...current, ...files]);
-                event.currentTarget.value = '';
-              }}
-              data-testid="input-achievement-files"
-            />
-          </label>
-          {queuedFiles.length > 0 && <div className="queued-evidence-files">
-            {queuedFiles.map((file, index) => <span className="queued-evidence-file" key={`${file.name}-${file.size}-${file.lastModified}-${index}`}><FileText size={14}/>{file.name}<button type="button" aria-label={`إزالة ${file.name}`} disabled={uploading} onClick={() => setQueuedFiles(current => current.filter((_, fileIndex) => fileIndex !== index))}><X size={14}/></button></span>)}
-          </div>}
-          {uploadProgress && <div className="evidence-upload-progress" role="status"><span>جارٍ رفع {uploadProgress.name}</span><progress max={100} value={uploadProgress.percent}/><b>{uploadProgress.percent}٪</b></div>}
-          {queuedFiles.length > 0 && <button className="button button-primary" type="button" disabled={uploading} onClick={uploadQueuedFiles} data-testid="button-upload-achievement-files">{uploading ? <LoaderCircle size={16} className="spin"/> : <Upload size={16}/>} {uploading ? 'جارٍ الرفع' : `ارفع ${queuedFiles.length} ملف`}</button>}
-        </section>
-
-        <form className="attachment-add-panel" onSubmit={addTextOrLink}>
-          <h3>نص أو رابط</h3>
-          <label className="field">نوع الإضافة<select value={kind} onChange={event => setKind(event.target.value as 'text' | 'link')} data-testid="select-achievement-attachment-kind"><option value="text">نص أو ملاحظة</option><option value="link">رابط</option></select></label>
-          <label className="field">العنوان<input required maxLength={120} value={title} onChange={event => setTitle(event.target.value)} placeholder={kind === 'text' ? 'مثال: ما تعلمته من التجربة' : 'مثال: صفحة المشروع'} data-testid="input-achievement-attachment-title"/></label>
-          {kind === 'text'
-            ? <label className="field">النص<textarea required rows={3} maxLength={8000} value={content} onChange={event => setContent(event.target.value)} placeholder="أضف تفاصيل أو ملاحظات مرتبطة بالإنجاز." data-testid="input-achievement-attachment-content"/></label>
-            : <label className="field">الرابط<input required type="url" maxLength={2048} value={url} onChange={event => setUrl(event.target.value)} placeholder="https://example.com" dir="ltr" data-testid="input-achievement-attachment-url"/></label>}
-          <button className="button button-outline" type="submit" disabled={createAttachment.isPending} data-testid="button-save-achievement-attachment">{createAttachment.isPending ? <LoaderCircle size={16} className="spin"/> : <Plus size={16}/>} إضافة</button>
-        </form>
-
-        <section className="achievement-attachments-list" aria-live="polite">
-          <h3>المرفقات المحفوظة</h3>
-          {attachments.isLoading ? <p className="attachment-muted">جارٍ تحميل المرفقات…</p>
-            : attachments.isError ? <button className="button button-outline" type="button" onClick={() => attachments.refetch()}>تعذّر التحميل — أعد المحاولة</button>
-              : attachments.data?.length ? attachments.data.map(attachment => <article className="saved-evidence-item" key={attachment.id} data-testid={`attachment-${attachment.id}`}>
-                <div className="saved-evidence-copy">
-                  <b>{attachment.title}</b>
-                  {attachment.kind === 'text' && <p>{attachment.content}</p>}
-                  {attachment.kind === 'link' && attachment.url && <a href={attachment.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={14}/>{attachment.url}</a>}
-                  {attachment.kind === 'file' && attachment.status === 'uploading' && <small>الرفع لم يكتمل بعد.</small>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('image/') && attachment.downloadUrl && <button className="saved-evidence-preview-trigger" type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`معاينة ${attachment.title}`}><img className="saved-evidence-image" src={attachment.downloadUrl} alt={attachment.title} loading="lazy"/></button>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.mime?.startsWith('video/') && attachment.downloadUrl && <video className="saved-evidence-video" src={attachment.downloadUrl} controls preload="metadata"/>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && (attachment.mime === 'application/pdf' || attachment.mime === 'text/plain') && attachment.downloadUrl && <button className="saved-evidence-preview-button" type="button" onClick={() => setPreviewAttachment(attachment)}><FileText size={14}/> معاينة داخل أثر</button>}
-                  {attachment.kind === 'file' && attachment.status === 'ready' && attachment.downloadUrl && <a className="saved-evidence-download" href={attachment.downloadUrl} download={attachment.originalName || 'attachment'}><Download size={14}/>تحميل {attachment.originalName || 'الملف'}</a>}
-                </div>
-                <button className="icon-button danger-icon" type="button" aria-label={`حذف ${attachment.title}`} disabled={deleteAttachment.isPending || uploading} onClick={() => removeAttachment(attachment)}><Trash2 size={15}/></button>
-              </article>)
-                : <p className="attachment-muted">لم تضف أدلة لهذا الإنجاز بعد.</p>}
-        </section>
-        {error && <p className="form-error" role="alert" data-testid="status-achievement-attachment-error">{error}</p>}
-      </div>
-      <footer className="dialog-footer"><button className="button button-primary" type="button" disabled={uploading} onClick={onClose}>تم</button></footer>
-    </section>
-    {previewAttachment?.downloadUrl && <div className="dialog-scrim attachment-preview-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setPreviewAttachment(null); }}>
-      <section className="attachment-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="attachment-preview-title" dir="rtl">
-        <header className="attachment-preview-header"><div><span className="page-kicker">معاينة داخل أثر</span><h2 id="attachment-preview-title">{previewAttachment.title}</h2></div><button className="button button-outline" type="button" onClick={() => setPreviewAttachment(null)}><ArrowLeft size={16}/> رجوع للمرفقات</button></header>
-        <div className="attachment-preview-content">
-          {previewAttachment.mime?.startsWith('image/') && <img src={previewAttachment.downloadUrl} alt={previewAttachment.title}/>}
-          {(previewAttachment.mime === 'application/pdf' || previewAttachment.mime === 'text/plain') && <iframe src={previewAttachment.downloadUrl} title={previewAttachment.title}/>}
-        </div>
-        <footer className="attachment-preview-footer"><a className="button button-outline" href={previewAttachment.downloadUrl} download={previewAttachment.originalName || 'attachment'}><Download size={15}/> تنزيل الملف</a><button className="button button-primary" type="button" onClick={() => setPreviewAttachment(null)}><ArrowLeft size={16}/> رجوع</button></footer>
-      </section>
-    </div>}
-  </div>;
 }
 
 function DashboardPage() {
@@ -729,7 +443,7 @@ const freshForm = (): AchievementFormState => ({
   achievedOn: new Date().toISOString().slice(0, 10), skills: '', resumeBullet: '', interviewStory: '', serviceOffer: '', summary: '',
 });
 
-function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievement; onClose: () => void; onSaved: (achievement: Achievement, created: boolean) => void }) {
+function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievement; onClose: () => void; onSaved: () => void }) {
   const cache = useQueryClient();
   const [form, setForm] = useState<AchievementFormState>(() => initial ? {
     title: initial.title, category: initial.category, context: initial.context, challenge: initial.challenge || '',
@@ -758,10 +472,10 @@ function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievemen
       skills: form.skills.split(/[،,]/).map(s => s.trim()).filter(Boolean),
       resumeBullet: form.resumeBullet.trim(), interviewStory: form.interviewStory.trim(), serviceOffer: form.serviceOffer.trim(), summary: form.summary.trim(),
     };
-    const done = (achievement: Achievement) => {
+    const done = () => {
       cache.invalidateQueries({ queryKey: getListAchievementsQueryKey() });
       cache.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-      onSaved(achievement, !initial); onClose();
+      onSaved(); onClose();
     };
     if (initial) update.mutate({ id: initial.id, data: payload }, { onSuccess: done });
     else create.mutate({ data: payload }, { onSuccess: done });
@@ -776,7 +490,6 @@ function AchievementDialog({ initial, onClose, onSaved }: { initial?: Achievemen
       <label className="field"><span>ماذا فعلت أنت؟ <RequiredMark/></span><textarea required rows={3} maxLength={3000} value={form.action} onChange={e => set('action', e.target.value)} placeholder="صف مساهمتك المحددة، وما الذي قمت به بنفسك." data-testid="input-achievement-action"/></label>
       <label className="field"><span>ما النتيجة؟ <RequiredMark/></span><textarea required rows={2} maxLength={2000} value={form.result} onChange={e => set('result', e.target.value)} placeholder="أثر ملموس، رقم، أو شيء تعلمته." data-testid="input-achievement-result"/></label>
       <label className="field">المهارات التي استخدمتها<span className="field-hint">افصل بين المهارات بفاصلة</span><input value={form.skills} onChange={e => set('skills', e.target.value)} placeholder="التواصل، البحث، إدارة الوقت" data-testid="input-achievement-skills"/></label>
-       {!initial && <div className="achievement-evidence-next-step"><Paperclip size={18}/><div><b>أضف صورك وملفاتك كدليل</b><p>بعد حفظ الإنجاز ستفتح لك مساحة لإرفاق الصور والفيديوهات والملفات أو إضافة نص ورابط.</p></div></div>}
         <div className="ai-callout"><div className="ai-callout-copy"><span className="ai-icon"><Sparkles size={17}/></span><div><b>حوّل تجربتك إلى قصة واضحة</b><small>اقتراحات للسيرة والمقابلة وعرض مهارتك وملخص التجربة.</small></div></div><button className="button button-ai" type="button" disabled={draft.isPending || !form.title || !form.action || !form.result} onClick={makeDraft} data-testid="button-generate-draft">{draft.isPending ? <LoaderCircle size={15} className="spin"/> : <Sparkles size={15}/>} {draft.isPending ? 'نرتّب كلماتك…' : 'اقترح صياغة'}</button></div>
       {draft.isError && <p className="form-error" role="alert" data-testid="status-draft-error">لم نتمكن من إنشاء المسودة. يمكنك المتابعة بصياغتك الخاصة.</p>}
        <label className="field">عبارة للسيرة المهنية<textarea rows={2} maxLength={1000} value={form.resumeBullet} onChange={e => set('resumeBullet', e.target.value)} placeholder="تظهر هذه العبارة في معاينة سيرتك المهنية." data-testid="input-resume-bullet"/></label>
@@ -794,16 +507,11 @@ function AchievementsPage() {
   const [category, setCategory] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Achievement | undefined>();
-  const [evidenceFor, setEvidenceFor] = useState<Achievement | undefined>();
   const params = useMemo(() => ({ query: query || undefined, category: category ? category as 'project' : undefined }), [query, category]);
   const result = useListAchievements(params, { query: { queryKey: getListAchievementsQueryKey(params) } });
   const remove = useDeleteAchievement();
   const cache = useQueryClient();
   const [, setLocation] = useLocation();
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    document.querySelector(".content-area")?.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, []);
   const openNew = () => { setEditing(undefined); setDialogOpen(true); };
   const openEdit = (item: Achievement) => { setEditing(item); setDialogOpen(true); };
   useEffect(() => {
@@ -827,10 +535,9 @@ function AchievementsPage() {
     <div className="achievement-tools"><label className="search-box"><Search size={18}/><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث في إنجازاتك…" aria-label="ابحث في الإنجازات" data-testid="input-search-achievements"/>{query && <button type="button" className="clear-search" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15}/></button>}</label>
       <label className="filter-box"><Filter size={16}/><select value={category} onChange={e => setCategory(e.target.value)} aria-label="تصفية حسب نوع التجربة" data-testid="select-filter-category"><option value="">كل التجارب</option>{categories.map(c => <option key={c} value={c}>{categoryNames[c]}</option>)}</select><ChevronDown size={14}/></label>
       <span className="achievement-count" data-testid="text-achievement-count">{result.isLoading ? 'جارٍ تحميل الإنجازات…' : result.isError ? 'تعذّر تحميل الإنجازات' : formatAchievementCount(result.data?.length ?? 0)}</span></div>
-    {result.isLoading ? <LoadingPanel label="نجمع تجاربك" /> : result.isError ? <ErrorPanel retry={() => result.refetch()}/> : result.data?.length ? <div className="achievement-list full-achievement-list">{result.data.map(item => <AchievementCard key={item.id} item={item} onEdit={openEdit} onDelete={deleteItem} onManageAttachments={setEvidenceFor}/>)}</div> : <EmptyState title={query || category ? 'لم نجد تجربة بهذا الوصف' : 'كل رحلة تبدأ بتجربة واحدة'} body={query || category ? 'جرّب كلمة بحث أخرى أو غيّر نوع التجربة.' : 'ابدأ بتوثيق مشروع أو نشاط شاركت فيه. التجارب الصغيرة تصنع قصة كبيرة.'} action={query || category ? <button className="button button-outline" onClick={() => { setQuery(''); setCategory(''); }} data-testid="button-clear-filters">مسح البحث والتصفية</button> : <button className="button button-primary" onClick={openNew} data-testid="button-empty-create">أضف أول إنجاز <Plus size={16}/></button>}/>}
+    {result.isLoading ? <LoadingPanel label="نجمع تجاربك" /> : result.isError ? <ErrorPanel retry={() => result.refetch()}/> : result.data?.length ? <div className="achievement-list full-achievement-list">{result.data.map(item => <AchievementCard key={item.id} item={item} onEdit={openEdit} onDelete={deleteItem}/>)}</div> : <EmptyState title={query || category ? 'لم نجد تجربة بهذا الوصف' : 'كل رحلة تبدأ بتجربة واحدة'} body={query || category ? 'جرّب كلمة بحث أخرى أو غيّر نوع التجربة.' : 'ابدأ بتوثيق مشروع أو نشاط شاركت فيه. التجارب الصغيرة تصنع قصة كبيرة.'} action={query || category ? <button className="button button-outline" onClick={() => { setQuery(''); setCategory(''); }} data-testid="button-clear-filters">مسح البحث والتصفية</button> : <button className="button button-primary" onClick={openNew} data-testid="button-empty-create">أضف أول إنجاز <Plus size={16}/></button>}/>}
     {remove.isError && <p className="form-error inline-error" data-testid="status-delete-error">تعذّر حذف الإنجاز. حاول مرة أخرى.</p>}
-    {dialogOpen && <AchievementDialog initial={editing} onClose={() => setDialogOpen(false)} onSaved={(achievement, created) => { if (created) setEvidenceFor(achievement); }}/>}
-    {evidenceFor && <AchievementAttachmentsDialog achievement={evidenceFor} onClose={() => setEvidenceFor(undefined)}/>}
+    {dialogOpen && <AchievementDialog initial={editing} onClose={() => setDialogOpen(false)} onSaved={() => {}}/>}
   </div>;
 }
 
@@ -894,10 +601,6 @@ function ResumePage() {
     <ResumeStudio profile={profile.data ?? null} achievements={achievementItems} courses={completedCourses}/>
     <ResumeSharePanel achievements={achievementItems} courses={completedCourses}/>
   </div>;
-}
-
-function ResumeTemplatesPage() {
-  return <div className="page-wrap"><ResumeTemplateStudio/></div>;
 }
 
 function ResumeSharePanel({ achievements, courses }: { achievements: Achievement[]; courses: LearningItem[] }) {
@@ -1518,8 +1221,6 @@ function AuthRouter() {
       <Route path="/academy"><Protected><AcademyHomePage/></Protected></Route>
       <Route path="/roadmap"><Protected><RoadmapPage/></Protected></Route>
       <Route path="/resume"><Protected><ResumePage/></Protected></Route>
-      <Route path="/resume-templates"><Protected><ResumeTemplatesPage/></Protected></Route>
-      <Route path="/office"><Protected><OfficeToolsPage/></Protected></Route>
       <Route path="/assistant"><Protected><AssistantPage/></Protected></Route>
       <Route path="/profile"><Protected><ProfilePage/></Protected></Route>
       <Route path="/admin"><Protected admin><AdminPage/></Protected></Route>
@@ -1532,7 +1233,7 @@ function App() {
   if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
   return <QueryClientProvider client={queryClient}>
     <PlatformThemeSync/>
-    <WouterRouter base={basePath}><BrowserBackGuard/><AuthRouter/></WouterRouter>
+    <WouterRouter base={basePath}><AuthRouter/></WouterRouter>
   </QueryClientProvider>;
 }
 
