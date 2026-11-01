@@ -70,3 +70,31 @@ mtime_ms = 1793293054923
 storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/a5b34a29-289b-41ab-82dc-b3228e2a0d12/6b1b3940-bb27-4381-be33-d5f09eecd658"
 storage_version_token = "1793293081286247"
 content_type = "text/plain"
+
+[[outputs]]
+id = "oy-OfrvcbNWBSdiOhYcnC"
+uri = "file://.local/outputs/Athar-Platform-Presentation.pdf"
+type = "pdf"
+title = "عرض أثر الاحترافي (PDF)"
+description = "النسخة المحدّثة من العرض، 11 شريحة بخلفيات وصور احترافية."
+logical_id = "e13cff2c-44ab-4425-ad9d-7cd9cf6657e7"
+content_hash = "sha256:7b200756d93c43d1663b0f05b8458d6ce57a4fb000e61b0a0426dacd51d6403e"
+size = 4156532
+mtime_ms = 1793562962682
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/e13cff2c-44ab-4425-ad9d-7cd9cf6657e7/7e950ae7-447a-4f8a-806c-afaa634f118c"
+storage_version_token = "1793562978811197"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "wzI4k82SpnojWmxkXC6hu"
+uri = "file://.local/outputs/Athar-Platform-Presentation.pptx"
+type = "slides"
+title = "عرض أثر الاحترافي (PowerPoint)"
+description = "نسخة PowerPoint من عرض منصة أثر."
+logical_id = "947e47f7-5466-4def-8b84-07ce2a27c5c8"
+content_hash = "sha256:8f405ef096c11c794515db26b7185533f5fd660cbc11b05ca1ee3973e176ca41"
+size = 18079296
+mtime_ms = 1793562970082
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/947e47f7-5466-4def-8b84-07ce2a27c5c8/8f54469c-8988-437f-b081-10255468eb09"
+storage_version_token = "1793562979484589"
+content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
