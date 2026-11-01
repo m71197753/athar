@@ -10,16 +10,16 @@
 | --- | --- |
 | [فكرة المشروع](PROJECT_IDEA.md) | المشكلة، الحل، الجمهور، رحلة الطالب، والقيمة الاستثمارية |
 | [الدروس المستفادة](docs/LESSONS_LEARNED.md) | ما تعلّمناه من بناء المنصة وتصميم العرض، والضوابط التي يجب الحفاظ عليها |
-| [دليل العرض وملفات التنزيل](docs/presentation/README.md) | مصدر الشرائح، PowerPoint، PDF، وطريقة تحديث ملفات التسليم |
+| [دليل العرض وحالة ملفات التسليم](docs/presentation/README.md) | مصدر الشرائح، PowerPoint، PDF، وطريقة إكمال إرفاقهما |
 | [مشروع Android](android-studio/README.md) | إعداد تطبيق Android وبناء APK |
 
-### تحميل العرض التقديمي
+### العرض التقديمي وملفات التسليم
 
-- [PowerPoint — ملف PPTX](https://github.com/m71197753/athar/releases/download/athar-delivery-2026-11-01/Athar-Platform-Presentation.pptx)
-- [نسخة PDF](https://github.com/m71197753/athar/releases/download/athar-delivery-2026-11-01/Athar-Platform-Presentation.pdf)
-- [صفحة الإصدار والمرفقات](https://github.com/m71197753/athar/releases/tag/athar-delivery-2026-11-01)
+تم توليد `Athar-Platform-Presentation.pptx` و`Athar-Platform-Presentation.pdf` وتسليمهما في مساحة العمل. **لم يكتمل رفع الملفين إلى GitHub:** رفضت واجهة رفع مرفقات الإصدار الطلب، لذلك لا توجد روابط تنزيل منشورة لهما في المستودع بعد.
 
-ملفات العرض الكبيرة محفوظة كمرفقات **GitHub Release** داخل المشروع، وليس كملفات ثنائية متكررة في سجل Git. مصدر الشرائح والصور المستخدمة موجود في المستودع ويمكن تعديله.
+توجد مسودة إصدار باسم **أثر | تسليم المشروع والعرض التقديمي** في [صفحة الإصدارات](https://github.com/m71197753/athar/releases)، يمكن لمالك المستودع إرفاق الملفين بها وإكمال نشرها. خطوات الإكمال وبصمات التحقق موضحة في [دليل العرض](docs/presentation/README.md).
+
+المكان المخصص للملفات الكبيرة هو مرفقات **GitHub Release**، وليس سجل Git. مصدر الشرائح والصور المستخدمة موجود بالفعل في المستودع ويمكن تعديله.
 
 ## الخصائص الأساسية في الشفرة الحالية
 
