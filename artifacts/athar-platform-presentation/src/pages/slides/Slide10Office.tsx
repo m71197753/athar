@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide10Office() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-grid">
     <div className="content-head"><h1 className="slide-title">مستندات وجداول داخل المنصة</h1></div>
     <div className="feature-layout">
       <div className="feature-copy accent-panel"><ul className="bullet-list">

@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide09Career() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-path">
     <div className="content-head"><h1 className="slide-title">خطة مهنية بخطوات قابلة للتنفيذ</h1></div>
     <img src={base + "ai-career.png"} crossOrigin="anonymous" className="career-visual" alt="خريج يراجع أهدافًا وخطوات مهنية على جهاز لوحي" />
     <div className="career-path">

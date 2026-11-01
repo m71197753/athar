@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide05Learning() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-modules">
     <div className="content-head"><h1 className="slide-title">تعلّم منظّم ودورات تفاعلية</h1></div>
     <div className="feature-layout">
       <img src={base + "ai-courses.png"} crossOrigin="anonymous" className="feature-art tall" alt="طالب يشاهد درسًا مرئيًا ويتابع وحدات الدورة" />

@@ -77,3 +77,24 @@ uri = "file://artifacts/athar-animated-presentation/public/audio/bg_music.mp3"
 type = "audio"
 title = "background music"
 description = "Generated music: Cinematic uplifting modern instrumental for an Arabic education platform presentation film. Soft oud-like plucks, warm piano, light percussion and strings, 100 BPM, hopeful and confi…"
+logical_id = "fce96da1-9d2f-4c41-a97c-aa9c3bb85bc4"
+
+[[outputs]]
+id = "_GOQmUEGu15ms0gqmJadz"
+uri = "file://.local/outputs/Athar-Professional-Presentation.pptx"
+type = "slides"
+title = "أثر | العرض التقديمي (PowerPoint)"
+description = "عرض من 12 شريحة يشرح المشكلة والحل وخطوات الاستخدام وخصائص منصة أثر، مع الصور والشعارات وبيانات الإعداد والإشراف."
+logical_id = "edd51dfb-e6fb-44d7-9cfe-d29afe188af7"
+content_hash = "sha256:c7c5ce7d69197f1fb0a1d0dc7e199788040d2572fe2431a8503adddd39d3ab4f"
+size = 19851378
+mtime_ms = 1793477272257
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/edd51dfb-e6fb-44d7-9cfe-d29afe188af7/c3967867-a58b-49b3-9775-d909463d2ac7"
+storage_version_token = "1793477272971793"
+content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+[[outputs]]
+id = "TE8K560pHJo5lSxH-3r76"
+uri = "file://.local/outputs/----------------------------.pdf"
+type = "pdf"
+title = "أثر | من التعلّم إلى الإنجاز.pdf"

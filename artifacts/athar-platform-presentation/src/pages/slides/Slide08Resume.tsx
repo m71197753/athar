@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide08Resume() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-doc">
     <div className="content-head"><h1 className="slide-title">سيرة ذاتية تناسب هدفك</h1></div>
     <div className="resume-layout">
       <img src={base + "ai-resume.png"} crossOrigin="anonymous" className="resume-banner" alt="محرر سيرة ذاتية من عمود واحد مع أدوات تخصيص" />

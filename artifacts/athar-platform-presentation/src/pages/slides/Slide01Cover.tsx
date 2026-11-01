@@ -3,7 +3,7 @@ import replitMark from '@assets/تنزيل_1793472713137.png';
 
 const base = import.meta.env.BASE_URL;
 export default function Slide01Cover() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame cover">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-rise cover">
     <div className="cover-grid">
       <div className="cover-copy">
         <img src={base + "athar-wordmark-3d.png"} crossOrigin="anonymous" className="athar-mark" alt="أثر" />

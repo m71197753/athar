@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide03Solution() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-network">
     <div className="content-head"><h1 className="slide-title">الحل: مساحة واحدة باسم أثر</h1></div>
     <div className="split-layout">
       <div className="accent-panel"><ul className="bullet-list">

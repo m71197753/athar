@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide11Admin() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-shield">
     <div className="content-head"><h1 className="slide-title">إدارة تدعم تجربة آمنة ومنظمة</h1></div>
     <div className="admin-points">
       <p className="admin-point">تضبط الإدارة الأقسام والمحتوى ومسارات التعلّم</p>

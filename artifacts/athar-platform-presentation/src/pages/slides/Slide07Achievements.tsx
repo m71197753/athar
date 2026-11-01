@@ -1,6 +1,6 @@
 const base = import.meta.env.BASE_URL;
 export default function Slide07Achievements() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-shield">
     <div className="content-head"><h1 className="slide-title">إنجازات موثّقة وخصوصية واضحة</h1></div>
     <div className="feature-layout">
       <img src={base + "ai-achievement.png"} crossOrigin="anonymous" className="feature-art" alt="ملف إنجاز رقمي يضم مستندات وصورًا وروابط مع حماية" />

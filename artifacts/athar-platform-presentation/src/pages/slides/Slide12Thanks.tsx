@@ -4,7 +4,7 @@ import closingArtwork from '@assets/generated_images/athar-thanks.png';
 
 const base = import.meta.env.BASE_URL;
 export default function Slide12Thanks() {
-  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame closing">
+  return <div dir="rtl" className="w-screen h-screen overflow-hidden relative deck-frame motif-rise closing">
     <div className="closing-grid">
       <div className="closing-copy">
         <img src={base + "athar-wordmark-3d.png"} crossOrigin="anonymous" className="athar-mark" alt="أثر" />
