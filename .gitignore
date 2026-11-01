@@ -54,3 +54,14 @@ Thumbs.db
 .cache/
 .local/
 /generated-artifacts/
+
+# Secrets and local signing material must never enter source control.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" fill="none">
+  <title>Nordpoints logo</title>
+  <g transform="translate(48 48) scale(1.4933)">
+    <path d="M71.9 8.6V43L43.1 72.1H8L71.9 8.6Z" fill="#062447"/>
+    <path d="M77.8 8.6V42.9L106.7 72.1H141.9L77.8 8.6Z" fill="#085FE9"/>
+    <path d="M77.8 106.9V141.4L141.9 78H106.7L77.8 106.9Z" fill="#042244"/>
+    <path d="M43.1 78H8L71.9 141.4V106.9L43.1 78Z" fill="#062447"/>
+  </g>
+  <text x="330" y="204" fill="#062447" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="118" font-weight="700" letter-spacing="-6">Nordpoints</text>
+</svg>
