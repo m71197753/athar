@@ -75,14 +75,14 @@ content_type = "text/plain"
 id = "oy-OfrvcbNWBSdiOhYcnC"
 uri = "file://.local/outputs/Athar-Platform-Presentation.pdf"
 type = "pdf"
-title = "عرض أثر الاحترافي (PDF)"
-description = "النسخة المحدّثة من العرض، 11 شريحة بخلفيات وصور احترافية."
+title = "عرض أثر بصيغة PDF"
+description = "النسخة المحدّثة، يتضمن الغلاف Vibe Coding وأسماء المُنشئ والمشرف وشعار Replit مع وصف دقيق لا يدعي وجود منحة."
 logical_id = "e13cff2c-44ab-4425-ad9d-7cd9cf6657e7"
-content_hash = "sha256:7b200756d93c43d1663b0f05b8458d6ce57a4fb000e61b0a0426dacd51d6403e"
-size = 4156532
-mtime_ms = 1793562962682
-storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/e13cff2c-44ab-4425-ad9d-7cd9cf6657e7/7e950ae7-447a-4f8a-806c-afaa634f118c"
-storage_version_token = "1793562978811197"
+content_hash = "sha256:bb5cd445a9d5d8a451e82666f70aebf08a1b14a3168fd5b1571167b2e3a74dc3"
+size = 4167294
+mtime_ms = 1793563711355
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:d00e062b-86ba-4270-8fc1-58215e45824c/e13cff2c-44ab-4425-ad9d-7cd9cf6657e7/d060a858-2074-4175-b5b9-178374b0df13"
+storage_version_token = "1793563711923295"
 content_type = "application/pdf"
 
 [[outputs]]
