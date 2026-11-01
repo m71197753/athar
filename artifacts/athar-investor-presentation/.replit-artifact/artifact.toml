@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/athar-investor-presentation/"
+title = "أثر | عرض المنصة والاستثمار"
+description = "عرض تقديمي احترافي من 12 شريحة يعرّف بمنصة أثر وخصائصها، ويعرض المشكلة والحل وخطوات الاستخدام وقيمة الاستثمار بصياغة مسؤولة."
+version = "1.0.0"
+id = "artifacts/athar-investor-presentation"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/athar-investor-presentation/" ]
+localPort = 22567
+
+[services.development]
+run = "pnpm --filter @workspace/athar-investor-presentation run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/athar-investor-presentation", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/athar-investor-presentation/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22567"
+BASE_PATH = "/athar-investor-presentation/"
