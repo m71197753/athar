@@ -48,6 +48,7 @@ function fixture({ mediaType = "video", deferred = false, savedProgress } = {}) 
       if (name === "@workspace/api-client-react") return api;
       if (name === "lucide-react" || name.endsWith(".css")) return {};
       if (name === "./media-playback") return playback;
+      if (name === "../lib/section-units") return sectionUnitsContext.exports;
       throw new Error(`Unexpected import ${name}`);
     },
   };
@@ -55,6 +56,8 @@ function fixture({ mediaType = "video", deferred = false, savedProgress } = {}) 
     readFileSync(new URL(file, import.meta.url), "utf8"),
     { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } },
   ).outputText;
+  const sectionUnitsContext = { exports: {} };
+  vm.runInNewContext(compile("../src/lib/section-units.ts"), sectionUnitsContext);
   const playbackContext = { exports: {} };
   vm.runInNewContext(compile("../src/sections/media-playback.ts"), playbackContext);
   const playback = playbackContext.exports;
