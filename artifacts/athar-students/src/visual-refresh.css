@@ -4,10 +4,12 @@
   --athar-canvas: var(--platform-canvas-light, #F8FAFC);
   --athar-paper: var(--platform-paper-light, #F1F5F9);
   --athar-paper-raised: var(--platform-surface-light, #FFFFFF);
-  --athar-ink: #172033;
-  --athar-ink-soft: #334155;
+  --athar-ink: var(--platform-heading-light, #172033);
+  --athar-ink-soft: var(--platform-text-light, #334155);
   --athar-muted: #64748B;
   --athar-line: #E2E8F0;
+  --athar-card-ink: var(--platform-card-text-light, #334155);
+  --athar-card-line: var(--platform-card-border-light, #E2E8F0);
   --athar-primary: var(--platform-primary-light, #4338CA);
   --athar-primary-deep: var(--platform-primary-deep-light, #4F46E5);
   --athar-primary-accent: var(--platform-accent-light, #6366F1);
@@ -49,6 +51,8 @@
   --athar-ink-soft: #D5DEEA;
   --athar-muted: #A1AEC1;
   --athar-line: #334155;
+  --athar-card-ink: var(--platform-card-text-dark, #F1F5F9);
+  --athar-card-line: var(--platform-card-border-dark, #334155);
   --athar-primary: var(--platform-primary-dark, #818CF8);
   --athar-primary-deep: var(--platform-primary-deep-dark, #6366F1);
   --athar-primary-accent: var(--platform-accent-dark, #A5B4FC);
@@ -576,6 +580,10 @@ body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
 .landing-nav { border-color: var(--athar-line); }
 .hero-copy > p, .landing-band > p, .journey-step p { line-height: 1.95; }
 .hero h1 { letter-spacing: -.035em; }
+.app-back-button { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; gap:5px; min-height:36px; padding:0 9px; border:1px solid var(--athar-line); border-radius:10px; color:var(--athar-primary-deep); background:var(--athar-paper-raised); font:inherit; font-size:11px; font-weight:700; cursor:pointer; }
+.app-back-button:hover { border-color:var(--athar-primary); background:var(--athar-primary-soft); }
+.app-back-button:focus-visible { outline:2px solid var(--athar-primary); outline-offset:2px; }
+@media(max-width:560px) { .app-back-button { width:34px; min-height:34px; padding:0; } .app-back-button span { display:none; } }
 .hero h1 em { color: var(--athar-primary); }
 .hero-art:before { background: radial-gradient(circle at 48% 46%, rgba(59,112,107,.15), rgba(166,185,168,.09) 42%, transparent 72%); }
 .orbit, .core-ring { border-color: color-mix(in srgb, var(--athar-primary) 25%, transparent); }
@@ -624,6 +632,31 @@ body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Admin-configurable general icon tint and icon-tile shape. */
+.app-frame {
+  --athar-icon-color: var(--platform-icon-color-light, var(--athar-primary));
+  --athar-icon-soft: var(--platform-icon-soft-light, var(--athar-primary-soft));
+  --athar-icon-radius: var(--platform-icon-radius, 14px);
+}
+.dark .app-frame {
+  --athar-icon-color: var(--platform-icon-color-dark, var(--athar-primary-accent));
+  --athar-icon-soft: var(--platform-icon-soft-dark, var(--athar-primary-soft));
+}
+.app-frame :is(.side-link > svg, .mobile-bottom-link > svg) { color: var(--athar-icon-color) !important; }
+.app-frame :is(
+  .dashboard-feature-icon, .dashboard-start-icon, .dashboard-stat-icon,
+  .metric-icon-green, .metric-icon-gold, .achievement-icon, .step-icon, .growth-symbol,
+  .lesson-index, .ai-icon, .share-panel-icon, .gr-portfolio-icon, .lang-admin-hero-icon,
+  .adm-notification-icon, .adm-module-submission-icon, .ac-row-icon,
+  .student-submissions-mark, .student-submission-file-icon,
+  .custom-course-cover-icon, .custom-course-empty-icon, .custom-course-material-icon,
+  .demo-hero-icon, .demo-icon
+) {
+  color: var(--athar-icon-color) !important;
+  background-color: var(--athar-icon-soft) !important;
+  border-radius: var(--athar-icon-radius) !important;
 }
 
 /* The submitted 3D wordmark is designed for a dark tile. */

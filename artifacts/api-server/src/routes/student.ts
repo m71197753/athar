@@ -1,6 +1,7 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import {
+  achievementAttachmentsTable,
   achievementsTable,
   academyProgressTable,
   db,
@@ -10,11 +11,23 @@ import {
 import {
   CreateAchievementBody,
   CreateAchievementResponse,
+  CreateAchievementAttachmentBody,
+  CreateAchievementAttachmentResponse,
+  ConfirmAchievementAttachmentUploadParams,
+  ConfirmAchievementAttachmentUploadResponse,
+  DeleteAchievementAttachmentParams,
+  DeleteAchievementAttachmentResponse,
   DeleteAchievementParams,
+  DownloadAchievementAttachmentParams,
   GetDashboardSummaryResponse,
   GetStudentProfileResponse,
+  ListAchievementAttachmentsParams,
+  ListAchievementAttachmentsResponse,
   ListAchievementsQueryParams,
   ListAchievementsResponse,
+  RequestAchievementAttachmentUploadBody,
+  RequestAchievementAttachmentUploadParams,
+  RequestAchievementAttachmentUploadResponse,
   SaveStudentProfileBody,
   SaveStudentProfileResponse,
   UpdateAchievementBody,
@@ -22,6 +35,21 @@ import {
   UpdateAchievementResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
+import {
+  isAcademyImageMime,
+  isAcademyVideoMime,
+  supportedAcademyCourseUpload,
+  supportedAcademyFile,
+  type AcademyUploadMime,
+} from "../lib/academy-content";
+import {
+  createAcademyUpload,
+  deleteAcademyAsset,
+  streamAcademyAsset,
+  validateAcademyUpload,
+} from "../lib/academy-storage";
+import { canReadAchievementEvidence, ownsAchievement } from "../lib/achievement-access";
+import { recordAchievementEvidenceAccess } from "../lib/achievement-evidence-audit";
 
 const router: IRouter = Router();
 const categories = [
@@ -33,6 +61,86 @@ const categories = [
   "research",
   "other",
 ] as const;
+
+function safeAttachmentName(name: string): string {
+  return name
+    .split(/[\\/]/)
+    .at(-1)!
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, 255) || "evidence";
+}
+
+function toAchievementAttachment(row: typeof achievementAttachmentsTable.$inferSelect) {
+  return {
+    id: row.id,
+    kind: row.kind,
+    title: row.title,
+    content: row.content,
+    url: row.url,
+    originalName: row.originalName,
+    mime: row.mime,
+    size: row.size,
+    status: row.status,
+    downloadUrl: row.kind === "file" && row.status === "ready"
+      ? `/api/achievements/${row.achievementId}/attachments/${row.id}/download`
+      : null,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+function streamAchievementVideo(
+  res: Response,
+  rangeHeader: string | undefined,
+  path: string,
+  name: string,
+  mime: string,
+  size: number,
+): void {
+  let start = 0;
+  let end = size - 1;
+  let status = 200;
+  if (rangeHeader) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+    if (!match || (!match[1] && !match[2])) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      res.status(416).end();
+      return;
+    }
+    if (!match[1]) {
+      const suffix = Number(match[2]);
+      if (!Number.isFinite(suffix) || suffix < 1) {
+        res.setHeader("Content-Range", `bytes */${size}`);
+        res.status(416).end();
+        return;
+      }
+      start = Math.max(0, size - suffix);
+    } else {
+      start = Number(match[1]);
+      if (match[2]) end = Math.min(Number(match[2]), size - 1);
+    }
+    if (start >= size || end < start) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      res.status(416).end();
+      return;
+    }
+    status = 206;
+  }
+  res.status(status);
+  res.setHeader("Content-Type", mime);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("Accept-Ranges", "bytes");
+  res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(safeAttachmentName(name))}`);
+  res.setHeader("Content-Length", String(end - start + 1));
+  if (status === 206) res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
+  streamAcademyAsset(path, { start, end })
+    .on("error", () => {
+      if (!res.headersSent) res.status(404).json({ error: "تعذّر فتح الملف." });
+      else res.destroy();
+    })
+    .pipe(res);
+}
 
 router.get("/dashboard/summary", requireAuth, async (_req, res): Promise<void> => {
   const userId = res.locals.userId as string;
@@ -264,6 +372,307 @@ router.patch("/achievements/:id", requireAuth, async (req, res): Promise<void> =
   res.json(UpdateAchievementResponse.parse(toAchievement(achievement)));
 });
 
+router.get("/achievements/:id/attachments", requireAuth, async (req, res): Promise<void> => {
+  const params = ListAchievementAttachmentsParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const userId = res.locals.userId as string;
+  if (!(await ownsAchievement(params.data.id, userId))) {
+    res.status(404).json({ error: "Achievement not found" });
+    return;
+  }
+  const rows = await db
+    .select()
+    .from(achievementAttachmentsTable)
+    .where(eq(achievementAttachmentsTable.achievementId, params.data.id))
+    .orderBy(desc(achievementAttachmentsTable.createdAt));
+  res.json(ListAchievementAttachmentsResponse.parse(rows.map(toAchievementAttachment)));
+});
+
+router.post("/achievements/:id/attachments", requireAuth, async (req, res): Promise<void> => {
+  const params = ListAchievementAttachmentsParams.safeParse(req.params);
+  const parsed = CreateAchievementAttachmentBody.safeParse(req.body);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = res.locals.userId as string;
+  if (!(await ownsAchievement(params.data.id, userId))) {
+    res.status(404).json({ error: "Achievement not found" });
+    return;
+  }
+
+  const title = parsed.data.title.trim();
+  const content = parsed.data.content?.trim() || null;
+  const url = parsed.data.url?.trim() || null;
+  if (!title || (parsed.data.kind === "text" && !content)) {
+    res.status(400).json({ error: "أضف عنواناً ومحتوى للنص." });
+    return;
+  }
+  if (parsed.data.kind === "link") {
+    try {
+      const parsedUrl = new URL(url || "");
+      if (!["http:", "https:"].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+        res.status(400).json({ error: "أدخل رابطاً آمناً يبدأ بـ http أو https." });
+        return;
+      }
+    } catch {
+      res.status(400).json({ error: "أدخل رابطاً صحيحاً." });
+      return;
+    }
+  }
+
+  const [row] = await db
+    .insert(achievementAttachmentsTable)
+    .values({
+      achievementId: params.data.id,
+      kind: parsed.data.kind,
+      title,
+      content: parsed.data.kind === "text" ? content : null,
+      url: parsed.data.kind === "link" ? url : null,
+      status: "ready",
+    })
+    .returning();
+  res.status(201).json(CreateAchievementAttachmentResponse.parse(toAchievementAttachment(row)));
+});
+
+router.post("/achievements/:id/attachments/uploads", requireAuth, async (req, res): Promise<void> => {
+  const params = RequestAchievementAttachmentUploadParams.safeParse(req.params);
+  const parsed = RequestAchievementAttachmentUploadBody.safeParse(req.body);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = res.locals.userId as string;
+  if (!(await ownsAchievement(params.data.id, userId))) {
+    res.status(404).json({ error: "Achievement not found" });
+    return;
+  }
+
+  const name = safeAttachmentName(parsed.data.name);
+  const mime = parsed.data.mime.split(";")[0].trim().toLowerCase();
+  if (
+    !Number.isSafeInteger(parsed.data.size) ||
+    parsed.data.size < 1 ||
+    (!supportedAcademyFile(name, mime) && !supportedAcademyCourseUpload(name, mime))
+  ) {
+    res.status(400).json({ error: "الملف غير مدعوم. استخدم صورة أو فيديو MP4/WebM أو PDF أو DOCX أو TXT." });
+    return;
+  }
+
+  const upload = await createAcademyUpload();
+  const [attachment] = await db
+    .insert(achievementAttachmentsTable)
+    .values({
+      achievementId: params.data.id,
+      kind: "file",
+      title: name,
+      originalName: name,
+      mime,
+      size: parsed.data.size,
+      objectPath: upload.objectPath,
+      status: "uploading",
+    })
+    .returning({ id: achievementAttachmentsTable.id });
+  res.status(201).json(
+    RequestAchievementAttachmentUploadResponse.parse({
+      id: attachment.id,
+      uploadUrl: upload.uploadUrl,
+    }),
+  );
+});
+
+router.post(
+  "/achievements/:id/attachments/:attachmentId/confirm",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const params = ConfirmAchievementAttachmentUploadParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const userId = res.locals.userId as string;
+    if (!(await ownsAchievement(params.data.id, userId))) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    const [attachment] = await db
+      .select()
+      .from(achievementAttachmentsTable)
+      .where(and(
+        eq(achievementAttachmentsTable.id, params.data.attachmentId),
+        eq(achievementAttachmentsTable.achievementId, params.data.id),
+        eq(achievementAttachmentsTable.kind, "file"),
+      ))
+      .limit(1);
+    if (!attachment) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+    if (attachment.status === "ready") {
+      res.json(ConfirmAchievementAttachmentUploadResponse.parse(toAchievementAttachment(attachment)));
+      return;
+    }
+    if (!attachment.objectPath || !attachment.mime || !attachment.size) {
+      res.status(400).json({ error: "لم يكتمل رفع الملف." });
+      return;
+    }
+
+    let confirmedPath: string | null = null;
+    try {
+      confirmedPath = await validateAcademyUpload(
+        attachment.objectPath,
+        attachment.mime as AcademyUploadMime,
+        attachment.size,
+        null,
+      );
+    } catch (error) {
+      req.log.warn({ err: error, attachmentId: attachment.id }, "Could not verify achievement evidence upload");
+    }
+    if (!confirmedPath) {
+      await deleteAcademyAsset(attachment.objectPath);
+      await db.delete(achievementAttachmentsTable).where(eq(achievementAttachmentsTable.id, attachment.id));
+      res.status(400).json({ error: "تعذّر التحقق من الملف. أعد رفعه بصيغة مدعومة." });
+      return;
+    }
+
+    const [updated] = await db
+      .update(achievementAttachmentsTable)
+      .set({ objectPath: confirmedPath, status: "ready" })
+      .where(eq(achievementAttachmentsTable.id, attachment.id))
+      .returning();
+    await deleteAcademyAsset(attachment.objectPath);
+    res.json(ConfirmAchievementAttachmentUploadResponse.parse(toAchievementAttachment(updated)));
+  },
+);
+
+router.get(
+  [
+    "/achievements/:id/attachments/:attachmentId/download",
+    "/achievements/:id/attachments/:attachmentId/preview",
+  ],
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const params = DownloadAchievementAttachmentParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const userId = res.locals.userId as string;
+    if (!(await canReadAchievementEvidence(params.data.id, userId, String(res.locals.role ?? "")))) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+    const [attachment] = await db
+      .select()
+      .from(achievementAttachmentsTable)
+      .where(and(
+        eq(achievementAttachmentsTable.id, params.data.attachmentId),
+        eq(achievementAttachmentsTable.achievementId, params.data.id),
+        eq(achievementAttachmentsTable.kind, "file"),
+        eq(achievementAttachmentsTable.status, "ready"),
+      ))
+      .limit(1);
+    if (!attachment?.objectPath || !attachment.mime || !attachment.originalName) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    const accessMode = req.path.replace(/\/+$/, "").endsWith("/preview") ? "preview" : "download";
+    if (String(res.locals.role ?? "") === "admin") {
+      try {
+        await recordAchievementEvidenceAccess(
+          userId,
+          attachment.id,
+          accessMode === "preview" ? "achievement_evidence.preview" : "achievement_evidence.download",
+        );
+      } catch (error) {
+        req.log.error({ err: error, attachmentId: attachment.id }, "Unable to record administrator evidence file access");
+        res.status(503).json({ error: "تعذّر تسجيل الوصول إلى الملف، لم يتم عرضه." });
+        return;
+      }
+    }
+
+    if (isAcademyVideoMime(attachment.mime) && attachment.size) {
+      streamAchievementVideo(
+        res,
+        req.header("range"),
+        attachment.objectPath,
+        attachment.originalName,
+        attachment.mime,
+        attachment.size,
+      );
+      return;
+    }
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Content-Type", attachment.mime);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    const disposition =
+      isAcademyImageMime(attachment.mime) ||
+      attachment.mime === "application/pdf" ||
+      attachment.mime === "text/plain"
+        ? "inline"
+        : "attachment";
+    res.setHeader(
+      "Content-Disposition",
+      `${disposition}; filename*=UTF-8''${encodeURIComponent(safeAttachmentName(attachment.originalName))}`,
+    );
+    if (attachment.size) res.setHeader("Content-Length", String(attachment.size));
+    const stream = streamAcademyAsset(attachment.objectPath);
+    stream.on("error", () => {
+      if (!res.headersSent) res.status(404).json({ error: "تعذّر فتح الملف." });
+      else res.destroy();
+    });
+    stream.pipe(res);
+  },
+);
+
+router.delete(
+  "/achievements/:id/attachments/:attachmentId",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const params = DeleteAchievementAttachmentParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const userId = res.locals.userId as string;
+    if (!(await ownsAchievement(params.data.id, userId))) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+    const [attachment] = await db
+      .select()
+      .from(achievementAttachmentsTable)
+      .where(and(
+        eq(achievementAttachmentsTable.id, params.data.attachmentId),
+        eq(achievementAttachmentsTable.achievementId, params.data.id),
+      ))
+      .limit(1);
+    if (!attachment) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+    if (attachment.objectPath) await deleteAcademyAsset(attachment.objectPath);
+    await db
+      .delete(achievementAttachmentsTable)
+      .where(eq(achievementAttachmentsTable.id, attachment.id));
+    DeleteAchievementAttachmentResponse.parse(undefined);
+    res.sendStatus(204);
+  },
+);
+
 router.delete("/achievements/:id", requireAuth, async (req, res): Promise<void> => {
   const params = DeleteAchievementParams.safeParse(req.params);
   if (!params.success) {
@@ -272,6 +681,17 @@ router.delete("/achievements/:id", requireAuth, async (req, res): Promise<void> 
   }
 
   const userId = res.locals.userId as string;
+  if (!(await ownsAchievement(params.data.id, userId))) {
+    res.status(404).json({ error: "Achievement not found" });
+    return;
+  }
+  const existingAttachments = await db
+    .select({ objectPath: achievementAttachmentsTable.objectPath })
+    .from(achievementAttachmentsTable)
+    .where(eq(achievementAttachmentsTable.achievementId, params.data.id));
+  for (const attachment of existingAttachments) {
+    if (attachment.objectPath) await deleteAcademyAsset(attachment.objectPath);
+  }
   const [achievement] = await db
     .delete(achievementsTable)
     .where(

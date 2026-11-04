@@ -259,6 +259,20 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AdminOverviewDetails" }
+  /admin/achievement-evidence:
+    get:
+      operationId: listAdminAchievementEvidence
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated student achievement evidence for active administrators
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAchievementEvidencePage" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
   /admin/users:
     get:
       operationId: listAdminUsers
@@ -508,6 +522,26 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/SectionMediaUploadRequest" }
         "400": { description: Unsupported file or size }
+  /admin/section-media/cleanup-preview:
+    get:
+      operationId: previewSectionMediaCleanup
+      responses:
+        "200":
+          description: Count old unattached section uploads without exposing storage paths
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaCleanupPreview" }
+        "403": { description: Admin access required }
+  /admin/section-media/cleanup:
+    post:
+      operationId: cleanupSectionMedia
+      responses:
+        "200":
+          description: Remove eligible old unlinked section uploads
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SectionMediaCleanupResult" }
+        "403": { description: Admin access required }
   /admin/section-media/uploads/{id}/confirm:
     post:
       operationId: confirmSectionMediaUpload
@@ -601,6 +635,36 @@ paths:
               schema: { $ref: "#/components/schemas/LearningItem" }
         "401": { description: Sign-in required }
         "404": { description: Published course not found }
+  /sections/{slug}/courses/{courseId}/position:
+    get:
+      operationId: getCoursePosition
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 120 } }
+        - { name: courseId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Private last selected lesson, not a completion record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CoursePosition" }
+        "404": { description: Published course not found }
+    put:
+      operationId: saveCoursePosition
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 120 } }
+        - { name: courseId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CoursePositionInput" }
+      responses:
+        "200":
+          description: Last selected lesson saved for the authenticated student
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CoursePosition" }
+        "409": { description: Lesson changed or cannot be uniquely identified }
   /sections/{slug}/media-progress:
     get:
       operationId: getSectionMediaProgress
@@ -790,6 +854,178 @@ paths:
           description: Invalid sharing settings or selected item
         "401":
           description: Authentication required
+  /student/resumes:
+    get:
+      operationId: listStudentResumes
+      tags: [student]
+      summary: List the current student's private resume drafts
+      responses:
+        "200":
+          description: Private resume drafts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResumeList"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createStudentResume
+      tags: [student]
+      summary: Create a private resume draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentResumeInput"
+      responses:
+        "201":
+          description: Created private resume draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResume"
+        "400":
+          description: Invalid resume draft
+        "401":
+          description: Authentication required
+        "429":
+          description: The student's draft limit has been reached
+  /student/resumes/{id}:
+    put:
+      operationId: updateStudentResume
+      tags: [student]
+      summary: Update an owned private resume draft
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentResumeUpdate"
+      responses:
+        "200":
+          description: Updated private resume draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentResume"
+        "400":
+          description: Invalid resume draft
+        "401":
+          description: Authentication required
+        "404":
+          description: Resume draft not found
+    delete:
+      operationId: deleteStudentResume
+      tags: [student]
+      summary: Delete an owned private resume draft
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Resume draft deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Resume draft not found
+  /student/office-files:
+    get:
+      operationId: listStudentOfficeFiles
+      tags: [student]
+      summary: List the current student's private office files
+      responses:
+        "200":
+          description: Private documents and spreadsheets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFileList"
+        "401":
+          description: Authentication required
+    post:
+      operationId: createStudentOfficeFile
+      tags: [student]
+      summary: Create a private document or spreadsheet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentOfficeFileInput"
+      responses:
+        "201":
+          description: Created private office file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFile"
+        "400":
+          description: Invalid office file
+        "401":
+          description: Authentication required
+        "429":
+          description: The student's office file limit has been reached
+  /student/office-files/{id}:
+    put:
+      operationId: updateStudentOfficeFile
+      tags: [student]
+      summary: Update an owned private office file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentOfficeFileUpdate"
+      responses:
+        "200":
+          description: Updated private office file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentOfficeFile"
+        "400":
+          description: Invalid office file
+        "401":
+          description: Authentication required
+        "404":
+          description: Office file not found
+    delete:
+      operationId: deleteStudentOfficeFile
+      tags: [student]
+      summary: Delete an owned private office file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Office file deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Office file not found
   /public/resume/{token}:
     get:
       operationId: getPublicResume
@@ -905,6 +1141,327 @@ paths:
           description: Achievement not found
         "401":
           description: Authentication required
+  /achievements/{id}/attachments:
+    get:
+      operationId: listAchievementAttachments
+      tags: [student]
+      summary: List private evidence attached to an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Achievement evidence
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AchievementAttachment" }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+    post:
+      operationId: createAchievementAttachment
+      tags: [student]
+      summary: Add text or a link as private evidence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AchievementAttachmentInput" }
+      responses:
+        "201":
+          description: Evidence added
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachment" }
+        "400": { description: Invalid evidence }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+  /achievements/{id}/attachments/uploads:
+    post:
+      operationId: requestAchievementAttachmentUpload
+      tags: [student]
+      summary: Request a private direct-upload URL for achievement evidence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AchievementAttachmentUploadInput" }
+      responses:
+        "201":
+          description: Short-lived upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachmentUpload" }
+        "400": { description: Unsupported file or invalid metadata }
+        "401": { description: Authentication required }
+        "404": { description: Achievement not found }
+  /achievements/{id}/attachments/{attachmentId}/confirm:
+    post:
+      operationId: confirmAchievementAttachmentUpload
+      tags: [student]
+      summary: Verify and finish an achievement evidence upload
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Verified file attachment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AchievementAttachment" }
+        "400": { description: Upload is incomplete or invalid }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+  /achievements/{id}/attachments/{attachmentId}/download:
+    get:
+      operationId: downloadAchievementAttachment
+      tags: [student]
+      summary: Stream private achievement evidence to its owner or an administrator
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Range
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Private attachment content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "503": { description: "The access audit could not be recorded, so content was not served" }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+        "416": { description: Invalid byte range }
+  /achievements/{id}/attachments/{attachmentId}/preview:
+    get:
+      operationId: previewAchievementAttachment
+      tags: [student]
+      summary: Preview private achievement evidence for its owner or an administrator
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Range
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Private attachment content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+        "416": { description: Invalid byte range }
+        "503": { description: "Access audit unavailable, private content not served" }
+  /achievements/{id}/attachments/{attachmentId}:
+    delete:
+      operationId: deleteAchievementAttachment
+      tags: [student]
+      summary: Delete private evidence from an achievement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attachmentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Evidence deleted }
+        "401": { description: Authentication required }
+        "404": { description: Attachment not found }
+  /modules/{moduleKey}/submissions:
+    get:
+      operationId: listModuleSubmissions
+      tags: [student]
+      summary: List the authenticated student's files submitted to a module
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+      responses:
+        "200":
+          description: The student's module submissions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmissionList" }
+        "401": { description: Authentication required }
+  /modules/{moduleKey}/submissions/{submissionId}:
+    delete:
+      operationId: deleteModuleSubmission
+      tags: [student]
+      summary: Delete one of the authenticated student's module submissions
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Submission deleted }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+  /modules/{moduleKey}/submissions/uploads:
+    post:
+      operationId: requestModuleSubmissionUpload
+      tags: [student]
+      summary: Request a private upload URL for a file submitted to a module
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleSubmissionUploadInput" }
+      responses:
+        "201":
+          description: Short-lived direct upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmissionUpload" }
+        "400": { description: Invalid upload metadata or unsupported file type }
+        "401": { description: Authentication required }
+  /modules/{moduleKey}/submissions/{submissionId}/confirm:
+    post:
+      operationId: confirmModuleSubmissionUpload
+      tags: [student]
+      summary: Verify and finish a module file submission
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Verified submission awaiting review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSubmission" }
+        "400": { description: Uploaded bytes failed verification }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+  /modules/{moduleKey}/submissions/{submissionId}/download:
+    get:
+      operationId: downloadModuleSubmission
+      tags: [student]
+      summary: Stream a module submission to its owner
+      parameters:
+        - { in: path, name: moduleKey, required: true, schema: { $ref: "#/components/schemas/ModuleKey" } }
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: Range, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Private file content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "404": { description: Submission not found }
+        "416": { description: Invalid byte range }
+  /admin/module-submissions:
+    get:
+      operationId: listAdminModuleSubmissions
+      tags: [admin]
+      summary: List student files submitted to platform modules
+      parameters:
+        - { in: query, name: status, required: false, schema: { type: string, enum: [pending, approved, rejected] } }
+        - { in: query, name: page, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated module submission review queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminModuleSubmissionList" }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+  /admin/module-submissions/{submissionId}/review:
+    patch:
+      operationId: reviewAdminModuleSubmission
+      tags: [admin]
+      summary: Approve or reject a student module submission
+      parameters:
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleSubmissionReviewInput" }
+      responses:
+        "200":
+          description: Updated submission review state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminModuleSubmission" }
+        "400": { description: Invalid review state }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission not found }
+  /admin/module-submissions/{submissionId}/download:
+    get:
+      operationId: downloadAdminModuleSubmission
+      tags: [admin]
+      summary: Stream a student's file to an administrator for review
+      parameters:
+        - { in: path, name: submissionId, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: Range, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Private file content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "206":
+          description: Partial video content
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { description: Authentication required }
+        "403": { description: Administrator access required }
+        "404": { description: Submission not found }
+        "416": { description: Invalid byte range }
   /ai/achievement-draft:
     post:
       operationId: generateAchievementDraft
@@ -927,6 +1484,32 @@ paths:
           description: Invalid input
         "401":
           description: Authentication required
+  /ai/resume-writing:
+    post:
+      operationId: rewriteResumeText
+      tags: [ai]
+      summary: Rewrite a student-provided resume summary or achievement without inventing facts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeWritingInput"
+      responses:
+        "200":
+          description: Suggested rewritten resume text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeWritingSuggestion"
+        "400":
+          description: Invalid source text
+        "401":
+          description: Authentication required
+        "429":
+          description: Wait before requesting another rewrite
+        "502":
+          description: AI writing assistance is temporarily unavailable
   /ai/career-assistant:
     post:
       operationId: askCareerAssistant
@@ -2589,7 +3172,7 @@ components:
       required: [mime, size]
       properties:
         mime: { type: string, enum: [image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm] }
-        size: { type: integer, minimum: 1, maximum: 83886080 }
+        size: { type: integer, minimum: 1 }
     AdAssetUpload:
       type: object
       required: [id, uploadUrl]
@@ -2637,8 +3220,7 @@ components:
       properties:
         moduleSettings:
           type: array
-          minItems: 7
-          maxItems: 7
+          minItems: 1
           items: { $ref: "#/components/schemas/ModuleSetting" }
         appearance: { $ref: "#/components/schemas/AppearanceSettings" }
     AppearanceSettings:
@@ -2650,6 +3232,14 @@ components:
         accentColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         canvasColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
         surfaceColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        fontFamily: { type: string, enum: [IBM Plex Sans Arabic, Cairo, Tahoma, Arial] }
+        fontScale: { type: integer, minimum: 90, maximum: 130 }
+        textColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        headingColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        cardTextColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        cardBorderColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        iconColor: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        iconShape: { type: string, enum: [rounded, circle, square] }
         welcomeTitle: { type: string, minLength: 2, maxLength: 80 }
         welcomeDescription: { type: string, minLength: 2, maxLength: 220 }
     PlatformAccess:
@@ -2724,6 +3314,36 @@ components:
         total: { type: integer }
         page: { type: integer }
         pageSize: { type: integer }
+    AdminAchievementEvidenceItem:
+      type: object
+      additionalProperties: false
+      required: [id, achievementId, studentName, studentUniversity, studentMajor, achievementTitle, kind, title, content, url, originalName, mime, size, status, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        achievementId: { type: string, format: uuid }
+        studentName: { type: string }
+        studentUniversity: { type: string }
+        studentMajor: { type: string }
+        achievementTitle: { type: string }
+        kind: { type: string }
+        title: { type: string }
+        content: { type: ["string", "null"] }
+        url: { type: ["string", "null"] }
+        originalName: { type: ["string", "null"] }
+        mime: { type: ["string", "null"] }
+        size: { type: ["integer", "null"], minimum: 1 }
+        status: { type: string }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AdminAchievementEvidencePage:
+      type: object
+      additionalProperties: false
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminAchievementEvidenceItem" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
     SectionMediaUploadInput:
       type: object
       additionalProperties: false
@@ -2734,6 +3354,7 @@ components:
           type: string
           enum: [image/jpeg, image/png, image/webp, image/gif, audio/mpeg, audio/mp4, audio/wav, audio/ogg, audio/webm, video/mp4, video/webm, application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain]
         size: { type: integer, minimum: 1 }
+        resumable: { type: boolean, description: Request a resumable direct-to-storage upload session }
     SectionMediaUploadRequest:
       type: object
       additionalProperties: false
@@ -2741,12 +3362,34 @@ components:
       properties:
         id: { type: string, format: uuid }
         uploadUrl: { type: string, format: uri }
+        resumable: { type: boolean }
     SectionMediaUploadResult:
       type: object
       additionalProperties: false
       required: [url]
       properties:
         url: { type: string }
+    SectionMediaCleanupPreview:
+      type: object
+      additionalProperties: false
+      required: [retentionDays, expiredUploads, unlinkedAssets, orphanFiles, reclaimableBytes]
+      properties:
+        retentionDays: { type: integer }
+        expiredUploads: { type: integer }
+        unlinkedAssets: { type: integer }
+        orphanFiles: { type: integer }
+        reclaimableBytes: { type: integer }
+    SectionMediaCleanupResult:
+      type: object
+      additionalProperties: false
+      required: [retentionDays, expiredUploads, removedAssets, deletedFiles, failedFiles, reclaimedBytes]
+      properties:
+        retentionDays: { type: integer }
+        expiredUploads: { type: integer }
+        removedAssets: { type: integer }
+        deletedFiles: { type: integer }
+        failedFiles: { type: integer }
+        reclaimedBytes: { type: integer }
     ContentInput:
       type: object
       additionalProperties: false
@@ -2783,11 +3426,27 @@ components:
           items: { $ref: "#/components/schemas/ModuleSetting" }
         appearance: { $ref: "#/components/schemas/AppearanceSettings" }
         sections: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
+    CoursePositionInput:
+      type: object
+      additionalProperties: false
+      required: [lesson]
+      properties:
+        lesson: { $ref: "#/components/schemas/SectionBlock" }
+    CoursePosition:
+      type: object
+      additionalProperties: false
+      required: [lesson]
+      properties:
+        lesson:
+          oneOf:
+            - { $ref: "#/components/schemas/SectionBlock" }
+            - { type: "null" }
     SectionBlock:
       type: object
       additionalProperties: false
       required: [type, title, body, url]
       properties:
+        id: { type: string, format: uuid }
         type: { type: string, enum: [text, link, media] }
         mediaType: { type: string, enum: [image, audio, video, file] }
         title: { type: string, minLength: 1, maxLength: 100 }
@@ -2812,7 +3471,7 @@ components:
         description: { type: string, maxLength: 600 }
         units:
           type: array
-          maxItems: 20
+          maxItems: 100
           items: { $ref: "#/components/schemas/SectionCourseUnit" }
         skills:
           type: array
@@ -2821,7 +3480,7 @@ components:
         materials:
           type: array
           minItems: 1
-          maxItems: 20
+          maxItems: 100
           items: { $ref: "#/components/schemas/SectionBlock" }
     SectionInput:
       type: object
@@ -2861,13 +3520,16 @@ components:
         items: { type: array, items: { $ref: "#/components/schemas/PlatformSection" } }
     AuditEntry:
       type: object
-      required: [id, actorId, action, target, createdAt]
+      required: [id, actorId, action, target, createdAt, evidenceStudentName, evidenceAchievementTitle, evidenceAttachmentTitle]
       properties:
         id: { type: string }
         actorId: { type: string }
         action: { type: string }
         target: { type: string }
         createdAt: { type: string }
+        evidenceStudentName: { type: ["string", "null"] }
+        evidenceAchievementTitle: { type: ["string", "null"] }
+        evidenceAttachmentTitle: { type: ["string", "null"] }
     AuditPage:
       type: object
       required: [items, total, page, pageSize]
@@ -2916,6 +3578,158 @@ components:
           type: array
           maxItems: 30
           items: { type: string, maxLength: 60 }
+    ResumeSectionEntry:
+      type: object
+      required: [title, organization, location, period, description, link]
+      properties:
+        title: { type: string, maxLength: 180 }
+        organization: { type: string, maxLength: 180 }
+        location: { type: string, maxLength: 180 }
+        period: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 2000 }
+        link: { type: string, maxLength: 400 }
+    StudentResumeAppearance:
+      type: object
+      required: [fontFamily, pageColor, textColor, headingColor, accentColor]
+      properties:
+        fontFamily: { type: string, enum: [Arial, Tahoma, Verdana, Georgia, Cairo, "IBM Plex Sans Arabic"] }
+        fontSize: { type: integer, minimum: 10, maximum: 18 }
+        pageColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        textColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        headingColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        accentColor: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+    StudentResumeInlineStyleRange:
+      type: object
+      additionalProperties: false
+      required: [field, start, end]
+      properties:
+        field: { type: string, minLength: 1, maxLength: 240 }
+        start: { type: integer, minimum: 0, maximum: 20000 }
+        end: { type: integer, minimum: 1, maximum: 20000 }
+        bold: { type: boolean }
+        italic: { type: boolean }
+        underline: { type: boolean }
+        color: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+        fontSize: { type: integer, minimum: 8, maximum: 32 }
+    StudentResumeContent:
+      type: object
+      required: [fullName, email, phone, location, linkedin, website, headline, summary, education, experience, projects, courses, skills, certifications, languages]
+      properties:
+        fullName: { type: string, maxLength: 120 }
+        email: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 60 }
+        location: { type: string, maxLength: 160 }
+        linkedin: { type: string, maxLength: 400 }
+        website: { type: string, maxLength: 400 }
+        headline: { type: string, maxLength: 240 }
+        summary: { type: string, maxLength: 2000 }
+        education:
+          type: array
+          maxItems: 20
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        experience:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        projects:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        courses:
+          type: array
+          maxItems: 30
+          items: { $ref: "#/components/schemas/ResumeSectionEntry" }
+        skills:
+          type: array
+          maxItems: 60
+          items: { type: string, maxLength: 80 }
+        certifications:
+          type: array
+          maxItems: 30
+          items: { type: string, maxLength: 180 }
+        languages:
+          type: array
+          maxItems: 20
+          items: { type: string, maxLength: 100 }
+        appearance: { $ref: "#/components/schemas/StudentResumeAppearance" }
+        inlineStyles:
+          type: array
+          maxItems: 600
+          items: { $ref: "#/components/schemas/StudentResumeInlineStyleRange" }
+    StudentResumeOrigin:
+      type: string
+      enum: [guided, manual]
+    StudentResume:
+      type: object
+      required: [id, title, origin, template, content, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StudentResumeList:
+      type: array
+      items: { $ref: "#/components/schemas/StudentResume" }
+    StudentResumeInput:
+      type: object
+      required: [title, origin, template, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+    StudentResumeUpdate:
+      type: object
+      required: [title, origin, template, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        origin: { $ref: "#/components/schemas/StudentResumeOrigin" }
+        template: { type: string, enum: [ats, professional, classic, modern, sidebar] }
+        content: { $ref: "#/components/schemas/StudentResumeContent" }
+    StudentOfficeFileKind:
+      type: string
+      enum: [document, spreadsheet]
+    StudentOfficeFile:
+      type: object
+      required: [id, title, kind, content, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        kind: { $ref: "#/components/schemas/StudentOfficeFileKind" }
+        content: { type: string, maxLength: 120000 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StudentOfficeFileList:
+      type: array
+      items: { $ref: "#/components/schemas/StudentOfficeFile" }
+    StudentOfficeFileInput:
+      type: object
+      required: [title, kind, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        kind: { $ref: "#/components/schemas/StudentOfficeFileKind" }
+        content: { type: string, maxLength: 120000 }
+    StudentOfficeFileUpdate:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        content: { type: string, maxLength: 120000 }
+    ResumeWritingInput:
+      type: object
+      required: [mode, sourceText]
+      properties:
+        mode: { type: string, enum: [summary, bullet] }
+        sourceText: { type: string, minLength: 1, maxLength: 3000 }
+        targetRole: { type: string, maxLength: 180 }
+    ResumeWritingSuggestion:
+      type: object
+      required: [suggestion]
+      properties:
+        suggestion: { type: string, minLength: 1, maxLength: 3000 }
     ResumeShareSettings:
       type: object
       required: [enabled, token, showName, showHeadline, showUniversity, showMajor, showYearOfStudy, showSkills, achievementIds, courseIds]
@@ -3049,6 +3863,109 @@ components:
         interviewStory: { type: ["string", "null"], maxLength: 3000 }
         serviceOffer: { type: ["string", "null"], maxLength: 2000 }
         summary: { type: ["string", "null"], maxLength: 1000 }
+    AchievementAttachment:
+      type: object
+      required: [id, kind, title, content, url, originalName, mime, size, status, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [file, text, link] }
+        title: { type: string }
+        content: { type: ["string", "null"] }
+        url: { type: ["string", "null"], format: uri }
+        originalName: { type: ["string", "null"] }
+        mime: { type: ["string", "null"] }
+        size: { type: ["integer", "null"], format: int64 }
+        status: { type: string, enum: [uploading, ready] }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AchievementAttachmentInput:
+      type: object
+      required: [kind, title]
+      properties:
+        kind: { type: string, enum: [text, link] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        content: { type: string, maxLength: 8000 }
+        url: { type: string, format: uri, maxLength: 2048 }
+    AchievementAttachmentUploadInput:
+      type: object
+      required: [name, mime, size]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        mime: { type: string, minLength: 1, maxLength: 120 }
+        size: { type: integer, format: int64, minimum: 1 }
+    AchievementAttachmentUpload:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+    ModuleSubmissionStatus:
+      type: string
+      enum: [uploading, pending, approved, rejected]
+    ModuleSubmission:
+      type: object
+      required: [id, moduleKey, title, note, originalName, mime, size, status, reviewNote, reviewedAt, downloadUrl, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        moduleKey: { $ref: "#/components/schemas/ModuleKey" }
+        title: { type: string }
+        note: { type: ["string", "null"] }
+        originalName: { type: string }
+        mime: { type: string }
+        size: { type: integer, format: int64 }
+        status: { $ref: "#/components/schemas/ModuleSubmissionStatus" }
+        reviewNote: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        downloadUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AdminModuleSubmission:
+      allOf:
+        - $ref: "#/components/schemas/ModuleSubmission"
+        - type: object
+          required: [ownerId, reviewedBy]
+          properties:
+            ownerId: { type: string }
+            reviewedBy: { type: ["string", "null"] }
+    ModuleSubmissionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleSubmission" }
+    AdminModuleSubmissionList:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdminModuleSubmission" }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        pageSize: { type: integer, minimum: 1 }
+    ModuleSubmissionUploadInput:
+      type: object
+      additionalProperties: false
+      required: [title, originalName, mime, size]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        note: { type: ["string", "null"], maxLength: 2000 }
+        originalName: { type: string, minLength: 1, maxLength: 255 }
+        mime: { type: string, minLength: 1, maxLength: 120 }
+        size: { type: integer, format: int64, minimum: 1 }
+    ModuleSubmissionUpload:
+      type: object
+      required: [id, uploadUrl]
+      properties:
+        id: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+    ModuleSubmissionReviewInput:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+        reviewNote: { type: ["string", "null"], maxLength: 1000 }
     AchievementDraftInput:
       type: object
       required: [title, context, action, result]
@@ -3636,16 +4553,18 @@ components:
       properties:
         id: { type: string, format: uuid }
         originalName: { type: string }
-        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp] }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp, application/vnd.openxmlformats-officedocument.presentationml.presentation, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/msword, application/vnd.ms-powerpoint, application/vnd.ms-excel, text/csv, video/mp4, video/webm, audio/mpeg, audio/mp4, audio/wav, audio/ogg] }
         size: { type: integer, minimum: 1 }
         createdAt: { type: string, format: date-time }
+        studyAvailable: { type: boolean }
+        studyMessage: { type: string }
     AcademyStudentFileInput:
       type: object
       required: [originalName, mime, size]
       properties:
         originalName: { type: string, minLength: 1, maxLength: 180 }
-        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp] }
-        size: { type: integer, minimum: 1, maximum: 10485760 }
+        mime: { type: string, enum: [application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain, image/jpeg, image/png, image/webp, application/vnd.openxmlformats-officedocument.presentationml.presentation, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/msword, application/vnd.ms-powerpoint, application/vnd.ms-excel, text/csv, video/mp4, video/webm, audio/mpeg, audio/mp4, audio/wav, audio/ogg] }
+        size: { type: integer, minimum: 1 }
     AcademyFileQuizInput:
       type: object
       additionalProperties: false

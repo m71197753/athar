@@ -14,4 +14,6 @@ export interface AcademyStudentFile {
   /** @minimum 1 */
   size: number;
   createdAt: Date;
+  studyAvailable?: boolean;
+  studyMessage?: string;
 }

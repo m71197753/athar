@@ -19,12 +19,16 @@
 
 export * from "./students";
 export * from "./achievements";
+export * from "./achievement-attachments";
 export * from "./career";
 export * from "./learning";
 export * from "./resume-shares";
+export * from "./student-resumes";
+export * from "./student-office-files";
 export * from "./platform";
 export * from "./platform-sections";
 export * from "./platform-media";
+export * from "./module-submissions";
 export * from "./ads";
 export * from "./academy";
 export * from "./academy-study";

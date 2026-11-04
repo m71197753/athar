@@ -9,6 +9,8 @@ import { registerAppWorker } from '@/lib/app-service-worker';
 import './index.css';
 import './dark-theme.css';
 import './visual-refresh.css';
+import './typography.css';
+import './palette.css';
 
 // Keep the development preview free of service-worker interception.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

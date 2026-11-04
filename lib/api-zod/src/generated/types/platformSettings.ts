@@ -9,10 +9,7 @@ import type { AppearanceSettings } from './appearanceSettings';
 import type { ModuleSetting } from './moduleSetting';
 
 export interface PlatformSettings {
-  /**
-     * @minItems 7
-     * @maxItems 7
-     */
+  /** @minItems 1 */
   moduleSettings: ModuleSetting[];
   appearance: AppearanceSettings;
 }

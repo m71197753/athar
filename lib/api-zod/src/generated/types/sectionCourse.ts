@@ -17,7 +17,7 @@ export interface SectionCourse {
   title: string;
   /** @maxLength 600 */
   description: string;
-  /** @maxItems 20 */
+  /** @maxItems 100 */
   units?: SectionCourseUnit[];
   /**
      * @maxItems 20
@@ -27,7 +27,7 @@ export interface SectionCourse {
   skills?: string[];
   /**
      * @minItems 1
-     * @maxItems 20
+     * @maxItems 100
      */
   materials: SectionBlock[];
 }

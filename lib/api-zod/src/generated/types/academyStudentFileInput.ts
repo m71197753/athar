@@ -14,9 +14,6 @@ export interface AcademyStudentFileInput {
      */
   originalName: string;
   mime: AcademyStudentFileInputMime;
-  /**
-     * @minimum 1
-     * @maximum 10485760
-     */
+  /** @minimum 1 */
   size: number;
 }

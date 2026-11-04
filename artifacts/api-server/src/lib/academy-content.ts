@@ -1,5 +1,7 @@
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
+import { academyLibraryExtraMimes, isAcademyOfficeMime, type AcademyLibraryExtraMime, type AcademyOfficeMime } from "./academy-library-formats";
+import { extractAcademyOfficeText } from "./academy-office-text";
 
 export const MAX_ACADEMY_FILE_BYTES = 10 * 1024 * 1024;
 export const MAX_ACADEMY_EXTRACTED_CHARS = 250_000;
@@ -11,7 +13,7 @@ export type AcademyMime =
   | "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   | "text/plain";
 export type AcademyImageMime = "image/jpeg" | "image/png" | "image/webp";
-export type AcademyStudentFileMime = AcademyMime | AcademyImageMime;
+export type AcademyStudentFileMime = AcademyMime | AcademyImageMime | AcademyLibraryExtraMime;
 export type AcademyVideoMime = "video/mp4" | "video/webm";
 export type AcademyCourseUploadMime = AcademyMime | AcademyVideoMime;
 export type AcademyUploadMime = AcademyStudentFileMime | AcademyVideoMime;
@@ -37,6 +39,7 @@ export function supportedAcademyDocument(name: string, mime: string): mime is Ac
 export function supportedAcademyFile(name: string, mime: string): mime is AcademyStudentFileMime {
   const extension = name.toLowerCase().split(".").at(-1);
   return supportedAcademyDocument(name, mime) ||
+    academyLibraryExtraMimes[extension as keyof typeof academyLibraryExtraMimes] === mime ||
     ((extension === "jpg" || extension === "jpeg") && mime === "image/jpeg") ||
     (extension === "png" && mime === "image/png") ||
     (extension === "webp" && mime === "image/webp");
@@ -52,7 +55,11 @@ export function supportedAcademyCourseUpload(
     (extension === "webm" && mime === "video/webm");
 }
 
-export async function extractAcademyText(bytes: Buffer, mime: AcademyMime): Promise<string> {
+export function isAcademyIndexableMime(mime: string): mime is AcademyMime | AcademyOfficeMime | "text/csv" {
+  return isAcademyOfficeMime(mime) || ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain", "text/csv"].includes(mime);
+}
+
+export async function extractAcademyText(bytes: Buffer, mime: AcademyMime | AcademyOfficeMime | "text/csv"): Promise<string> {
   let text: string;
   if (mime === "application/pdf") {
     const parser = new PDFParse({ data: bytes });
@@ -65,6 +72,8 @@ export async function extractAcademyText(bytes: Buffer, mime: AcademyMime): Prom
   } else if (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
     const result = await mammoth.extractRawText({ buffer: bytes });
     text = result.value;
+  } else if (isAcademyOfficeMime(mime)) {
+    text = extractAcademyOfficeText(bytes, mime);
   } else {
     text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     if (text.includes("\u0000")) throw new Error("Text file contains binary data");

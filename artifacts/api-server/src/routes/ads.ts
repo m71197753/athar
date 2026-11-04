@@ -122,8 +122,8 @@ router.patch("/admin/ad-enquiries/:id", async (req, res) => {
 });
 router.post("/admin/ad-assets", async (req, res) => {
   const input = RequestAdAssetUploadBody.strict().safeParse(req.body);
-  if (!input.success || (input.data.mime.startsWith("image/") && input.data.size > 10 * 1024 * 1024)) {
-    res.status(400).json({ error: "Use JPEG/PNG/WebP/GIF up to 10MB or MP4/WebM up to 80MB" }); return;
+  if (!input.success || !Number.isSafeInteger(input.data.size)) {
+    res.status(400).json({ error: "استخدم صورة JPEG أو PNG أو WebP أو GIF، أو فيديو MP4 أو WebM غير فارغ." }); return;
   }
   const { objectPath, uploadUrl } = await createAssetUpload();
   const [asset] = await db.insert(adAssetsTable).values({ ...input.data, ownerId: res.locals.userId, objectPath }).returning();

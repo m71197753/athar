@@ -173,7 +173,8 @@ test('legacy indigo defaults move to Athar colors while retaining welcome copy',
 test('custom appearance is not normalized as a legacy default', async () => {
   const custom = { ...defaultAppearance, primaryColor: '#285F80' };
   const { api } = platformFixture({ settings: { appearance: custom } });
-  assert.deepEqual(await api.platformAppearance(), custom);
+  const appearance = await api.platformAppearance();
+  for (const [key, value] of Object.entries(custom)) assert.equal(appearance[key], value);
 });
 
 async function authFixture({ userId = 'student-id', role = 'student', status = 'active', enabled = [] } = {}) {

@@ -1,0 +1,307 @@
+/* Athar palette — final color layer.
+   Loaded last from main.tsx. Owns semantic tokens for light and dark, re-binds
+   them to the admin appearance settings (--platform-*), and maps every feature
+   stylesheet's local tokens onto them. Color only: no layout, spacing or type.
+   Resume/document paper (.rs-resume-paper, .ats-paper, .resume-paper,
+   .public-resume-paper, .office-page) keeps its own colors and student choices. */
+
+:root {
+  color-scheme: light;
+  /* Surfaces — admin canvas/surface win; Athar's ink-indigo neutrals otherwise. */
+  --athar-canvas: var(--platform-canvas-light, #F6F7FB);
+  --athar-paper: var(--platform-paper-light, #EEF0F7);
+  --athar-paper-raised: var(--platform-surface-light, #FFFFFF);
+  --athar-sunken: color-mix(in srgb, var(--athar-canvas) 82%, #E3E6F2);
+  /* Text */
+  --athar-ink: var(--platform-heading-light, #161B33);
+  --athar-ink-soft: var(--platform-text-light, #3A4160);
+  --athar-muted: #5E6687;
+  --athar-faint: #8A91AE;
+  /* Lines */
+  --athar-line: #DFE3EE;
+  --athar-line-strong: #C9CFE0;
+  --athar-card-ink: var(--platform-card-text-light, var(--athar-ink-soft));
+  --athar-card-line: var(--platform-card-border-light, var(--athar-line));
+  /* Brand — the indigo of the fingerprint mark, admin-configurable. */
+  --athar-primary: var(--platform-primary-light, #4338CA);
+  --athar-primary-deep: var(--platform-primary-deep-light, #3730A3);
+  --athar-primary-accent: var(--platform-accent-light, #6366F1);
+  --athar-primary-soft: var(--platform-primary-soft-light, #EEEFFD);
+  --athar-primary-text: var(--platform-primary-foreground-light, #FFFFFF);
+  --athar-primary-line: color-mix(in srgb, var(--athar-primary) 26%, var(--athar-line));
+  --athar-teal: var(--athar-primary);
+  --athar-teal-deep: var(--athar-primary-deep);
+  --athar-teal-soft: var(--athar-primary-soft);
+  /* Status — fixed semantics, independent of brand. */
+  --athar-success: #157347;   --athar-success-soft: #E8F5EE;
+  --athar-saffron: #A85F12;   --athar-saffron-soft: #FDF3E4;
+  --athar-danger: #B4233F;    --athar-danger-soft: #FCEDF0;
+  --athar-info: #1F5FC4;      --athar-info-soft: #EAF1FC;
+  --athar-shadow: 0 1px 2px rgba(22, 27, 51, .04), 0 8px 24px rgba(22, 27, 51, .05);
+  --athar-shadow-lift: 0 14px 36px rgba(22, 27, 51, .10);
+  --athar-scrim: rgba(17, 20, 40, .38);
+
+  /* shadcn / tailwind bridges */
+  --primary: var(--platform-primary-hsl-light, 245 58% 51%);
+  --primary-foreground: var(--platform-primary-foreground-hsl-light, 0 0% 100%);
+  --accent: var(--platform-accent-hsl-light, 239 84% 67%);
+  --accent-foreground: var(--platform-accent-foreground-hsl-light, 0 0% 100%);
+  --ring: var(--platform-accent-hsl-light, 239 84% 67%);
+  --background: var(--platform-canvas-hsl-light, 230 33% 97%);
+  --card: var(--platform-surface-hsl-light, 0 0% 100%);
+  --popover: var(--platform-surface-hsl-light, 0 0% 100%);
+  --foreground: 231 38% 14%;
+  --card-foreground: 231 38% 14%;
+  --popover-foreground: 231 38% 14%;
+  --muted: 228 30% 95%;
+  --muted-foreground: 229 18% 45%;
+  --secondary: 230 40% 95%;
+  --secondary-foreground: 231 38% 20%;
+  --border: 225 30% 90%;
+  --input: 225 30% 88%;
+  --destructive: 349 67% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 229 25% 30%;
+  --sidebar-border: 225 30% 90%;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: 238 70% 96%;
+  --sidebar-accent-foreground: 245 58% 40%;
+  --sidebar-ring: var(--ring);
+
+  /* Legacy aliases used by older feature sheets */
+  --ink: var(--athar-ink); --paper: var(--athar-paper-raised); --canvas: var(--athar-canvas);
+  --line: var(--athar-line); --quiet: var(--athar-muted); --gold: var(--athar-saffron); --coral: var(--athar-danger);
+  --forest: var(--athar-primary); --forest-deep: var(--athar-primary-deep); --moss: var(--athar-primary-accent);
+  --athar-auth-bg: var(--athar-canvas); --athar-auth-fg: var(--athar-ink); --athar-auth-muted: var(--athar-muted);
+  --athar-auth-primary: var(--athar-primary); --athar-auth-primary-hover: var(--athar-primary-deep);
+  --athar-auth-link: var(--athar-primary); --athar-auth-border: var(--athar-line); --athar-auth-input: var(--athar-paper-raised);
+  --athar-auth-success: var(--athar-success); --athar-auth-danger: var(--athar-danger);
+  --a-teal: var(--athar-primary); --ad-teal: var(--athar-primary); --ac-teal: var(--athar-primary);
+  --gld-teal: var(--athar-primary); --ls-teal: var(--athar-primary);
+}
+
+.dark {
+  color-scheme: dark;
+  /* Deep indigo night, never neutral black. */
+  --athar-canvas: #0F1223;
+  --athar-paper: #161A2E;
+  --athar-paper-raised: #1C2139;
+  --athar-sunken: #12152A;
+  --athar-ink: #EEF0FA;
+  --athar-ink-soft: #CDD2E7;
+  --athar-muted: #9CA3C2;
+  --athar-faint: #737A9A;
+  --athar-line: #2B3150;
+  --athar-line-strong: #3A4166;
+  --athar-card-ink: var(--platform-card-text-dark, #E4E7F5);
+  --athar-card-line: var(--athar-line);
+  --athar-primary: var(--platform-primary-dark, #8F93F6);
+  --athar-primary-deep: var(--platform-primary-deep-dark, #7377E8);
+  --athar-primary-accent: var(--platform-accent-dark, #A9B1FB);
+  --athar-primary-soft: color-mix(in srgb, var(--athar-primary) 16%, #1C2139);
+  --athar-primary-text: var(--platform-primary-foreground-dark, #0F1223);
+  --athar-primary-line: color-mix(in srgb, var(--athar-primary) 38%, var(--athar-line));
+  --athar-success: #7DD3A4;   --athar-success-soft: #15302A;
+  --athar-saffron: #F2B866;   --athar-saffron-soft: #33291C;
+  --athar-danger: #F5A0B0;    --athar-danger-soft: #3A1E2A;
+  --athar-info: #95BDF7;      --athar-info-soft: #1A2A47;
+  --athar-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 10px 28px rgba(4, 6, 20, .28);
+  --athar-shadow-lift: 0 16px 40px rgba(4, 6, 20, .45);
+  --athar-scrim: rgba(5, 7, 18, .62);
+
+  --primary: var(--platform-primary-hsl-dark, 238 86% 77%);
+  --primary-foreground: var(--platform-primary-foreground-hsl-dark, 232 40% 10%);
+  --accent: var(--platform-accent-hsl-dark, 234 92% 82%);
+  --accent-foreground: var(--platform-accent-foreground-hsl-dark, 232 40% 10%);
+  --ring: var(--platform-accent-hsl-dark, 234 92% 82%);
+  --background: 232 40% 10%;
+  --card: 231 34% 17%;
+  --popover: 231 34% 17%;
+  --foreground: 231 50% 96%;
+  --card-foreground: 231 50% 96%;
+  --popover-foreground: 231 50% 96%;
+  --muted: 231 30% 16%;
+  --muted-foreground: 229 22% 69%;
+  --secondary: 231 30% 20%;
+  --secondary-foreground: 231 50% 92%;
+  --border: 230 30% 24%;
+  --input: 230 30% 26%;
+  --destructive: 349 80% 79%;
+  --destructive-foreground: 232 40% 10%;
+  --sidebar: 231 34% 13%;
+  --sidebar-foreground: 229 35% 85%;
+  --sidebar-border: 230 30% 22%;
+  --sidebar-accent: 236 40% 22%;
+  --sidebar-accent-foreground: 234 92% 85%;
+
+  --a-teal: var(--athar-primary); --ad-teal: var(--athar-primary); --ac-teal: var(--athar-primary);
+  --gld-teal: var(--athar-primary); --ls-teal: var(--athar-primary);
+  --dk-teal: var(--athar-primary); --dk-teal-strong: var(--athar-primary-deep); --dk-teal-hover: var(--athar-primary-accent);
+  --dk-teal-soft: var(--athar-primary-soft); --dk-focus: color-mix(in srgb, var(--athar-primary-accent) 60%, transparent);
+}
+
+/* Feature token bridges — html prefix outranks lazily loaded feature sheets. */
+html .adm-frame { --a-bg:var(--athar-canvas); --a-card:var(--athar-paper-raised); --a-line:var(--athar-line); --a-ink:var(--athar-ink); --a-muted:var(--athar-muted); --a-teal:var(--athar-primary); --a-soft:var(--athar-primary-soft);
+  --a-red:var(--athar-danger); --a-red-bg:var(--athar-danger-soft); --a-amber:var(--athar-saffron); --a-amber-bg:var(--athar-saffron-soft); --a-ok:var(--athar-success); --a-ok-bg:var(--athar-success-soft); }
+html .academy { --ac-ink:var(--athar-ink); --ac-muted:var(--athar-muted); --ac-line:var(--athar-line); --ac-card:var(--athar-paper-raised); --ac-bg:var(--athar-canvas); --ac-teal:var(--athar-primary); --ac-soft:var(--athar-primary-soft); --ac-gold:var(--athar-saffron); }
+html :is(.ads-admin, .ads-slot) { --ad-card:var(--athar-paper-raised); --ad-bg:var(--athar-canvas); --ad-line:var(--athar-line); --ad-ink:var(--athar-ink); --ad-muted:var(--athar-muted); --ad-teal:var(--athar-primary); --ad-soft:var(--athar-primary-soft); }
+html .guest-language-demo { --gld-ink:var(--athar-ink); --gld-teal:var(--athar-primary); --gld-muted:var(--athar-muted); --gld-line:var(--athar-line); --gld-paper:var(--athar-paper-raised); --gld-canvas:var(--athar-canvas); }
+html .language-study { --ls-ink:var(--athar-ink); --ls-muted:var(--athar-muted); --ls-line:var(--athar-line); --ls-paper:var(--athar-paper-raised); --ls-canvas:var(--athar-canvas); --ls-teal:var(--athar-primary); --ls-teal-soft:var(--athar-primary-soft); --ls-ochre:var(--athar-saffron); --ls-danger:var(--athar-danger); }
+html .graduates { --gr-ink:var(--athar-ink); --gr-muted:var(--athar-muted); --gr-line:var(--athar-line); --gr-paper:var(--athar-paper-raised); --gr-canvas:var(--athar-canvas); --gr-teal:var(--athar-primary); --gr-soft:var(--athar-primary-soft); }
+/* Office: chrome follows Athar; the document page keeps paper colors below. */
+html .office-workspace { --office-ink:var(--athar-ink); --office-muted:var(--athar-muted); --office-line:var(--athar-line); --office-paper:var(--athar-paper-raised); --office-canvas:var(--athar-paper); --office-teal:var(--athar-primary); --office-teal-soft:var(--athar-primary-soft); --office-gold:var(--athar-saffron); }
+html .office-workspace .office-page { --office-ink:#1F2437; --office-line:#E3E5EE; --office-paper:#FFFFFF; }
+html .office-overline i { background: var(--athar-primary-accent); }
+/* Resume editors: chrome only. Accent tokens are left alone because the paper
+   preview reads them; student document colors are applied inline downstream. */
+html :is(.resume-studio) { --rs-ink:var(--athar-ink); --rs-ink-soft:var(--athar-ink-soft); --rs-muted:var(--athar-muted); --rs-line:var(--athar-line); --rs-paper:var(--athar-paper-raised); --rs-canvas:var(--athar-paper); }
+html :is(.ats-studio) { --ats-ink:var(--athar-ink); --ats-ink-soft:var(--athar-ink-soft); --ats-muted:var(--athar-muted); --ats-line:var(--athar-line); --ats-paper:var(--athar-paper-raised); --ats-canvas:var(--athar-paper); }
+html.dark :is(.resume-studio, .ats-studio) :is(input, textarea, select, button.rs-draft-chip, .rs-icon-button, .rs-edit-link, .rs-appearance-presets button, .ats-secondary, .ats-appearance-presets button):not(:where(.rs-resume-paper *, .ats-paper *)) {
+  color: var(--athar-ink); background-color: var(--athar-sunken); border-color: var(--athar-line);
+}
+
+/* Base canvas */
+html, body { background: var(--athar-canvas); color: var(--athar-ink); }
+::selection { background: color-mix(in srgb, var(--athar-primary-accent) 28%, transparent); color: inherit; }
+html :is(button, a, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--athar-primary-accent); outline-offset: 2px;
+}
+html .app-frame, html .main-column { background: var(--athar-canvas); color: var(--athar-ink); }
+
+/* Sidebar and navigation — quiet surface, one indigo signal for "you are here". */
+html .sidebar { background: var(--athar-paper-raised); color: var(--athar-ink-soft); border-color: var(--athar-line); }
+html .side-caption, html .sidebar-status, html .user-meta small, html .side-help > p { color: var(--athar-muted); }
+html .side-link { color: var(--athar-ink-soft); }
+html .side-link:hover { color: var(--athar-primary-deep); background: color-mix(in srgb, var(--athar-primary) 6%, var(--athar-paper-raised)); }
+html .side-link-active { color: var(--athar-primary-deep); background: var(--athar-primary-soft); box-shadow: inset -3px 0 0 var(--athar-primary); }
+html .nav-current { background: var(--athar-primary); }
+html .side-help { background: var(--athar-canvas); border-color: var(--athar-line); }
+html .side-help b, html .user-meta b { color: var(--athar-ink); }
+html .side-help > a { color: var(--athar-primary); }
+html .side-user { border-color: var(--athar-line); }
+html :is(.user-avatar, .avatar-mini) { color: var(--athar-primary-deep); background: var(--athar-primary-soft); }
+html .topbar { background: color-mix(in srgb, var(--athar-paper-raised) 90%, transparent); border-color: var(--athar-line); }
+html .topbar-crumb { color: var(--athar-ink); }
+html :is(.topbar-crumb span, .topbar-note, .app-footer) { color: var(--athar-muted); }
+html .mobile-bottom-nav { background: color-mix(in srgb, var(--athar-paper-raised) 96%, transparent); border-color: var(--athar-line); }
+html .mobile-bottom-link { color: var(--athar-muted); }
+html :is(.mobile-bottom-active, .mobile-bottom-active svg) { color: var(--athar-primary); }
+html .mobile-menu-button { color: var(--athar-primary); background: var(--athar-primary-soft); }
+html .mobile-scrim { background: var(--athar-scrim); }
+html .theme-toggle { color: var(--athar-primary); background: var(--athar-paper-raised); border-color: var(--athar-line); }
+html .theme-toggle:hover { background: var(--athar-primary-soft); border-color: var(--athar-primary-line); }
+html .profile-menu { background: var(--athar-paper-raised); border-color: var(--athar-line); box-shadow: var(--athar-shadow-lift); }
+html .profile-menu-item:hover { color: var(--athar-primary-deep); background: var(--athar-primary-soft); }
+html.dark .side-link:hover, html.dark .side-link-active, html.dark .profile-menu-item:hover { color: var(--athar-primary-accent); }
+html.dark .side-link-active > svg { color: var(--athar-primary-accent); }
+
+/* Buttons */
+html :is(.button-primary, .mobile-create-button, .gld-next, .gld-save-link, .ls-primary, .ac-button-primary, .chat-user) {
+  color: var(--athar-primary-text); background: var(--athar-primary); border-color: var(--athar-primary);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 4px 12px color-mix(in srgb, var(--athar-primary) 22%, transparent);
+}
+html .chat-user { box-shadow: none; }
+html :is(.button-primary, .gld-next, .gld-save-link, .ls-primary, .ac-button-primary):hover:not(:disabled),
+html .mobile-create-button:hover { background: var(--athar-primary-deep); border-color: var(--athar-primary-deep); }
+html .button-outline { color: var(--athar-ink-soft); background: var(--athar-paper-raised); border-color: var(--athar-line-strong); }
+html .button-outline:hover:not(:disabled) { color: var(--athar-primary-deep); background: var(--athar-primary-soft); border-color: var(--athar-primary-line); }
+html .button-quiet { color: var(--athar-ink-soft); }
+html .button-quiet:hover:not(:disabled) { color: var(--athar-primary); }
+html :is(.text-link, .subtle-link, .welcome-link, .progress-cta, .ls-secondary, .privacy-footer a) { color: var(--athar-primary); }
+html.dark :is(.text-link, .subtle-link, .welcome-link, .progress-cta, .ls-secondary, .privacy-footer a) { color: var(--athar-primary-accent); }
+html.dark .button-outline:hover:not(:disabled) { color: var(--athar-primary-accent); }
+
+/* Panels, cards, dialogs */
+html :is(.metric-card, .panel, .profile-progress-card, .achievement-card, .learning-card, .lesson-card,
+  .assistant-main, .assistant-aside, .state-panel, .empty-state, .growth-strip, .roadmap-task, .weekly-reminder,
+  .resource-card, .dashboard-feature-card, .dashboard-start, .ac-panel, .ac-card, .ac-row, .ac-question, .ac-admin-section,
+  .ls-workspace, .ls-aside-card, .gld-layout, .privacy-card) {
+  background: var(--athar-paper-raised); border-color: var(--athar-card-line); box-shadow: var(--athar-shadow);
+}
+html :is(.roadmap-plan-panel, .resource-directory, .resume-share-panel, .ac-question-editor) { background: var(--athar-paper); border-color: var(--athar-line); }
+html :is(.roadmap-task, .resource-card, .dashboard-feature-card):hover { border-color: var(--athar-primary-line); }
+html :is(.page-title h1, .panel h2, .panel h3, .section-heading h2, .dialog-header h2, .resource-heading h2) { color: var(--athar-ink); }
+html :is(.page-title p, .empty-state p, .state-panel p, .field-hint) { color: var(--athar-muted); }
+html :is(.page-kicker, .section-kicker, .auth-mood-kicker) { color: var(--athar-primary); }
+html.dark :is(.page-kicker, .section-kicker, .auth-mood-kicker) { color: var(--athar-primary-accent); }
+html :is(.achievement-dialog, .ads-dialog, .adm-dialog, [role="dialog"]:not(:where(.ats-paper *, .rs-resume-paper *))) { color: var(--athar-ink); background-color: var(--athar-paper-raised); border-color: var(--athar-line); }
+html :is(.dialog-header, .dialog-footer) { background: var(--athar-paper-raised); border-color: var(--athar-line); }
+html .ai-callout { background: var(--athar-primary-soft); border-color: var(--athar-primary-line); }
+html .skill-pill, html :is(.ac-tag, .ac-chip) { color: var(--athar-primary-deep); background: var(--athar-primary-soft); }
+html.dark .skill-pill, html.dark :is(.ac-tag, .ac-chip) { color: var(--athar-primary-accent); }
+html .progress-track { background: color-mix(in srgb, var(--athar-primary) 12%, var(--athar-paper)); }
+html .progress-track > span { background: var(--athar-primary); }
+
+/* Forms */
+html :is(.field, .adm-field, .ac-field, .ads-field) :is(input, textarea, select),
+html :is(.learning-tools input, .learning-tools select, .search-box, .filter-box, .adm-search, .ac-input, .youtube-search-form input, .share-link-controls input, .ads-lead-status select) {
+  color: var(--athar-ink); background-color: var(--athar-paper-raised); border-color: var(--athar-line-strong);
+}
+html.dark :is(.field, .adm-field, .ac-field, .ads-field) :is(input, textarea, select),
+html.dark :is(.learning-tools input, .learning-tools select, .search-box, .filter-box, .adm-search, .ac-input, .youtube-search-form input, .share-link-controls input, .ads-lead-status select) {
+  background-color: var(--athar-sunken);
+}
+html :is(.field, .adm-field, .ac-field, .ads-field) :is(input, textarea, select):focus {
+  border-color: var(--athar-primary-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--athar-primary-accent) 18%, transparent);
+}
+html :is(input, textarea)::placeholder { color: var(--athar-faint); }
+html :is(.share-choice, .share-item-choice, .share-enable-row) input { accent-color: var(--athar-primary); }
+
+/* Status semantics — preserved meanings, harmonised tones. */
+html .state-planned { color: var(--athar-info); background: var(--athar-info-soft); }
+html .state-in_progress { color: var(--athar-saffron); background: var(--athar-saffron-soft); }
+html :is(.state-completed, .status-completed) { color: var(--athar-success); background: var(--athar-success-soft); }
+html .success-note { color: var(--athar-success); }
+html :is(.form-error, .assistant-error) { color: var(--athar-danger); background: var(--athar-danger-soft); }
+html :is(.danger-icon:hover, .error-panel .state-symbol) { color: var(--athar-danger); background: var(--athar-danger-soft); }
+html :is(.metric-icon-gold, .growth-gold, .step-icon-gold, .resource-gold) { color: var(--athar-saffron); background: var(--athar-saffron-soft); }
+html :is(.growth-coral, .step-icon-coral, .resource-coral) { color: var(--athar-danger); background: var(--athar-danger-soft); }
+
+/* Hero bands — soft indigo wash, deep indigo for statement blocks. */
+html :is(.welcome-strip, .roadmap-hero, .learning-intro, .academy-banner, .youtube-search-panel, .privacy-header) {
+  border-color: var(--athar-line);
+  background: linear-gradient(118deg, color-mix(in srgb, var(--athar-primary) 9%, var(--athar-paper-raised)) 0%, var(--athar-paper-raised) 62%, color-mix(in srgb, var(--athar-primary-accent) 5%, var(--athar-paper-raised)) 100%);
+}
+html.dark :is(.welcome-strip, .roadmap-hero, .learning-intro, .academy-banner, .youtube-search-panel, .privacy-header) {
+  background: linear-gradient(118deg, color-mix(in srgb, var(--athar-primary) 20%, var(--athar-paper)) 0%, var(--athar-paper) 70%);
+}
+html :is(.welcome-copy h2, .visual-word) { color: var(--athar-primary-deep); }
+html.dark :is(.welcome-copy h2, .visual-word) { color: var(--athar-ink); }
+html :is(.hero h1 em, .landing-band h2 span, .welcome-copy h2 em, .roadmap-hero h2 em, .learning-intro h2 em, .academy-banner h2 em) { color: var(--athar-primary); }
+html.dark :is(.hero h1 em, .landing-band h2 span, .welcome-copy h2 em, .roadmap-hero h2 em, .learning-intro h2 em, .academy-banner h2 em) { color: var(--athar-primary-accent); }
+html :is(.landing-quote, .ac-hero, .gld-intro) { background: color-mix(in srgb, var(--athar-primary) 82%, #0F1223); }
+html.dark :is(.landing-quote, .ac-hero, .gld-intro) { background: color-mix(in srgb, var(--athar-primary) 30%, #12152A); }
+html .roadmap-progress-ring { background: conic-gradient(var(--athar-primary) var(--roadmap-progress), color-mix(in srgb, var(--athar-primary) 14%, var(--athar-paper)) var(--roadmap-progress)); }
+html .roadmap-progress-ring:before { background: var(--athar-paper-raised); }
+html .visual-sun { background: var(--athar-primary-soft); }
+html .chat-window { background: var(--athar-paper); }
+html .chat-message:not(.chat-user) { color: var(--athar-ink); background: var(--athar-paper-raised); border-color: var(--athar-line); }
+
+/* Public, auth */
+html :is(.landing, .auth-page, .auth-loading, .not-found, .privacy-page) { color: var(--athar-ink); background-color: var(--athar-canvas); }
+html .auth-page { background-image: radial-gradient(ellipse at 18% 75%, color-mix(in srgb, var(--athar-primary-accent) 11%, transparent), transparent 36rem); }
+html .landing-nav { background: color-mix(in srgb, var(--athar-canvas) 90%, transparent); border-color: var(--athar-line); }
+html :is(.landing-band) { background: var(--athar-paper-raised); }
+html :is(.journey-step) { background: var(--athar-canvas); border-color: var(--athar-line); }
+html .landing-footer { color: var(--athar-muted); background: var(--athar-canvas); border-color: var(--athar-line); }
+html.dark :is(.landing-band, .journey-step) { background: var(--athar-paper); }
+
+/* Admin */
+html .adm-top { background: color-mix(in srgb, var(--athar-paper-raised) 92%, transparent); border-color: var(--athar-line); }
+html .adm-tabs button.on { box-shadow: inset -3px 0 0 var(--athar-primary), var(--athar-shadow); }
+html :is(.adm-user, .adm-content-row, .adm-editor, .adm-module, .adm-published, .ads-card, .ads-editor, .ads-table-wrap, .ads-leads li) { color: var(--athar-ink); background: var(--athar-paper-raised); border-color: var(--athar-line); }
+html :is(.adm-ledger, .ads-ledger) { background: var(--athar-line); border-color: var(--athar-line); }
+html :is(.adm-tally, .ads-tally) { background: var(--athar-paper-raised); }
+html :is(.adm-tally-lead, .ads-tally.lead) { background: var(--athar-primary); }
+html .adm-pub-item { background: var(--athar-canvas); border-inline-start-color: var(--athar-primary); }
+html .adm-pub-item.announcement { border-inline-start-color: var(--athar-saffron); }
+html :is(.ads-filter button, .adp-tools button) { color: var(--athar-muted); background: var(--athar-paper-raised); border-color: var(--athar-line); }
+html :is(.ads-filter button.on, .adp-tools button.on, .topic-chip-active, .horizon-option.horizon-selected) { color: var(--athar-primary-deep); background: var(--athar-primary-soft); border-color: var(--athar-primary); }
+html.dark :is(.ads-filter button.on, .adp-tools button.on, .topic-chip-active, .horizon-option.horizon-selected) { color: var(--athar-primary-accent); }
+
+/* Document paper stays paper in every theme. */
+html :is(.resume-paper, .public-resume-paper) { background: #FFFFFF; border-color: #E3E5EE; }
+html.dark :is(.resume-paper, .public-resume-paper) { color: #1F2437; }
+html.dark .rs-resume-paper { border-color: var(--athar-line-strong); }

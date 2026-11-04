@@ -143,6 +143,10 @@ function loadAdminRouter() {
   let uploadCount = 0;
   let validationCount = 0;
   let validationMaxBytes;
+  let lastStreamOptions;
+  let lastStreamDestroyed = false;
+  let lastStream;
+  let lastReadRequest;
   let uuid = 0;
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL('../src/routes/admin.ts', import.meta.url), 'utf8'), {
@@ -172,9 +176,39 @@ function loadAdminRouter() {
           ALL_MODULES: [], enabledModules: async () => [], platformAppearance: async () => ({}),
           platformModuleSettings: async () => [],
         },
+        '../lib/section-media-cleanup': {
+          cleanupSectionMedia: async () => ({}),
+          previewSectionMediaCleanup: async () => ({}),
+        },
+        '../lib/section-media-cleanup-audit': { recordSectionMediaCleanupAudit: async () => 'audit-id' },
+        '../lib/achievement-evidence-audit': {
+          achievementEvidenceAuditEntry: (actorId, target, action) => ({ actorId, target, action }),
+        },
+        '../lib/section-media-cleanup-notifications': {
+          notifyAdminsOfSectionMediaCleanupIssue: async () => {},
+        },
         '../lib/ad-storage': {
-          assetFile: () => ({ createReadStream: () => ({ on() { return this; }, pipe() {} }) }),
+          assetFile: () => ({
+            createReadStream: options => {
+              lastStreamOptions = options;
+              lastStreamDestroyed = false;
+              const listeners = new Map();
+              lastStream = {
+                on() { return this; },
+                pipe() { return this; },
+                emit(event, ...args) { listeners.get(event)?.(...args); },
+                destroy() { lastStreamDestroyed = true; return this; },
+              };
+              lastStream.on = function (event, listener) { listeners.set(event, listener); return this; };
+              return lastStream;
+            },
+            delete: async () => {},
+          }),
           createAssetUpload: async () => ({ objectPath: '/objects/section-assets/test', uploadUrl: 'https://storage.example/upload' }),
+          createAssetReadUrl: async (objectPath, expiresInMs) => {
+            lastReadRequest = { objectPath, expiresInMs };
+            return 'https://storage.example/signed-video';
+          },
           validateUploadedAsset: async (objectPath, _mime, _size, maxBytes) => {
             validationCount += 1;
             validationMaxBytes = maxBytes;
@@ -195,25 +229,35 @@ function loadAdminRouter() {
     get uploadCount() { return uploadCount; },
     get validationCount() { return validationCount; },
     get validationMaxBytes() { return validationMaxBytes; },
-    reset() { for (const rows of tableRows.values()) rows.length = 0; },
+    get lastStreamOptions() { return lastStreamOptions; },
+    get lastStreamDestroyed() { return lastStreamDestroyed; },
+    get lastStream() { return lastStream; },
+    get lastReadRequest() { return lastReadRequest; },
+    reset() { for (const rows of tableRows.values()) rows.length = 0; lastStreamOptions = undefined; lastStreamDestroyed = false; lastStream = undefined; lastReadRequest = undefined; },
   };
 }
 
 function response() {
   return {
-    statusCode: 200, body: undefined, headers: {},
+    statusCode: 200, body: undefined, headers: {}, listeners: new Map(), headersSent: false, writableFinished: false,
     status(code) { this.statusCode = code; return this; },
     json(value) { this.body = value; return this; },
     setHeader(key, value) { this.headers[key] = value; },
-    end() { this.ended = true; },
+    getHeader(key) { return this.headers[key]; },
+    removeHeader(key) { delete this.headers[key]; },
+    redirect(status, url) { this.statusCode = status; this.redirectUrl = url; return this; },
+    once(event, listener) { this.listeners.set(event, listener); return this; },
+    emit(event) { this.listeners.get(event)?.(); },
+    destroy() { this.destroyed = true; },
+    end() { this.ended = true; this.writableFinished = true; },
   };
 }
-const call = async (router, method, path, { body = {}, params = {}, userId = 'admin-user' } = {}) => {
+const call = async (router, method, path, { body = {}, params = {}, headers = {}, userId = 'admin-user' } = {}) => {
   const handler = router.routes.get(`${method} ${path}`);
   assert.equal(typeof handler, 'function', `Missing route ${method} ${path}`);
   const res = response();
   res.locals = { userId, role: 'admin' };
-  await handler({ body, params, path, query: {}, headers: {}, get: () => undefined }, res);
+  await handler({ body, params, path, query: {}, headers, get: name => headers[name.toLowerCase()] }, res);
   return res;
 };
 
@@ -306,6 +350,83 @@ test('large section video uploads have no application-level size limit', async (
   });
   assert.equal(result.statusCode, 201);
   assert.equal(router.uploadCount, 1);
+});
+
+test('admin video preview redirects to a short-lived direct App Storage URL', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const size = 2 * 1024 * 1024;
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size },
+  });
+  const confirmed = await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  assert.equal(confirmed.statusCode, 200);
+
+  const fullPreview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+  });
+  assert.equal(fullPreview.statusCode, 302);
+  assert.equal(fullPreview.redirectUrl, 'https://storage.example/signed-video');
+  assert.equal(fullPreview.headers['Cache-Control'], 'private, no-store');
+  assert.deepEqual(router.lastReadRequest, { objectPath: '/objects/section-assets/test', expiresInMs: 60 * 60 * 1000 });
+  assert.equal(router.lastStreamOptions, undefined);
+
+  const rangePreview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=-65536' },
+  });
+  assert.equal(rangePreview.statusCode, 302);
+  assert.equal(rangePreview.redirectUrl, 'https://storage.example/signed-video');
+});
+
+test('published section videos redirect directly to App Storage without caching the signed URL', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.mp4', mime: 'video/mp4', size: 1024 },
+  });
+  const confirmed = await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  await call(router, 'POST', '/admin/sections', {
+    body: {
+      kind: 'content_page', title: 'درس فيديو', description: 'محتوى منشور',
+      blocks: [{ type: 'media', mediaType: 'video', title: 'الدرس', body: '', url: confirmed.body.url }],
+      courses: [], published: true, sortOrder: 1,
+    },
+  });
+
+  const response = await call(router, 'GET', '/platform/section-media/:id', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=0-63' },
+  });
+  assert.equal(response.statusCode, 302);
+  assert.equal(response.redirectUrl, 'https://storage.example/signed-video');
+  assert.equal(response.headers['Cache-Control'], 'private, no-store');
+  assert.equal(router.lastReadRequest.objectPath, '/objects/section-assets/test');
+  assert.equal(router.lastReadRequest.expiresInMs, 24 * 60 * 60 * 1000);
+});
+
+test('section media stream errors stop the response without leaving range headers', async () => {
+  const router = loadAdminRouter();
+  router.reset();
+  const ticket = await call(router, 'POST', '/admin/section-media/uploads', {
+    body: { originalName: 'lesson.pdf', mime: 'application/pdf', size: 1024 },
+  });
+  await call(router, 'POST', '/admin/section-media/uploads/:id/confirm', {
+    params: { id: ticket.body.id },
+  });
+  const preview = await call(router, 'GET', '/admin/section-media/:id/preview', {
+    params: { id: ticket.body.id },
+    headers: { range: 'bytes=0-31' },
+  });
+  router.lastStream.emit('error', new Error('storage stream failed'));
+  assert.equal(preview.statusCode, 404);
+  assert.equal(preview.ended, true);
+  assert.equal(preview.headers['Content-Range'], undefined);
+  assert.equal(preview.headers['Content-Length'], undefined);
 });
 
 test('section audio formats are accepted by the upload flow', async () => {

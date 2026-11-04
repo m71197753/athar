@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useUser } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronLeft, ChevronRight, CircleAlert, Headphones, LockKeyhole, RotateCcw, Volume2, Heart, Gem, Flame, Shield, Trophy, Bell, Vibrate } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, CircleAlert, Headphones, LockKeyhole, RotateCcw, Volume2, Heart, Gem, Flame, Shield, Trophy, Bell, Vibrate } from 'lucide-react';
 import {
   getGetLanguageGamificationQueryKey,
   getGetLanguageLearningProgressQueryKey,
@@ -28,6 +28,8 @@ import { gradeLanguageAnswer } from '@workspace/language-content';
 import { getExperimentVariant, trackDailyEventOnce, trackEvent, trackNextDayReturn } from '../../analytics/tracking';
 import './language-study.css';
 import { LanguageConversationPanel } from './LanguageConversationPanel';
+import { LanguageJourneyPath } from './LanguageJourneyPath';
+import type { LanguageJourneyNode, LanguagePracticeMode } from './LanguageJourneyPath';
 
 type Answer = LanguageSessionInput['answers'][number];
 type ResponseRecord = Answer & {
@@ -37,7 +39,7 @@ type ResponseRecord = Answer & {
   pronunciationScore?: number | null;
 };
 type Question = { item: StudyContentItem; mode: LanguageQuestionMode };
-type PracticeMode = 'mixed' | 'listening' | 'speaking';
+type PracticeMode = LanguagePracticeMode;
 type DraftAnswer = {
   contentId: string;
   mode: LanguageQuestionMode;
@@ -142,7 +144,7 @@ function buildQuestions(contentItems: StudyContentItem[], dueIds: string[], lang
   }
   return content.map((item, index) => ({
     item,
-    mode: practiceMode === 'listening' ? 'listening' : practiceMode === 'speaking' ? 'pronunciation' : starterQuestionModes[index],
+    mode: practiceMode === 'listening' ? 'listening' : practiceMode === 'speaking' ? 'pronunciation' : practiceMode === 'matching' ? 'choice' : starterQuestionModes[index],
   }));
 }
 
@@ -222,6 +224,7 @@ export function LanguageStudyPage() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRate, setAudioRate] = useState(0.75);
   const [sessionResult, setSessionResult] = useState<Awaited<ReturnType<typeof submitSession.mutateAsync>> | null>(null);
+  const [activeView, setActiveView] = useState<'path' | 'lesson'>('path');
   const [submitError, setSubmitError] = useState('');
   const [ready, setReady] = useState(false);
   const [sessionKind, setSessionKind] = useState<LanguageSessionInput['sessionKind']>('lesson');
@@ -248,10 +251,10 @@ export function LanguageStudyPage() {
   }, []);
 
   useEffect(() => {
-    if (!ready || sessionResult || trackedSessionStart.current === draftSessionRef) return;
+    if (!ready || activeView !== 'lesson' || sessionResult || trackedSessionStart.current === draftSessionRef) return;
     trackedSessionStart.current = draftSessionRef;
     trackEvent('language_session_started', { level, session_kind: sessionKind, language_code: languageCode, practice_mode: practiceMode });
-  }, [draftSessionRef, ready, sessionKind, sessionResult, languageCode, level, practiceMode]);
+  }, [draftSessionRef, ready, activeView, sessionKind, sessionResult, languageCode, level, practiceMode]);
 
   useEffect(() => {
     if (!storageKey || !progressQuery.data || !gamificationQuery.data || !contentQuery.data) return;
@@ -260,6 +263,7 @@ export function LanguageStudyPage() {
     let restoredPracticeMode: PracticeMode = 'mixed';
     let restoredOrder = questions;
     let restoredSessionKind: LanguageSessionInput['sessionKind'] | undefined;
+    let shouldResume = false;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -278,6 +282,7 @@ export function LanguageStudyPage() {
             setDraftSessionRef(draft.sessionRef);
             restoredSessionKind = draft.sessionKind;
             setIndex(Math.min(draft.index, Math.max(0, restoredOrder.length - 1)));
+            shouldResume = draft.index > 0 || draft.answers.length > 0;
             setAnswers(draft.answers.map(answer => ({
               contentId: answer.contentId,
               mode: answer.mode,
@@ -314,6 +319,7 @@ export function LanguageStudyPage() {
     setPracticeMode(nextSessionKind === 'lesson' ? restoredPracticeMode : 'mixed');
     setDisplayHearts(gamificationQuery.data.profile.hearts);
     setQuestionOrder(restoredOrder);
+    setActiveView(shouldResume ? 'lesson' : 'path');
     setReady(true);
   }, [storageKey, progressQuery.data, gamificationQuery.data, contentQuery.data, contentItems, questions, dueIds, languageCode]);
 
@@ -340,10 +346,10 @@ export function LanguageStudyPage() {
   }, [ready, storageKey, sessionResult, draftSessionRef, startedAt, index, answers, questionOrder, sessionKind, practiceMode]);
 
   useEffect(() => {
-    if (!ready || sessionResult) return;
+    if (!ready || activeView !== 'lesson' || sessionResult) return;
     const interval = window.setInterval(() => setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
     return () => window.clearInterval(interval);
-  }, [ready, sessionResult, startedAt]);
+  }, [ready, activeView, sessionResult, startedAt]);
 
   useEffect(() => {
     recognitionRef.current?.stop?.();
@@ -636,11 +642,13 @@ export function LanguageStudyPage() {
     setElapsedSeconds(0);
     setSessionKind(nextKind);
     setDisplayHearts(gamificationQuery.data?.profile.hearts ?? null);
+    setActiveView('lesson');
   };
 
   const selectSession = (kind: LanguageSessionInput['sessionKind'], mode: PracticeMode = 'mixed') => {
     setSessionKind(kind);
     setPracticeMode(mode);
+    setSessionResult(null);
     setQuestionOrder(buildQuestions(contentItems, kind === 'review' ? dueIds : [], languageCode, mode));
     setIndex(0);
     setAnswers([]);
@@ -648,6 +656,22 @@ export function LanguageStudyPage() {
     setStartedAt(Date.now());
     setElapsedSeconds(0);
     setSubmitError('');
+    setActiveView('lesson');
+  };
+
+  const returnToPath = () => {
+    if (answers.length > 0 && !sessionResult) {
+      setStartedAt(Date.now() - elapsedSeconds * 1000);
+    }
+    setActiveView('path');
+  };
+
+  const startJourneyNode = (mode: PracticeMode) => {
+    if (answers.length > 0 && !sessionResult) {
+      setActiveView('lesson');
+      return;
+    }
+    selectSession('lesson', mode);
   };
 
   const changeLanguage = (nextLanguage: SupportedLanguageCode) => {
@@ -667,6 +691,7 @@ export function LanguageStudyPage() {
     setStartedAt(Date.now());
     setElapsedSeconds(0);
     setDisplayHearts(null);
+    setActiveView('path');
     setReady(false);
     loadedStorageKey.current = null;
   };
@@ -686,6 +711,7 @@ export function LanguageStudyPage() {
     setElapsedSeconds(0);
     setSessionKind('lesson');
     setPracticeMode('mixed');
+    setActiveView('path');
   };
 
   useEffect(() => {
@@ -774,25 +800,74 @@ export function LanguageStudyPage() {
   const minutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
   const seconds = String(elapsedSeconds % 60).padStart(2, '0');
   const languageName = languageLabels[languageCode];
-  const practiceName = practiceMode === 'listening' ? 'جلسة استماع' : practiceMode === 'speaking' ? 'تمرين نطق' : 'درس متنوع';
+  const practiceName = practiceMode === 'listening' ? 'جلسة استماع' : practiceMode === 'speaking' ? 'تمرين نطق' : practiceMode === 'matching' ? 'توصيل الكلمات' : 'درس متنوع';
+  const nodeDefinitions: Omit<LanguageJourneyNode, 'status'>[] = [
+    { id: 'discover', title: 'اكتشف الكلمات', description: 'معانٍ وعبارات من مستواك', mode: 'mixed' },
+    { id: 'listen', title: 'استمع واختر', description: 'درّب أذنك على اللغة', mode: 'listening' },
+    { id: 'match', title: 'وصّل الكلمات', description: 'اربط الكلمة بمعناها', mode: 'matching' },
+    { id: 'speak', title: 'تدرّب على النطق', description: 'استمع وجرّب نطق الكلمات', mode: 'speaking' },
+    { id: 'review', title: 'ثبّت ما تعلمته', description: 'جلسة متنوعة للمراجعة', mode: 'mixed' },
+  ];
+  const completedPathSessions = progressQuery.data?.sessionsCompleted ?? 0;
+  const journeyNodes: LanguageJourneyNode[] = nodeDefinitions.map((node, nodeIndex) => ({
+    ...node,
+    status: nodeIndex < completedPathSessions ? 'completed' : nodeIndex === completedPathSessions ? 'current' : 'locked',
+  }));
+  const activeContentCount = contentItems.filter(item => item.languageCode === languageCode && item.active).length;
 
   return (
-    <main className={`language-study ${pageSettings.layoutOrder === 'game-first' ? 'is-game-first' : ''}`} style={{ '--language-accent': pageSettings.accentColor } as CSSProperties} dir="rtl">
+    <main className={`language-study ${pageSettings.layoutOrder === 'game-first' ? 'is-game-first' : ''} ${activeView === 'lesson' ? 'is-exercise' : 'is-path'}`} style={{ '--language-accent': pageSettings.accentColor } as CSSProperties} dir="rtl">
       <header className="ls-head">
         <div className="ls-brand" aria-label="أثر">
           <img src={`${import.meta.env.BASE_URL}athar-wordmark-3d.png`} alt="أثر" onError={event => { event.currentTarget.style.display = 'none'; }} />
         </div>
         <span className="ls-head-divider" />
-        <span className="ls-head-title">مساحة التعلّم · {languageName}</span>
-        <div className="ls-private"><LockKeyhole size={14} aria-hidden="true" /> تقدّمك محفوظ لحسابك</div>
+        <span className="ls-head-title">{activeView === 'lesson' ? `درس ${languageName} · ${level}` : `مساحة التعلّم · ${languageName}`}</span>
+        {activeView === 'lesson' && (
+          <div className="ls-exercise-top-stats">
+            {pageSettings.showGamification && gamificationQuery.data && <>
+              <span><Trophy size={14}/>{gamificationQuery.data.profile.xpTotal.toLocaleString('ar')}</span>
+              <span><Heart size={14} fill="currentColor"/>{displayHearts ?? gamificationQuery.data.profile.hearts}</span>
+              <span><Flame size={14}/>{gamificationQuery.data.profile.currentStreak.toLocaleString('ar')}</span>
+            </>}
+            <button className="ls-exercise-exit" type="button" onClick={returnToPath}><ArrowLeft size={15}/> المسار</button>
+          </div>
+        )}
+        {activeView === 'path' && <div className="ls-private"><LockKeyhole size={14} aria-hidden="true" /> تقدّمك محفوظ لحسابك</div>}
       </header>
 
       <div className="ls-wrap">
-        <div className="ls-heading">
+        {activeView === 'path' && <LanguageJourneyPath
+          title={pageSettings.title}
+          subtitle={pageSettings.subtitle}
+          languageCode={languageCode}
+          level={level}
+          enabledLanguages={enabledLanguages}
+          nodes={journeyNodes}
+          xpTotal={gamificationQuery.data?.profile.xpTotal ?? 0}
+          hearts={displayHearts ?? gamificationQuery.data?.profile.hearts ?? 0}
+          maxHearts={gamificationQuery.data?.profile.maxHearts ?? languageSettingsQuery.data?.game.maxHearts ?? defaultLanguageSettings.game.maxHearts}
+          currentStreak={gamificationQuery.data?.profile.currentStreak ?? 0}
+          dueReviewCount={progressQuery.data?.dueCount ?? 0}
+          activeContentCount={activeContentCount}
+          isLoading={progressQuery.isLoading || gamificationQuery.isLoading || contentQuery.isLoading}
+          hasError={progressQuery.isError || gamificationQuery.isError || contentQuery.isError || languageSettingsQuery.isError}
+          showGamification={pageSettings.showGamification}
+          showProgress={pageSettings.showProgress}
+          resumeAvailable={answers.length > 0 && !sessionResult}
+          onLanguageChange={changeLanguage}
+          onLevelChange={changeLevel}
+          onStartNode={startJourneyNode}
+          onStartReview={() => selectSession('review')}
+          onResume={() => setActiveView('lesson')}
+          onRetry={() => { void progressQuery.refetch(); void gamificationQuery.refetch(); void contentQuery.refetch(); void languageSettingsQuery.refetch(); }}
+        />}
+        {activeView === 'path' && pageSettings.showConversation && <LanguageConversationPanel languageCode={languageCode}/>}
+        {activeView === 'lesson' && <div className="ls-heading ls-lesson-heading">
           <div>
-            <span className="ls-eyebrow">مراجعة وتعلّم</span>
+            <span className="ls-eyebrow">{practiceName}</span>
             <h1>{pageSettings.title}</h1>
-            <p>{pageSettings.subtitle}</p>
+            <p>السؤال {Math.min(index + 1, questionOrder.length)} من {questionOrder.length} · تقدّمك محفوظ لحسابك.</p>
           </div>
             <div className="ls-language-switch">
               <label className="ls-language-select"><span>اللغة</span><select value={languageCode} onChange={event => changeLanguage(event.target.value as SupportedLanguageCode)} aria-label="اختر اللغة" data-testid="select-language">
@@ -802,12 +877,10 @@ export function LanguageStudyPage() {
                 {(['A1', 'A2', 'B1', 'B2'] as const).map(value => <option key={value}>{value}</option>)}
               </select></label>
             </div>
-        </div>
+        </div>}
 
-        {pageSettings.showConversation && <LanguageConversationPanel languageCode={languageCode}/>}
-
-        <div className="ls-main-grid">
-          <section className="ls-workspace" aria-label={`جلسة تعلّم ${languageName}`}>
+        <div className={`ls-main-grid ${activeView === 'path' ? 'is-journey' : 'is-exercise'}`}>
+          <section className="ls-workspace" hidden={activeView === 'path'} aria-label={`جلسة تعلّم ${languageName}`}>
             {(progressQuery.isLoading || gamificationQuery.isLoading || contentQuery.isLoading) && <div aria-label="جارٍ تحميل الدرس"><div className="ls-skeleton" /><div className="ls-skeleton" /><div className="ls-skeleton" /></div>}
             {(progressQuery.isError || gamificationQuery.isError || contentQuery.isError || languageSettingsQuery.isError) && (
               <div className="ls-state" role="alert">
@@ -866,6 +939,9 @@ export function LanguageStudyPage() {
                     <button className={sessionKind === 'lesson' && practiceMode === 'speaking' ? 'is-active' : ''} disabled={gamificationQuery.data?.profile.hearts === 0} onClick={() => selectSession('lesson', 'speaking')} data-testid="button-select-speaking">
                       تدرّب على النطق <small>قل الكلمات والعبارات</small>
                     </button>
+                    <button className={sessionKind === 'lesson' && practiceMode === 'matching' ? 'is-active' : ''} disabled={gamificationQuery.data?.profile.hearts === 0} onClick={() => selectSession('lesson', 'matching')} data-testid="button-select-matching">
+                      وصّل الكلمات <small>اربط المعنى بالترجمة</small>
+                    </button>
                     <button className={sessionKind === 'review' ? 'is-active' : ''} disabled={dueReviewCount < 10} onClick={() => selectSession('review')} data-testid="button-select-review">
                       مراجعة مستحقة <small>{dueReviewCount} عناصر</small>
                     </button>
@@ -876,15 +952,15 @@ export function LanguageStudyPage() {
                   </div>
                   <div className="ls-progress-track" aria-label={`التقدم ${Math.round(((index + 1) / questionOrder.length) * 100)}%`}><span style={{ width: `${((index + 1) / questionOrder.length) * 100}%` }} /></div>
                   <div className="ls-question" key={`${question.item.id}-${question.mode}`}>
-                    <div className="ls-q-meta"><span className="ls-mode-tag">{modeName[question.mode]}</span><span>{question.item.kind === 'word' ? question.item.category : 'عبارة قصيرة'}</span></div>
+                    <div className="ls-q-meta"><span className="ls-mode-tag">{practiceMode === 'matching' ? 'توصيل الكلمات' : modeName[question.mode]}</span><span>{question.item.kind === 'word' ? question.item.category : 'عبارة قصيرة'}</span></div>
                     <h2 className="ls-prompt" dir={question.mode === 'pronunciation' ? 'ltr' : 'rtl'}>
                       {question.mode === 'pronunciation'
                         ? question.item.english
                         : question.mode === 'listening'
                           ? question.item.kind === 'word' ? 'ما معنى الكلمة التي سمعتها؟' : 'ما معنى العبارة التي سمعتها؟'
-                          : question.item.arabic}
+                          : practiceMode === 'matching' ? 'وصّل المعنى بالترجمة الصحيحة' : question.item.arabic}
                     </h2>
-                    <p className="ls-instruction">{modeHint[question.mode]}</p>
+                    <p className="ls-instruction">{practiceMode === 'matching' ? 'اختر الكلمة الإنجليزية المطابقة للمعنى العربي.' : modeHint[question.mode]}</p>
 
                     {question.mode === 'listening' && <div className="ls-audio-practice" data-testid="listening-practice">
                       <div className="ls-audio-practice-copy"><Headphones size={18}/><div><b>استمع إلى {languageName}</b><span>يمكنك إعادة الصوت أو إبطاؤه. لا نحتاج إلى تسجيل صوتك.</span></div></div>
@@ -899,7 +975,23 @@ export function LanguageStudyPage() {
                       {recognitionStatus && <p className="ls-speech-hint" role="status">{recognitionStatus}</p>}
                     </div>}
 
-                    {question.mode === 'choice' && (
+                    {question.mode === 'choice' && practiceMode === 'matching' && (
+                      <div className="ls-match-exercise" role="group" aria-label="وصّل المعنى بالترجمة">
+                        <div className="ls-match-meaning"><span>المعنى بالعربية</span><strong>{question.item.arabic}</strong></div>
+                        <div className="ls-match-divider" aria-hidden="true"><ArrowLeft size={18}/></div>
+                        <div className="ls-match-options">
+                          {options.map((option, optionIndex) => {
+                            const selected = choice === option;
+                            const correctOption = option === question.item.english;
+                            const state = checked ? correctOption ? 'correct' : selected ? 'wrong' : '' : selected ? 'selected' : '';
+                            return <button key={option} className={`ls-match-option ${state}`} data-testid={`matching-option-${optionIndex}`} disabled={checked} onClick={() => setChoice(option)}>
+                              <span dir="ltr">{option}</span><ChevronLeft size={15}/>
+                            </button>;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {question.mode === 'choice' && practiceMode !== 'matching' && (
                       <div className="ls-options" role="group" aria-label="خيارات المعنى">
                         {options.map((option, optionIndex) => {
                           const selected = choice === option;

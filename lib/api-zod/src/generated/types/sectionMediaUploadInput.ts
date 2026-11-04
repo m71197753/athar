@@ -16,4 +16,6 @@ export interface SectionMediaUploadInput {
   mime: SectionMediaUploadInputMime;
   /** @minimum 1 */
   size: number;
+  /** Request a resumable direct-to-storage upload session */
+  resumable?: boolean;
 }

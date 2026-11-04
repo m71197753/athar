@@ -4,8 +4,19 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 
+const coursePositionModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../src/lib/course-position.ts", import.meta.url), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { module: coursePositionModule, exports: coursePositionModule.exports });
+
 const tables = {
   academyProgressTable: {},
+  coursePositionsTable: {
+    userId: "coursePositions.userId",
+    sectionSlug: "coursePositions.sectionSlug",
+    courseId: "coursePositions.courseId",
+    lessonId: "coursePositions.lessonId",
+  },
   learningItemsTable: {
     userId: "learning.userId",
     sectionCourseId: "learning.sectionCourseId",
@@ -39,6 +50,7 @@ function conditionMatches(row, condition) {
 function createHarness() {
   const rows = new Map([
     [tables.learningItemsTable, []],
+    [tables.coursePositionsTable, []],
     [tables.sectionMediaProgressTable, []],
     [tables.platformMediaAssetsTable, [{ id: mediaId, status: "ready", mime: "video/mp4" }]],
     [tables.platformSettingsTable, []],
@@ -177,6 +189,7 @@ function createHarness() {
         },
         "../middlewares/requireAuth": { requireAuth() {} },
         "../lib/platform-access": { enabledModules: async () => [] },
+        "../lib/course-position": coursePositionModule.exports,
       };
       assert.ok(name in dependencies, `Unexpected dependency ${name}`);
       return dependencies[name];
