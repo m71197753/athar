@@ -158,7 +158,18 @@ html .office-overline i { background: var(--athar-primary-accent); }
    preview reads them; student document colors are applied inline downstream. */
 html :is(.resume-studio) { --rs-ink:var(--athar-ink); --rs-ink-soft:var(--athar-ink-soft); --rs-muted:var(--athar-muted); --rs-line:var(--athar-line); --rs-paper:var(--athar-paper-raised); --rs-canvas:var(--athar-paper); }
 html :is(.ats-studio) { --ats-ink:var(--athar-ink); --ats-ink-soft:var(--athar-ink-soft); --ats-muted:var(--athar-muted); --ats-line:var(--athar-line); --ats-paper:var(--athar-paper-raised); --ats-canvas:var(--athar-paper); }
-html.dark :is(.resume-studio, .ats-studio) :is(input, textarea, select, button.rs-draft-chip, .rs-icon-button, .rs-edit-link, .rs-appearance-presets button, .ats-secondary, .ats-appearance-presets button):not(:where(.rs-resume-paper *, .ats-paper *)) {
+/* Resume controls intentionally sit on light cards, so keep their text readable
+   even when the surrounding app palette uses a very light heading color. */
+html .resume-studio :is(.rs-draft-shelf, .rs-side-card, .rs-editor-section, .rs-empty-workspace) {
+  --rs-ink: #20243B;
+  --rs-ink-soft: #414861;
+  --rs-muted: #5E6880;
+  --rs-line: #D9DFEB;
+  --rs-paper: #FFFFFF;
+  --rs-canvas: #F7F8FC;
+  color: var(--rs-ink);
+}
+html.dark :is(.resume-studio, .ats-studio) :is(input, textarea, select, .ats-secondary, .ats-appearance-presets button):not(:where(.rs-resume-paper *, .ats-paper *)) {
   color: var(--athar-ink); background-color: var(--athar-sunken); border-color: var(--athar-line);
 }
 

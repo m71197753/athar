@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { analyzeStudentResumeAts, buildStudentResumeText, createStudentResumeContent, scoreStudentResume } from "./resume-document";
+import { getStudentResumeDirection } from "./resume-direction";
 import { downloadStudentResumeDocx } from "./resume-export";
 import { NamedColorPicker } from "../components/NamedColorPicker";
 import {
@@ -95,6 +96,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
   const activeDraft = resumes.find(resume => resume.id === activeId);
   const readiness = useMemo(() => scoreStudentResume(content), [content]);
   const resumeText = useMemo(() => buildStudentResumeText(content), [content]);
+  const resumeDirection = useMemo(() => getStudentResumeDirection(content), [content]);
   const appearance = content.appearance ?? DEFAULT_RESUME_APPEARANCE;
   const resumePaperStyle: CSSProperties & {
     "--resume-page-color": string;
@@ -429,7 +431,7 @@ function ResumeStudio({ profile, achievements, courses }: ResumeStudioProps) {
               <>
                 <section className="rs-paper-wrap" aria-label="معاينة السيرة">
                   <div className="rs-paper-topline"><span className="rs-live-dot" /><span>معاينة مباشرة</span><span className="rs-paper-date" data-testid="text-resume-updated">{activeDraft ? `آخر حفظ ${formatDate(activeDraft.updatedAt)}` : "مسودة جديدة"}</span></div>
-                  <article className={`rs-resume-paper rs-template-${template} rs-customized`} dir="rtl" style={resumePaperStyle} data-testid="section-resume-preview">
+                  <article className={`rs-resume-paper rs-template-${template} rs-customized`} dir={resumeDirection} style={resumePaperStyle} data-testid="section-resume-preview">
                     {template === "professional" && <div className="rs-paper-accent" aria-hidden="true" />}
                     <header className="rs-identity">
                       <div className="rs-identity-copy"><span className="rs-document-label">السيرة الذاتية</span>

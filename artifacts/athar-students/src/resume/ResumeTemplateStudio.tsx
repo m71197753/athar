@@ -13,6 +13,7 @@ import {
   ArrowDownToLine,
 } from "lucide-react";
 import { downloadStudentResumeDocx } from "./resume-export";
+import { getStudentResumeDirection } from "./resume-direction";
 import { scoreStudentResume } from "./resume-document";
 import { NamedColorPicker } from "../components/NamedColorPicker";
 import {
@@ -133,6 +134,7 @@ export default function ResumeTemplateStudio() {
 
   const activeDraft = manualResumes.find(resume => resume.id === activeId);
   const readiness = useMemo(() => scoreStudentResume(content), [content]);
+  const resumeDirection = useMemo(() => getStudentResumeDirection(content), [content]);
   const selectedInlineStyle = inlineSelection
     ? getResumeInlineStyleForSelection(content.inlineStyles ?? [], inlineSelection.field, inlineSelection.start, inlineSelection.end)
     : {};
@@ -626,7 +628,7 @@ export default function ResumeTemplateStudio() {
       "--resume-font-size": `${appearance.fontSize ?? 11}pt`,
     };
     return (
-      <article className={`ats-paper ats-${template} ats-customized`} dir={template === "ats" ? "auto" : "rtl"} style={paperStyle} data-testid="section-resume-preview">
+      <article className={`ats-paper ats-${template} ats-customized`} dir={resumeDirection} style={paperStyle} data-testid="section-resume-preview">
         <header className="ats-paper-header">
           <div className="ats-paper-identity">
             {template !== "ats" && <span className="ats-doc-label">السيرة الذاتية</span>}

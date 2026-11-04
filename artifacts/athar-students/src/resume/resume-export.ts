@@ -1,6 +1,7 @@
 import type { ResumeData } from "./resume-ats";
 import type { StudentResumeContent, StudentResumeTemplate } from "@workspace/api-client-react";
 import { DEFAULT_RESUME_APPEARANCE } from "./resume-appearance.ts";
+import { getStudentResumeDirection } from "./resume-direction.ts";
 import { getResumeTextSegments } from "./resume-inline-formatting.ts";
 import type { Paragraph as ParagraphType } from "docx";
 
@@ -120,7 +121,7 @@ export async function downloadStudentResumeDocx(
   const accentColor = appearance.accentColor.replace("#", "").toUpperCase();
   const pageColor = appearance.pageColor.replace("#", "").toUpperCase();
   const inlineStyles = content.inlineStyles ?? [];
-  const rightToLeft = template !== "ats" || /[\u0600-\u06ff]/.test(JSON.stringify(content));
+  const rightToLeft = getStudentResumeDirection(content) === "rtl";
   const alignment = rightToLeft ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const headingLabel = (arabic: string, english: string) => template === "ats" ? `${english} | ${arabic}` : arabic;
   type ParagraphOptions = { bold?: boolean; color?: string; size?: number };

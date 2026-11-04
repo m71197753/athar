@@ -7,6 +7,7 @@ import { arSA } from '@clerk/localizations';
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from './components/theme-toggle';
 import { RequiredMark } from './components/RequiredMark';
+import { getResumeDirectionFromText } from './resume/resume-direction';
 const AdminPage = lazy(() => import('./admin/AdminPage'));
 const PublishedContent = lazy(() => import('./admin/AdminPage').then(module => ({ default: module.PublishedContent })));
 const PrivacyPage = lazy(() => import('./privacy/PrivacyPage'));
@@ -1009,9 +1010,15 @@ function PublicResumePage() {
   if (result.isError || !result.data) return <main className="public-resume-page" dir="rtl"><div className="public-resume-unavailable"><Brand/><span className="section-kicker">رابط غير متاح</span><h1>تعذّر عرض هذا الملف المهني</h1><p>قد يكون الرابط متوقفاً أو غير صحيح. اطلب من صاحب الملف رابطاً محدثاً.</p></div></main>;
   const resume = result.data;
   const identityItems = [resume.headline, resume.university, resume.major, resume.yearOfStudy ? `السنة ${resume.yearOfStudy}` : null].filter(Boolean);
-  return <main className="public-resume-page" dir="rtl">
+  const resumeDirection = getResumeDirectionFromText([
+    resume.fullName, resume.headline, resume.university, resume.major,
+    ...resume.skills,
+    ...resume.achievements.flatMap(item => [item.title, item.resumeBullet]),
+    ...resume.courses.flatMap(item => [item.title, item.source, item.subject]),
+  ]);
+  return <main className="public-resume-page" dir={resumeDirection}>
     <header className="public-resume-top"><Brand/><div className="public-resume-actions"><ThemeToggle/><button className="button button-outline button-compact" type="button" onClick={() => window.print()}><Download size={15}/> طباعة</button></div></header>
-    <article className="resume-paper public-resume-paper">
+    <article className="resume-paper public-resume-paper" dir={resumeDirection}>
       <div className="resume-paper-top"><span>أثر / ملف مهني</span><span className="resume-date">{new Date().toLocaleDateString('ar', { year: 'numeric', month: 'long' })}</span></div>
       {(resume.fullName || identityItems.length > 0) && <header className="resume-identity"><div className="resume-avatar">{resume.fullName?.slice(0, 1) || 'أ'}</div><div>{resume.fullName && <h1>{resume.fullName}</h1>}{identityItems.map((item, index) => <p className="public-identity-detail" key={`${item}-${index}`}>{item}</p>)}</div></header>}
       {resume.skills.length > 0 && <section className="resume-section"><div className="resume-section-title"><span>٠١</span><h2>المهارات</h2></div><div className="resume-skills">{resume.skills.map(skill => <span key={skill}>{skill}</span>)}</div></section>}
