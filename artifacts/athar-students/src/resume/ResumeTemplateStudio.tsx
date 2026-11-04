@@ -12,6 +12,7 @@ import {
   AlertCircle, Bold, Check, FileText, Italic, Layers2, LoaderCircle, Plus, Printer, Save, Trash2, Underline, X,
   ArrowDownToLine,
 } from "lucide-react";
+import { ThemeToggle } from "../components/theme-toggle";
 import { downloadStudentResumeDocx } from "./resume-export";
 import { getStudentResumeDirection } from "./resume-direction";
 import { scoreStudentResume } from "./resume-document";
@@ -680,14 +681,17 @@ export default function ResumeTemplateStudio() {
           <h1>اختر تصميمك، واكتب سيرتك</h1>
           <p>مساحة مستقلة تكتب فيها كل تفصيل بنفسك. لا تُضاف بيانات تلقائياً ولا تُشارك السيرة.</p>
         </div>
-        {activeId && <div className="ats-toolbar" aria-label="خيارات التصدير">
-          <button type="button" className="ats-button ats-secondary" onClick={() => window.print()} data-testid="button-template-print">
-            <Printer size={16} /><span>طباعة أو PDF</span>
-          </button>
-          <button type="button" className="ats-button ats-primary" onClick={exportWord} data-testid="button-template-word">
-            <ArrowDownToLine size={16} /><span>تنزيل Word</span>
-          </button>
-        </div>}
+        <div className="ats-toolbar" aria-label="أدوات السيرة والمظهر">
+          <ThemeToggle dataTestId="button-resume-theme-toggle" />
+          {activeId && <>
+            <button type="button" className="ats-button ats-secondary" onClick={() => window.print()} data-testid="button-template-print">
+              <Printer size={16} /><span>طباعة أو PDF</span>
+            </button>
+            <button type="button" className="ats-button ats-primary" onClick={exportWord} data-testid="button-template-word">
+              <ArrowDownToLine size={16} /><span>تنزيل Word</span>
+            </button>
+          </>}
+        </div>
       </header>
 
       <section className="ats-shelf ats-studio-tools" aria-label="مسودات السيرة الخاصة">
