@@ -2,9 +2,9 @@
 
 ![شعار Replit](artifacts/athar-investor-presentation/src/assets/brand/replit-mark.png)
 
-**المُنشئ:** محمد الجرايحي محمد الإمام
+Mohammed Al-Jaraihi Mohammed Al-Imam
 
-**مشرف المشروع:** طه محمود نور الدين
+*مشرف المشروع: Taha Mahmoud Nour El-Din
 
 **بيئة التطوير:** Replit — Vibe Coding
 
